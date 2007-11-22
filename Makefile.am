@@ -1,0 +1,6 @@
+
+SUBDIRS = src man
+
+EXTRA_DIST = @PACKAGE@.spec
+
+DISTCLEAN_FILES = @PACKAGE@.spec
