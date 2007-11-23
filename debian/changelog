@@ -1,6 +1,6 @@
 virt-viewer (0.0.2-1) unstable; urgency=low
 
-  * Initial release
+  * Initial release (Closes: #452514)
 
  -- Guido Guenther <agx@sigxcpu.org>  Fri, 23 Nov 2007 00:20:13 +0100
 
