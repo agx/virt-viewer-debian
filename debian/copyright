@@ -1,0 +1,21 @@
+This package was debianized by Guido Guenther <agx@sigxcpu.org> on
+Fri, 23 Nov 2007 00:20:13 +0100.
+
+It was downloaded from http://virt-manager.et.redhat.com/download.html
+
+Upstream Author(s): 
+  
+   Daniel P. Berrange <berrange@redhat.com>
+
+Copyright: 
+
+   Daniel P. Berrange <berrange@redhat.com>
+
+License:
+
+    You are free to distribute this software under the terms of the GNU General
+    Public License Version 2. The full text of this license can be found in the
+    file /usr/share/common-licenses/GPL-2
+
+The Debian packaging is (C) 2007, Guido Guenther <agx@sigxcpu.org> and
+is licensed under the GPL, see `/usr/share/common-licenses/GPL'.

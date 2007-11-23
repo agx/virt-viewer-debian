@@ -1,0 +1,17 @@
+Source: virt-viewer
+Section: admin
+Priority: extra
+Maintainer: Guido Guenther <agx@sigxcpu.org>
+Build-Depends: cdbs, debhelper (>= 5), autotools-dev, libvirt-dev, libgtk-vnc-1.0-dev
+Standards-Version: 3.7.2
+
+Package: virt-viewer
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Displaying the graphical console of a virtual machine
+ The console is accessed using the VNC protocol. The guest can be referred to
+ based on its name, ID, or UUID. If the guest is not already running, then the
+ viewer can be told to wait until is starts before attempting to connect to the
+ console The viewer can connect to remote hosts to lookup the console
+ information and then also connect to the remote console using the same network
+ transport.
