@@ -2,12 +2,13 @@ Source: virt-viewer
 Section: admin
 Priority: extra
 Maintainer: Guido Guenther <agx@sigxcpu.org>
-Build-Depends: cdbs, debhelper (>= 5), autotools-dev, libvirt-dev, libgtk-vnc-1.0-dev
+Build-Depends: cdbs, debhelper (>= 5), autotools-dev, libvirt-dev, libgtk-vnc-1.0-dev, libxml2-dev, libgtk2.0-dev
 Standards-Version: 3.7.2
 
 Package: virt-viewer
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
+Suggests: netcat
 Description: Displaying the graphical console of a virtual machine
  The console is accessed using the VNC protocol. The guest can be referred to
  based on its name, ID, or UUID. If the guest is not already running, then the
