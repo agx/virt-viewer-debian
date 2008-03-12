@@ -32,8 +32,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-bin_PROGRAMS = virt-viewer$(EXEEXT)
-subdir = src
+subdir = plugin
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/acinclude.m4 \
@@ -43,15 +42,30 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
-am__installdirs = "$(DESTDIR)$(bindir)"
-binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
-PROGRAMS = $(bin_PROGRAMS)
-am_virt_viewer_OBJECTS = virt_viewer-main.$(OBJEXT)
-virt_viewer_OBJECTS = $(am_virt_viewer_OBJECTS)
-virt_viewer_DEPENDENCIES =
-virt_viewer_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(virt_viewer_CFLAGS) \
-	$(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
+am__vpath_adj = case $$p in \
+    $(srcdir)/*) f=`echo "$$p" | sed "s|^$$srcdirstrip/||"`;; \
+    *) f=$$p;; \
+  esac;
+am__strip_dir = `echo $$p | sed -e 's|^.*/||'`;
+am__installdirs = "$(DESTDIR)$(plugindir)"
+pluginLTLIBRARIES_INSTALL = $(INSTALL)
+LTLIBRARIES = $(plugin_LTLIBRARIES)
+virt_viewer_plugin_la_DEPENDENCIES =
+am__virt_viewer_plugin_la_SOURCES_DIST = ../src/main.c ../src/viewer.h \
+	virt-viewer-plugin.c virt-viewer-plugin.h npshell.c npunix.c
+@ENABLE_PLUGIN_TRUE@am_virt_viewer_plugin_la_OBJECTS =  \
+@ENABLE_PLUGIN_TRUE@	virt_viewer_plugin_la-main.lo \
+@ENABLE_PLUGIN_TRUE@	virt_viewer_plugin_la-virt-viewer-plugin.lo \
+@ENABLE_PLUGIN_TRUE@	virt_viewer_plugin_la-npshell.lo \
+@ENABLE_PLUGIN_TRUE@	virt_viewer_plugin_la-npunix.lo
+virt_viewer_plugin_la_OBJECTS = $(am_virt_viewer_plugin_la_OBJECTS)
+virt_viewer_plugin_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(virt_viewer_plugin_la_CFLAGS) $(CFLAGS) \
+	$(virt_viewer_plugin_la_LDFLAGS) $(LDFLAGS) -o $@
+@ENABLE_PLUGIN_TRUE@am_virt_viewer_plugin_la_rpath = -rpath \
+@ENABLE_PLUGIN_TRUE@	$(plugindir)
 DEFAULT_INCLUDES = -I. -I$(top_builddir)@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -64,8 +78,8 @@ CCLD = $(CC)
 LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-SOURCES = $(virt_viewer_SOURCES)
-DIST_SOURCES = $(virt_viewer_SOURCES)
+SOURCES = $(virt_viewer_plugin_la_SOURCES)
+DIST_SOURCES = $(am__virt_viewer_plugin_la_SOURCES_DIST)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -191,9 +205,28 @@ sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-virt_viewer_SOURCES = main.c viewer.h
-virt_viewer_LDADD = @GTKVNC_LIBS@ @GTK2_LIBS@ @LIBXML2_LIBS@ @LIBVIRT_LIBS@
-virt_viewer_CFLAGS = @GTKVNC_CFLAGS@ @GTK2_CFLAGS@ @LIBXML2_CFLAGS@ @LIBVIRT_CFLAGS@ @WARN_CFLAGS@
+@ENABLE_PLUGIN_TRUE@plugindir = $(libdir)/mozilla/plugins
+@ENABLE_PLUGIN_TRUE@plugin_LTLIBRARIES = virt-viewer-plugin.la
+@ENABLE_PLUGIN_TRUE@virt_viewer_plugin_la_SOURCES = \
+@ENABLE_PLUGIN_TRUE@	../src/main.c ../src/viewer.h \
+@ENABLE_PLUGIN_TRUE@	virt-viewer-plugin.c virt-viewer-plugin.h \
+@ENABLE_PLUGIN_TRUE@	npshell.c npunix.c
+
+@ENABLE_PLUGIN_TRUE@virt_viewer_plugin_la_LIBADD = \
+@ENABLE_PLUGIN_TRUE@	@FIREFOX_PLUGIN_LIBS@ \
+@ENABLE_PLUGIN_TRUE@	@GTKVNC_LIBS@ @GTK2_LIBS@ @LIBXML2_LIBS@ @LIBVIRT_LIBS@
+
+@ENABLE_PLUGIN_TRUE@virt_viewer_plugin_la_LDFLAGS = \
+@ENABLE_PLUGIN_TRUE@	-module -avoid-version
+
+@ENABLE_PLUGIN_TRUE@virt_viewer_plugin_la_CFLAGS = \
+@ENABLE_PLUGIN_TRUE@	-DPLUGIN=1 -DENABLE_DEBUG=1 -DDEBUG=1 \
+@ENABLE_PLUGIN_TRUE@	@FIREFOX_PLUGIN_CFLAGS@ \
+@ENABLE_PLUGIN_TRUE@	@GTKVNC_CFLAGS@ @GTK2_CFLAGS@ @LIBXML2_CFLAGS@ @LIBVIRT_CFLAGS@ \
+@ENABLE_PLUGIN_TRUE@	@WARN_CFLAGS@ \
+@ENABLE_PLUGIN_TRUE@	-I$(top_srcdir)/src
+
+@ENABLE_PLUGIN_TRUE@CLEANFILES = virt-viewer-plugin.so
 all: all-am
 
 .SUFFIXES:
@@ -207,9 +240,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  src/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  plugin/Makefile'; \
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu  src/Makefile
+	  $(AUTOMAKE) --gnu  plugin/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -227,37 +260,35 @@ $(top_srcdir)/configure:  $(am__configure_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
-install-binPROGRAMS: $(bin_PROGRAMS)
+install-pluginLTLIBRARIES: $(plugin_LTLIBRARIES)
 	@$(NORMAL_INSTALL)
-	test -z "$(bindir)" || $(MKDIR_P) "$(DESTDIR)$(bindir)"
-	@list='$(bin_PROGRAMS)'; for p in $$list; do \
-	  p1=`echo $$p|sed 's/$(EXEEXT)$$//'`; \
-	  if test -f $$p \
-	     || test -f $$p1 \
-	  ; then \
-	    f=`echo "$$p1" | sed 's,^.*/,,;$(transform);s/$$/$(EXEEXT)/'`; \
-	   echo " $(INSTALL_PROGRAM_ENV) $(LIBTOOL) --mode=install $(binPROGRAMS_INSTALL) '$$p' '$(DESTDIR)$(bindir)/$$f'"; \
-	   $(INSTALL_PROGRAM_ENV) $(LIBTOOL) --mode=install $(binPROGRAMS_INSTALL) "$$p" "$(DESTDIR)$(bindir)/$$f" || exit 1; \
+	test -z "$(plugindir)" || $(MKDIR_P) "$(DESTDIR)$(plugindir)"
+	@list='$(plugin_LTLIBRARIES)'; for p in $$list; do \
+	  if test -f $$p; then \
+	    f=$(am__strip_dir) \
+	    echo " $(LIBTOOL) --mode=install $(pluginLTLIBRARIES_INSTALL) $(INSTALL_STRIP_FLAG) '$$p' '$(DESTDIR)$(plugindir)/$$f'"; \
+	    $(LIBTOOL) --mode=install $(pluginLTLIBRARIES_INSTALL) $(INSTALL_STRIP_FLAG) "$$p" "$(DESTDIR)$(plugindir)/$$f"; \
 	  else :; fi; \
 	done
 
-uninstall-binPROGRAMS:
+uninstall-pluginLTLIBRARIES:
 	@$(NORMAL_UNINSTALL)
-	@list='$(bin_PROGRAMS)'; for p in $$list; do \
-	  f=`echo "$$p" | sed 's,^.*/,,;s/$(EXEEXT)$$//;$(transform);s/$$/$(EXEEXT)/'`; \
-	  echo " rm -f '$(DESTDIR)$(bindir)/$$f'"; \
-	  rm -f "$(DESTDIR)$(bindir)/$$f"; \
+	@list='$(plugin_LTLIBRARIES)'; for p in $$list; do \
+	  p=$(am__strip_dir) \
+	  echo " $(LIBTOOL) --mode=uninstall rm -f '$(DESTDIR)$(plugindir)/$$p'"; \
+	  $(LIBTOOL) --mode=uninstall rm -f "$(DESTDIR)$(plugindir)/$$p"; \
 	done
 
-clean-binPROGRAMS:
-	@list='$(bin_PROGRAMS)'; for p in $$list; do \
-	  f=`echo $$p|sed 's/$(EXEEXT)$$//'`; \
-	  echo " rm -f $$p $$f"; \
-	  rm -f $$p $$f ; \
+clean-pluginLTLIBRARIES:
+	-test -z "$(plugin_LTLIBRARIES)" || rm -f $(plugin_LTLIBRARIES)
+	@list='$(plugin_LTLIBRARIES)'; for p in $$list; do \
+	  dir="`echo $$p | sed -e 's|/[^/]*$$||'`"; \
+	  test "$$dir" != "$$p" || dir=.; \
+	  echo "rm -f \"$${dir}/so_locations\""; \
+	  rm -f "$${dir}/so_locations"; \
 	done
-virt-viewer$(EXEEXT): $(virt_viewer_OBJECTS) $(virt_viewer_DEPENDENCIES) 
-	@rm -f virt-viewer$(EXEEXT)
-	$(virt_viewer_LINK) $(virt_viewer_OBJECTS) $(virt_viewer_LDADD) $(LIBS)
+virt-viewer-plugin.la: $(virt_viewer_plugin_la_OBJECTS) $(virt_viewer_plugin_la_DEPENDENCIES) 
+	$(virt_viewer_plugin_la_LINK) $(am_virt_viewer_plugin_la_rpath) $(virt_viewer_plugin_la_OBJECTS) $(virt_viewer_plugin_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -265,7 +296,10 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/virt_viewer-main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/virt_viewer_plugin_la-main.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/virt_viewer_plugin_la-npshell.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/virt_viewer_plugin_la-npunix.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/virt_viewer_plugin_la-virt-viewer-plugin.Plo@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -288,19 +322,33 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<
 
-virt_viewer-main.o: main.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-main.o -MD -MP -MF $(DEPDIR)/virt_viewer-main.Tpo -c -o virt_viewer-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/virt_viewer-main.Tpo $(DEPDIR)/virt_viewer-main.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='main.c' object='virt_viewer-main.o' libtool=no @AMDEPBACKSLASH@
+virt_viewer_plugin_la-main.lo: ../src/main.c
+@am__fastdepCC_TRUE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_plugin_la_CFLAGS) $(CFLAGS) -MT virt_viewer_plugin_la-main.lo -MD -MP -MF $(DEPDIR)/virt_viewer_plugin_la-main.Tpo -c -o virt_viewer_plugin_la-main.lo `test -f '../src/main.c' || echo '$(srcdir)/'`../src/main.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/virt_viewer_plugin_la-main.Tpo $(DEPDIR)/virt_viewer_plugin_la-main.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='../src/main.c' object='virt_viewer_plugin_la-main.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_plugin_la_CFLAGS) $(CFLAGS) -c -o virt_viewer_plugin_la-main.lo `test -f '../src/main.c' || echo '$(srcdir)/'`../src/main.c
 
-virt_viewer-main.obj: main.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-main.obj -MD -MP -MF $(DEPDIR)/virt_viewer-main.Tpo -c -o virt_viewer-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/virt_viewer-main.Tpo $(DEPDIR)/virt_viewer-main.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='main.c' object='virt_viewer-main.obj' libtool=no @AMDEPBACKSLASH@
+virt_viewer_plugin_la-virt-viewer-plugin.lo: virt-viewer-plugin.c
+@am__fastdepCC_TRUE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_plugin_la_CFLAGS) $(CFLAGS) -MT virt_viewer_plugin_la-virt-viewer-plugin.lo -MD -MP -MF $(DEPDIR)/virt_viewer_plugin_la-virt-viewer-plugin.Tpo -c -o virt_viewer_plugin_la-virt-viewer-plugin.lo `test -f 'virt-viewer-plugin.c' || echo '$(srcdir)/'`virt-viewer-plugin.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/virt_viewer_plugin_la-virt-viewer-plugin.Tpo $(DEPDIR)/virt_viewer_plugin_la-virt-viewer-plugin.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='virt-viewer-plugin.c' object='virt_viewer_plugin_la-virt-viewer-plugin.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_plugin_la_CFLAGS) $(CFLAGS) -c -o virt_viewer_plugin_la-virt-viewer-plugin.lo `test -f 'virt-viewer-plugin.c' || echo '$(srcdir)/'`virt-viewer-plugin.c
+
+virt_viewer_plugin_la-npshell.lo: npshell.c
+@am__fastdepCC_TRUE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_plugin_la_CFLAGS) $(CFLAGS) -MT virt_viewer_plugin_la-npshell.lo -MD -MP -MF $(DEPDIR)/virt_viewer_plugin_la-npshell.Tpo -c -o virt_viewer_plugin_la-npshell.lo `test -f 'npshell.c' || echo '$(srcdir)/'`npshell.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/virt_viewer_plugin_la-npshell.Tpo $(DEPDIR)/virt_viewer_plugin_la-npshell.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='npshell.c' object='virt_viewer_plugin_la-npshell.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_plugin_la_CFLAGS) $(CFLAGS) -c -o virt_viewer_plugin_la-npshell.lo `test -f 'npshell.c' || echo '$(srcdir)/'`npshell.c
+
+virt_viewer_plugin_la-npunix.lo: npunix.c
+@am__fastdepCC_TRUE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_plugin_la_CFLAGS) $(CFLAGS) -MT virt_viewer_plugin_la-npunix.lo -MD -MP -MF $(DEPDIR)/virt_viewer_plugin_la-npunix.Tpo -c -o virt_viewer_plugin_la-npunix.lo `test -f 'npunix.c' || echo '$(srcdir)/'`npunix.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/virt_viewer_plugin_la-npunix.Tpo $(DEPDIR)/virt_viewer_plugin_la-npunix.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='npunix.c' object='virt_viewer_plugin_la-npunix.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_plugin_la_CFLAGS) $(CFLAGS) -c -o virt_viewer_plugin_la-npunix.lo `test -f 'npunix.c' || echo '$(srcdir)/'`npunix.c
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -384,9 +432,10 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(PROGRAMS)
+@ENABLE_PLUGIN_FALSE@all-local:
+all-am: Makefile $(LTLIBRARIES) all-local
 installdirs:
-	for dir in "$(DESTDIR)$(bindir)"; do \
+	for dir in "$(DESTDIR)$(plugindir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -406,6 +455,7 @@ install-strip:
 mostlyclean-generic:
 
 clean-generic:
+	-test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
 
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
@@ -413,9 +463,11 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
+@ENABLE_PLUGIN_FALSE@install-data-hook:
 clean: clean-am
 
-clean-am: clean-binPROGRAMS clean-generic clean-libtool mostlyclean-am
+clean-am: clean-generic clean-libtool clean-pluginLTLIBRARIES \
+	mostlyclean-am
 
 distclean: distclean-am
 	-rm -rf ./$(DEPDIR)
@@ -433,11 +485,13 @@ info: info-am
 
 info-am:
 
-install-data-am:
+install-data-am: install-pluginLTLIBRARIES
+	@$(NORMAL_INSTALL)
+	$(MAKE) $(AM_MAKEFLAGS) install-data-hook
 
 install-dvi: install-dvi-am
 
-install-exec-am: install-binPROGRAMS
+install-exec-am:
 
 install-html: install-html-am
 
@@ -469,24 +523,34 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-binPROGRAMS
+uninstall-am: uninstall-pluginLTLIBRARIES
 
-.MAKE: install-am install-strip
+.MAKE: install-am install-data-am install-strip
 
-.PHONY: CTAGS GTAGS all all-am check check-am clean clean-binPROGRAMS \
-	clean-generic clean-libtool ctags distclean distclean-compile \
-	distclean-generic distclean-libtool distclean-tags distdir dvi \
-	dvi-am html html-am info info-am install install-am \
-	install-binPROGRAMS install-data install-data-am install-dvi \
-	install-dvi-am install-exec install-exec-am install-html \
-	install-html-am install-info install-info-am install-man \
-	install-pdf install-pdf-am install-ps install-ps-am \
-	install-strip installcheck installcheck-am installdirs \
-	maintainer-clean maintainer-clean-generic mostlyclean \
-	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
-	pdf pdf-am ps ps-am tags uninstall uninstall-am \
-	uninstall-binPROGRAMS
+.PHONY: CTAGS GTAGS all all-am all-local check check-am clean \
+	clean-generic clean-libtool clean-pluginLTLIBRARIES ctags \
+	distclean distclean-compile distclean-generic \
+	distclean-libtool distclean-tags distdir dvi dvi-am html \
+	html-am info info-am install install-am install-data \
+	install-data-am install-data-hook install-dvi install-dvi-am \
+	install-exec install-exec-am install-html install-html-am \
+	install-info install-info-am install-man install-pdf \
+	install-pdf-am install-pluginLTLIBRARIES install-ps \
+	install-ps-am install-strip installcheck installcheck-am \
+	installdirs maintainer-clean maintainer-clean-generic \
+	mostlyclean mostlyclean-compile mostlyclean-generic \
+	mostlyclean-libtool pdf pdf-am ps ps-am tags uninstall \
+	uninstall-am uninstall-pluginLTLIBRARIES
 
+
+@ENABLE_PLUGIN_TRUE@all-local: virt-viewer-plugin.so
+
+@ENABLE_PLUGIN_TRUE@virt-viewer-plugin.so: virt-viewer-plugin.la
+@ENABLE_PLUGIN_TRUE@	cp .libs/virt-viewer-plugin.so $@
+
+# Only leave the .so file in the plugins directory.
+@ENABLE_PLUGIN_TRUE@install-data-hook:
+@ENABLE_PLUGIN_TRUE@	rm -f $(plugindir)/virt-viewer-plugin.a $(plugindir)/virt-viewer-plugin.la
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

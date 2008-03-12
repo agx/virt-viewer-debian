@@ -20,7 +20,7 @@
  * Author: Daniel P. Berrange <berrange@redhat.com>
  */
 
-#define _GNU_SOURCE
+#include <config.h>
 
 #include <vncdisplay.h>
 #include <gtk/gtk.h>
@@ -35,6 +35,8 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 
+#include "viewer.h"
+
 // #define DEBUG 1
 #ifdef DEBUG
 #define DEBUG_LOG(s, ...) fprintf(stderr, (s), ## __VA_ARGS__)
@@ -42,6 +44,7 @@
 #define DEBUG_LOG(s, ...) do {} while (0)
 #endif
 
+static char *domname = NULL;
 static int verbose = 0;
 #define MAX_KEY_COMBO 3
 struct  keyComboDef {
@@ -66,10 +69,30 @@ static const struct keyComboDef keyCombos[] = {
 	{ { GDK_Print }, 1, "_PrintScreen"},
 };
 
+enum menuNums {
+	FILE_MENU,
+	VIEW_MENU,
+	SEND_KEY_MENU,
+	HELP_MENU,
+	LAST_MENU // sentinel
+};
 
-static void viewer_set_title(VncDisplay *vnc, GtkWidget *window, gboolean grabbed)
+struct menuItem {
+	guint menu;
+	GtkWidget *label;
+	const char *ungrabbed_text;
+	const char *grabbed_text;
+};
+
+static struct menuItem menuItems[] = {
+	{ FILE_MENU, NULL, "_File", "File" },
+	{ VIEW_MENU, NULL, "_View", "View" },
+	{ SEND_KEY_MENU, NULL, "_Send Key", "Send Key" },
+	{ HELP_MENU, NULL, "_Help", "Help" }
+};
+
+static void viewer_set_title(VncDisplay *vnc G_GNUC_UNUSED, GtkWidget *window, gboolean grabbed)
 {
-	const char *name;
 	char title[1024];
 	const char *subtitle;
 
@@ -78,21 +101,32 @@ static void viewer_set_title(VncDisplay *vnc, GtkWidget *window, gboolean grabbe
 	else
 		subtitle = "";
 
-	name = vnc_display_get_name(VNC_DISPLAY(vnc));
 	snprintf(title, sizeof(title), "%s%s - Virt Viewer",
-		 subtitle, name);
+		 subtitle, domname);
 
 	gtk_window_set_title(GTK_WINDOW(window), title);
 }
 
 static void viewer_grab(GtkWidget *vnc, GtkWidget *window)
 {
+	int i;
+
 	viewer_set_title(VNC_DISPLAY(vnc), window, TRUE);
+
+	for (i = 0 ; i < LAST_MENU; i++) {
+		gtk_label_set_text_with_mnemonic(GTK_LABEL(menuItems[i].label), menuItems[i].grabbed_text);
+	}
 }
 
 static void viewer_ungrab(GtkWidget *vnc, GtkWidget *window)
 {
+	int i;
+
 	viewer_set_title(VNC_DISPLAY(vnc), window, FALSE);
+
+	for (i = 0 ; i < LAST_MENU; i++) {
+		gtk_label_set_text_with_mnemonic(GTK_LABEL(menuItems[i].label), menuItems[i].ungrabbed_text);
+	}
 }
 
 static void viewer_shutdown(GtkWidget *src G_GNUC_UNUSED, void *dummy G_GNUC_UNUSED, GtkWidget *vnc)
@@ -122,6 +156,24 @@ static void viewer_disconnected(GtkWidget *vnc G_GNUC_UNUSED)
 {
 	DEBUG_LOG("Disconnected from server\n");
 	gtk_main_quit();
+}
+
+static void viewer_fullscreen(GtkWidget *menu, GtkWidget *window)
+{
+	if (gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menu))) {
+		gtk_window_fullscreen(GTK_WINDOW(window));
+	} else {
+		gtk_window_unfullscreen(GTK_WINDOW(window));
+	}
+}
+
+static void viewer_scalable(GtkWidget *menu, GtkWidget *vnc)
+{
+	if (gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menu))) {
+		vnc_display_set_scaling(VNC_DISPLAY(vnc), TRUE);
+	} else {
+		vnc_display_set_scaling(VNC_DISPLAY(vnc), FALSE);
+	}
 }
 
 static void viewer_send_key(GtkWidget *menu, GtkWidget *vnc)
@@ -233,6 +285,8 @@ static void viewer_credential(GtkWidget *vnc, GValueArray *credList)
                                 continue;
                         }
                         entry[row] = gtk_entry_new();
+                        if (g_value_get_enum(cred) == VNC_DISPLAY_CREDENTIAL_PASSWORD)
+                                gtk_entry_set_visibility(GTK_ENTRY(entry[row]), FALSE);
 
                         gtk_table_attach(GTK_TABLE(box), label[i], 0, 1, row, row+1, GTK_SHRINK, GTK_SHRINK, 3, 3);
                         gtk_table_attach(GTK_TABLE(box), entry[i], 1, 2, row, row+1, GTK_SHRINK, GTK_SHRINK, 3, 3);
@@ -315,6 +369,28 @@ static void viewer_about(GtkWidget *menu G_GNUC_UNUSED)
 	gtk_widget_destroy(about);
 }
 
+static GtkWidget *menu_item_new(int which_menu)
+{
+	GtkWidget *widget;
+	GtkWidget *label;
+	const char *text;
+
+	text = menuItems[which_menu].ungrabbed_text;
+
+	widget = gtk_menu_item_new();
+	label = g_object_new(GTK_TYPE_ACCEL_LABEL, NULL);
+	gtk_label_set_text_with_mnemonic(GTK_LABEL(label), text);
+	gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
+
+	gtk_container_add(GTK_CONTAINER(widget), label);
+	gtk_accel_label_set_accel_widget(GTK_ACCEL_LABEL(label), widget);
+	gtk_widget_show(label);
+
+	menuItems[which_menu].label = label;
+
+	return widget;
+}
+
 static GtkWidget *viewer_build_file_menu(VncDisplay *vnc)
 {
 	GtkWidget *file;
@@ -322,7 +398,7 @@ static GtkWidget *viewer_build_file_menu(VncDisplay *vnc)
 	GtkWidget *quit;
 	GtkWidget *screenshot;
 
-	file = gtk_menu_item_new_with_mnemonic("_File");
+	file = menu_item_new(FILE_MENU);
 
 	filemenu = gtk_menu_new();
 	gtk_menu_item_set_submenu(GTK_MENU_ITEM(file), filemenu);
@@ -341,13 +417,38 @@ static GtkWidget *viewer_build_file_menu(VncDisplay *vnc)
 	return file;
 }
 
+static GtkWidget *viewer_build_view_menu(VncDisplay *vnc, GtkWidget *window, gboolean composited)
+{
+	GtkWidget *view;
+	GtkWidget *viewmenu;
+	GtkWidget *fullscreen;
+	GtkWidget *scalable;
+
+	view = menu_item_new(VIEW_MENU);
+
+	viewmenu = gtk_menu_new();
+	gtk_menu_item_set_submenu(GTK_MENU_ITEM(view), viewmenu);
+
+	fullscreen = gtk_check_menu_item_new_with_mnemonic("_Fullscreen");
+	gtk_menu_append(GTK_MENU(viewmenu), fullscreen);
+	g_signal_connect(fullscreen, "toggled", GTK_SIGNAL_FUNC(viewer_fullscreen), window);
+
+	scalable = gtk_check_menu_item_new_with_mnemonic("_Scale display");
+	if (!composited)
+		gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(scalable), TRUE);
+	gtk_menu_append(GTK_MENU(viewmenu), scalable);
+	g_signal_connect(scalable, "toggled", GTK_SIGNAL_FUNC(viewer_scalable), vnc);
+
+	return view;
+}
+
 static GtkWidget *viewer_build_sendkey_menu(VncDisplay *vnc)
 {
 	GtkWidget *sendkey;
 	GtkWidget *sendkeymenu;
 	int i;
 
-	sendkey = gtk_menu_item_new_with_mnemonic("_Send Key");
+	sendkey = menu_item_new(SEND_KEY_MENU);
 
 	sendkeymenu = gtk_menu_new();
 	gtk_menu_item_set_submenu(GTK_MENU_ITEM(sendkey), sendkeymenu);
@@ -373,7 +474,7 @@ static GtkWidget *viewer_build_help_menu(void)
 	GtkWidget *helpmenu;
 	GtkWidget *about;
 
-	help = gtk_menu_item_new_with_mnemonic("_Help");
+	help = menu_item_new(HELP_MENU);
 
 	helpmenu = gtk_menu_new();
 	gtk_menu_item_set_submenu(GTK_MENU_ITEM(help), helpmenu);
@@ -385,20 +486,23 @@ static GtkWidget *viewer_build_help_menu(void)
 	return help;
 }
 
-static GtkWidget *viewer_build_menu(VncDisplay *vnc)
+static GtkWidget *viewer_build_menu(VncDisplay *vnc, GtkWidget *window, gboolean composited)
 {
 	GtkWidget *menubar;
 	GtkWidget *file;
+	GtkWidget *view;
 	GtkWidget *sendkey;
 	GtkWidget *help;
 
 	menubar = gtk_menu_bar_new();
 
 	file = viewer_build_file_menu(vnc);
+	view = viewer_build_view_menu(vnc, window, composited);
 	sendkey = viewer_build_sendkey_menu(vnc);
 	help = viewer_build_help_menu();
 
 	gtk_menu_bar_append(GTK_MENU_BAR(menubar), file);
+	gtk_menu_bar_append(GTK_MENU_BAR(menubar), view);
 	gtk_menu_bar_append(GTK_MENU_BAR(menubar), sendkey);
 	gtk_menu_bar_append(GTK_MENU_BAR(menubar), help);
 
@@ -406,20 +510,31 @@ static GtkWidget *viewer_build_menu(VncDisplay *vnc)
 	return menubar;
 }
 
-static GtkWidget *viewer_build_window(VncDisplay *vnc)
+static GtkWidget *viewer_build_window(VncDisplay *vnc,
+				      GtkWidget *(*get_toplevel)(void *),
+				      void *data,
+				      int with_menubar)
 {
 	GtkWidget *window;
 	GtkWidget *menubar;
 	GtkWidget *layout;
 
-	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-	layout = gtk_vbox_new(FALSE, 3);
-	menubar = viewer_build_menu(vnc);
+	/* In the standalone program, calls viewer_get_toplevel above
+	 * to make a window.  In the browser plugin this calls a function
+	 * in the plugin which returns the GtkPlug that we live inside.
+	 * In both cases they are GTK_CONTAINERs and NOT resizable.
+	 */
+	window = get_toplevel (data);
+	gtk_window_set_resizable(GTK_WINDOW(window), TRUE);
 
-	gtk_container_add(GTK_CONTAINER(window), layout);
-	gtk_container_add(GTK_CONTAINER(layout), menubar);
-	gtk_container_add(GTK_CONTAINER(layout), GTK_WIDGET(vnc));
-	gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
+	if (with_menubar) {
+		layout = gtk_vbox_new(FALSE, 3);
+		menubar = viewer_build_menu(vnc, window, gtk_widget_is_composited(window));
+		gtk_container_add(GTK_CONTAINER(window), layout);
+		gtk_container_add_with_properties(GTK_CONTAINER(layout), menubar, "expand", FALSE, NULL);
+		gtk_container_add_with_properties(GTK_CONTAINER(layout), GTK_WIDGET(vnc), "expand", TRUE, NULL);
+	} else
+		gtk_container_add(GTK_CONTAINER(window), GTK_WIDGET(vnc));
 
 	gtk_signal_connect(GTK_OBJECT(vnc), "vnc-pointer-grab",
 			   GTK_SIGNAL_FUNC(viewer_grab), window);
@@ -440,29 +555,6 @@ static GtkWidget *viewer_build_window(VncDisplay *vnc)
 			 GTK_SIGNAL_FUNC(viewer_credential), NULL);
 
 	return window;
-}
-
-
-static void viewer_version(FILE *out)
-{
-	fprintf(out, "%s version %s\n", PACKAGE, VERSION);
-}
-
-static void viewer_help(FILE *out, const char *app)
-{
-	fprintf(out, "\n");
-	fprintf(out, "syntax: %s [OPTIONS] DOMAIN-NAME|ID|UUID\n", app);
-	fprintf(out, "\n");
-	viewer_version(out);
-	fprintf(out, "\n");
-	fprintf(out, "Options:");
-	fprintf(out, "  -h, --help              display command line help\n");
-	fprintf(out, "  -v, --verbose           display verbose information\n");
-	fprintf(out, "  -V, --version           display verion informaton\n");
-	fprintf(out, "  -d, --direct            direct connection with no automatic tunnels\n");
-	fprintf(out, "  -c URI, --connect URI   connect to hypervisor URI\n");
-	fprintf(out, "  -w, --wait              wait for domain to start\n");
-	fprintf(out, "\n");
 }
 
 static int viewer_parse_uuid(const char *name, unsigned char *uuid)
@@ -683,12 +775,124 @@ static int viewer_open_tunnel_ssh(const char *sshhost, int sshport, const char *
 	return viewer_open_tunnel(cmd);
 }
 
-
-int main(int argc, char **argv)
+int
+viewer_start (const char *uri, const char *name,
+	      int direct, int waitvnc, int set_verbose,
+	      GtkWidget *(*get_toplevel)(void *), void *data,
+	      int with_menubar)
 {
 	GtkWidget *window;
 	GtkWidget *vnc;
+	virConnectPtr conn = NULL;
+	virDomainPtr dom = NULL;
+	char *host = NULL;
+	char *vncport = NULL;
+	char *transport = NULL;
+	char *user = NULL;
+	const char *tmpname = NULL;
+	int port = 0;
+	int fd = -1;
+
+	verbose = set_verbose;
+
+	conn = virConnectOpenReadOnly(uri);
+	if (!conn) {
+		fprintf(stderr, "unable to connect to libvirt %s\n",
+			uri ? uri : "xen");
+		return 2;
+	}
+
+	do {
+		dom = viewer_lookup_domain(conn, name);
+		if (!dom && !waitvnc) {
+			fprintf(stderr, "unable to lookup domain %s\n", name);
+			return 3;
+		}
+		if (!dom)
+			usleep(500*1000);
+	} while (!dom);
+
+	do {
+		viewer_extract_vnc_graphics(dom, &vncport);
+		if (!vncport && !waitvnc) {
+			fprintf(stderr, "unable to find vnc graphics for %s\n", name);
+			return 4;
+		}
+		if (!vncport)
+			usleep(300*1000);
+	} while (!vncport);
+	tmpname = virDomainGetName(dom);
+	if (tmpname != NULL) {
+		domname = strdup(tmpname);
+	}
+	virDomainFree(dom);
+	virConnectClose(conn);
+
+	if (viewer_extract_host(uri, &host, &transport, &user, &port) < 0) {
+		fprintf(stderr, "unable to determine hostname for URI %s\n", uri);
+		return 5;
+	}
+	DEBUG_LOG("Remote host is %s and transport %s user %s\n", host, transport ? transport : "", user ? user : "");
+
+	if (transport && strcasecmp(transport, "ssh") == 0 && !direct)
+		fd = viewer_open_tunnel_ssh(host, port, user, vncport);
+
+	vnc = vnc_display_new();
+	window = viewer_build_window (VNC_DISPLAY(vnc),
+				      get_toplevel, data, with_menubar);
+	gtk_widget_realize(vnc);
+
+	vnc_display_set_keyboard_grab(VNC_DISPLAY(vnc), TRUE);
+	vnc_display_set_pointer_grab(VNC_DISPLAY(vnc), TRUE);
+	if (!gtk_widget_is_composited(window))
+		vnc_display_set_scaling(VNC_DISPLAY(vnc), TRUE);
+
+	if (fd >= 0)
+		vnc_display_open_fd(VNC_DISPLAY(vnc), fd);
+	else
+		vnc_display_open_host(VNC_DISPLAY(vnc), host, vncport);
+
+	return 0;
+}
+
+#ifndef PLUGIN
+/* Standalone program. */
+
+static GtkWidget *viewer_get_toplevel (void *data G_GNUC_UNUSED)
+{
+	GtkWidget *window;
+
+	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
+	return window;
+}
+
+static void viewer_version(FILE *out)
+{
+	fprintf(out, "%s version %s\n", PACKAGE, VERSION);
+}
+
+static void viewer_help(FILE *out, const char *app)
+{
+	fprintf(out, "\n");
+	fprintf(out, "syntax: %s [OPTIONS] DOMAIN-NAME|ID|UUID\n", app);
+	fprintf(out, "\n");
+	viewer_version(out);
+	fprintf(out, "\n");
+	fprintf(out, "Options:\n\n");
+	fprintf(out, "  -h, --help              display command line help\n");
+	fprintf(out, "  -v, --verbose           display verbose information\n");
+	fprintf(out, "  -V, --version           display version information\n");
+	fprintf(out, "  -d, --direct            direct connection with no automatic tunnels\n");
+	fprintf(out, "  -c URI, --connect URI   connect to hypervisor URI\n");
+	fprintf(out, "  -w, --wait              wait for domain to start\n");
+	fprintf(out, "\n");
+}
+
+int main(int argc, char **argv)
+{
 	char *uri = NULL;
+	char *name = NULL;
 	int opt_ind;
 	const char *sopts = "hVc:";
 	static const struct option lopts[] = {
@@ -701,16 +905,10 @@ int main(int argc, char **argv)
 		{ 0, 0, 0, 0 }
 	};
 	int ch;
-	int waitvnc = 0;
-	virConnectPtr conn = NULL;
-	virDomainPtr dom = NULL;
-	char *host = NULL;
-	char *vncport = NULL;
-	char *transport = NULL;
-	char *user = NULL;
-	int port = 0;
-	int fd = -1;
 	int direct = 0;
+	int waitvnc = 0;
+	int set_verbose = 0;
+	int ret;
 
 	while ((ch = getopt_long(argc, argv, sopts, lopts, &opt_ind)) != -1) {
 		switch (ch) {
@@ -721,7 +919,7 @@ int main(int argc, char **argv)
 			viewer_version(stdout);
 			return 0;
 		case 'v':
-			verbose = 1;
+			set_verbose = 1;
 			break;
 		case 'c':
 			uri = strdup(optarg);
@@ -738,7 +936,6 @@ int main(int argc, char **argv)
 		}
 	}
 
-
 	if (argc != (optind+1)) {
 		viewer_help(stderr, argv[0]);
 		return 1;
@@ -746,60 +943,16 @@ int main(int argc, char **argv)
 
 	gtk_init(&argc, &argv);
 
-	conn = virConnectOpenReadOnly(uri);
-	if (!conn) {
-		fprintf(stderr, "unable to connect to libvirt %s\n",
-			uri ? uri : "xen");
-		return 2;
-	}
-
-	do {
-		dom = viewer_lookup_domain(conn, argv[optind]);
-		if (!dom && !waitvnc) {
-			fprintf(stderr, "unable to lookup domain %s\n", argv[optind]);
-			return 3;
-		}
-		if (!dom)
-			usleep(500*1000);
-	} while (!dom);
-
-	do {
-		viewer_extract_vnc_graphics(dom, &vncport);
-		if (!vncport && !waitvnc) {
-			fprintf(stderr, "unable to find vnc graphics for %s\n", argv[optind]);
-			return 4;
-		}
-		if (!vncport)
-			usleep(300*1000);
-	} while (!vncport);
-	virDomainFree(dom);
-	virConnectClose(conn);
-
-	if (viewer_extract_host(uri, &host, &transport, &user, &port) < 0) {
-		fprintf(stderr, "unable to determine hostname for URI %s\n", uri);
-		return 5;
-	}
-	DEBUG_LOG("Remote host is %s and transport %s user %s\n", host, transport ? transport : "", user ? user : "");
-
-	if (transport && strcasecmp(transport, "ssh") == 0 && !direct)
-		fd = viewer_open_tunnel_ssh(host, port, user, vncport);
-
-	vnc = vnc_display_new();
-	window = viewer_build_window(VNC_DISPLAY(vnc));
-	gtk_widget_realize(vnc);
-
-	vnc_display_set_keyboard_grab(VNC_DISPLAY(vnc), TRUE);
-	vnc_display_set_pointer_grab(VNC_DISPLAY(vnc), TRUE);
-
-	if (fd >= 0)
-		vnc_display_open_fd(VNC_DISPLAY(vnc), fd);
-	else
-		vnc_display_open_host(VNC_DISPLAY(vnc), host, vncport);
+	name = argv[optind];
+	ret = viewer_start (uri, name, direct, waitvnc, set_verbose,
+			    viewer_get_toplevel, NULL, 1);
+	if (ret != 0) return ret;
 
 	gtk_main();
 
 	return 0;
 }
+#endif /* !PLUGIN */
 
 /*
  * Local variables:
