@@ -1,3 +1,15 @@
+virt-viewer (0.0.3-1) unstable; urgency=low
+
+  * new upstream version 0.0.3
+  * remove upstream author(s) template
+  * add watch file
+  * build depend on recent libgtk-vnc (>= 0.3.4) since we need some new
+    symbols out of it
+  * remove superflous debian/dirs
+  * bump standards version
+
+ -- Guido Guenther <agx@sigxcpu.org>  Wed, 12 Mar 2008 10:48:19 +0100
+
 virt-viewer (0.0.2-1) unstable; urgency=low
 
   * Initial release (Closes: #452514)
