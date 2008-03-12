@@ -2,7 +2,7 @@ Source: virt-viewer
 Section: admin
 Priority: extra
 Maintainer: Guido Guenther <agx@sigxcpu.org>
-Build-Depends: cdbs, debhelper (>= 5), autotools-dev, libvirt-dev, libgtk-vnc-1.0-dev, libxml2-dev, libgtk2.0-dev
+Build-Depends: cdbs, debhelper (>= 5), autotools-dev, libvirt-dev, libgtk-vnc-1.0-dev (>= 0.3.4), libxml2-dev, libgtk2.0-dev
 Standards-Version: 3.7.3
 
 Package: virt-viewer
