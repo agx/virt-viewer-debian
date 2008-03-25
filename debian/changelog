@@ -1,3 +1,10 @@
+virt-viewer (0.0.3-2) unstable; urgency=low
+
+  * debian/control: depend on gtk that has gtk_widget_is_composited
+  * debian/copyright: make copyright match what's in main.c
+
+ -- Guido Guenther <agx@sigxcpu.org>  Tue, 25 Mar 2008 11:53:23 +0100
+
 virt-viewer (0.0.3-1) unstable; urgency=low
 
   * new upstream version 0.0.3
