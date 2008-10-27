@@ -4,6 +4,12 @@ LDFLAGS+="-Wl,--as-needed"
   
 include /usr/share/cdbs/1/rules/debhelper.mk
 include /usr/share/cdbs/1/class/autotools.mk
+include /usr/share/cdbs/1/rules/patchsys-quilt.mk
+
+DEB_CONFIGURE_EXTRA_FLAGS += --enable-plugin=yes
 
 clean::
 	rm -f man/virt-viewer.1
+
+post-patches::
+	autoreconf
