@@ -4,7 +4,7 @@ Priority: extra
 Maintainer: Debian Libvirt Maintainers <pkg-libvirt-maintainers@lists.alioth.debian.org>
 Uploaders: Guido Günther <agx@sigxcpu.org>
 Build-Depends: cdbs, debhelper (>= 5), autotools-dev, libvirt-dev, libgtk-vnc-1.0-dev (>= 0.3.4), libxml2-dev, 
- libgtk2.0-dev (>= 2.10), iceape-dev (>= 1.1.9-5), autotools-dev, quilt, automake, autoconf, libffi-dev
+ libgtk2.0-dev (>= 2.10), iceape-dev (>= 1.1.9-5), autotools-dev, quilt, automake, autoconf, libffi-dev, libtool
 Standards-Version: 3.8.0
 Vcs-Git: git://git.debian.org/git/pkg-libvirt/virt-viewer.git
 Vcs-Browser: http://git.debian.org/?p=pkg-libvirt/virt-viewer.git;a=summary
