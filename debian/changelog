@@ -1,3 +1,13 @@
+virt-viewer (0.0.3-3) experimental; urgency=low
+
+  * [24287e3] set maintainer to pkg-libvirt-maintainers
+  * [314c1a9] build the mozilla-plugin
+  * [0749e02] add README.source
+  * [937201b] bump standards version
+  * [02cf615] add Vcs-{Git,Browser} and Homepage fields
+
+ -- Guido Günther <agx@sigxcpu.org>  Mon, 27 Oct 2008 20:59:02 +0100
+
 virt-viewer (0.0.3-2) unstable; urgency=low
 
   * debian/control: depend on gtk that has gtk_widget_is_composited
