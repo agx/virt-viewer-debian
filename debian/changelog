@@ -1,3 +1,10 @@
+virt-viewer (0.0.3-4) experimental; urgency=low
+
+  * [fc7c0aa] rm files in plugindir - same bug as in gtk-vnc so use the
+    same fix (Closes: #504287)
+
+ -- Guido Günther <agx@sigxcpu.org>  Sun, 02 Nov 2008 18:20:49 +0100
+
 virt-viewer (0.0.3-3) experimental; urgency=low
 
   * [24287e3] set maintainer to pkg-libvirt-maintainers
