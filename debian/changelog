@@ -1,3 +1,9 @@
+virt-viewer (0.0.3-5) experimental; urgency=low
+
+  * [a645d5c] really look into destdir (Closes: #504287)
+
+ -- Guido Günther <agx@sigxcpu.org>  Mon, 03 Nov 2008 19:36:55 +0100
+
 virt-viewer (0.0.3-4) experimental; urgency=low
 
   * [fc7c0aa] rm files in plugindir - same bug as in gtk-vnc so use the
