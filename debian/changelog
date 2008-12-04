@@ -1,3 +1,9 @@
+virt-viewer (0.0.3-6) experimental; urgency=low
+
+  * [1f49897] install missing binary (Closes: #507549)
+
+ -- Guido Günther <agx@sigxcpu.org>  Thu, 04 Dec 2008 12:41:50 +0100
+
 virt-viewer (0.0.3-5) experimental; urgency=low
 
   * [a645d5c] really look into destdir (Closes: #504287)
