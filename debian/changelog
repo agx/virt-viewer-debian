@@ -1,3 +1,11 @@
+virt-viewer (0.0.3-7) experimental; urgency=low
+
+  [ Laurent Léonard ]
+  * [06ed1a6] Add missing separator in mozilla-virt-viewer dependencies.
+  * [1bd570f] Fix libtool issue.
+
+ -- Guido Günther <agx@sigxcpu.org>  Wed, 29 Jul 2009 12:34:06 +0200
+
 virt-viewer (0.0.3-6) experimental; urgency=low
 
   * [1f49897] install missing binary (Closes: #507549)
