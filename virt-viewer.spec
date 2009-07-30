@@ -5,7 +5,7 @@
 %define _with_plugin %{?with_plugin:1}%{!?with_plugin:0}
 
 Name: virt-viewer
-Version: 0.0.3
+Version: 0.2.0
 Release: 1%{?dist}%{?extra_release}
 Summary: Virtual Machine Viewer
 Group: Applications/System
@@ -16,9 +16,10 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires: openssh-clients
 
 BuildRequires: gtk2-devel
-BuildRequires: libvirt-devel
+BuildRequires: libvirt-devel >= 0.6.0
 BuildRequires: libxml2-devel
-BuildRequires: gtk-vnc-devel >= 0.3.4
+BuildRequires: libglade2-devel
+BuildRequires: gtk-vnc-devel >= 0.3.8
 BuildRequires: /usr/bin/pod2man
 %if %{_with_plugin}
 %if "%{fedora}" > "8"
@@ -57,7 +58,6 @@ browsers.
 %configure
 %endif
 %__make %{?_smp_mflags}
-%__make %{?_smp_mflags}
 
 
 %install
@@ -75,6 +75,11 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root,-)
 %doc README COPYING AUTHORS ChangeLog NEWS
 %{_bindir}/%{name}
+%dir %{_datadir}/%{name}
+%dir %{_datadir}/%{name}/ui/
+%{_datadir}/%{name}/ui/auth.glade
+%{_datadir}/%{name}/ui/about.glade
+%{_datadir}/%{name}/ui/viewer.glade
 %{_mandir}/man1/%{name}*
 
 %if %{_with_plugin}
