@@ -1,3 +1,12 @@
+virt-viewer (0.2.0-1) experimental; urgency=low
+
+  * [67b0e98] Imported Upstream version 0.2.0
+  * [6152ea0] drop patch applied upstream rm-in-plugindir.diff
+  * [5d943f5] add missing libglade2-dev
+  * [adbf4fc] install ui files
+
+ -- Guido Günther <agx@sigxcpu.org>  Thu, 30 Jul 2009 15:50:55 +0200
+
 virt-viewer (0.0.3-7) experimental; urgency=low
 
   [ Laurent Léonard ]
