@@ -1,5 +1,5 @@
 
-AC_INIT(virt-viewer, 0.0.3)
+AC_INIT(virt-viewer, 0.2.0)
 AC_CONFIG_SRCDIR(src/main.c)
 AM_CONFIG_HEADER(config.h)
 dnl Make automake keep quiet about wildcards & other GNUmake-isms
@@ -10,14 +10,21 @@ AC_PROG_CC
 AM_PROG_CC_C_O
 AC_PROG_LIBTOOL
 
+AC_CONFIG_LIBOBJ_DIR([src])
+
 AC_DEFINE([_GNU_SOURCE], [], [Enable GNU extensions])
 
 VIRT_VIEWER_COMPILE_WARNINGS(maximum)
 
 PKG_CHECK_MODULES(LIBXML2, libxml-2.0 >= 2.6.0)
-PKG_CHECK_MODULES(LIBVIRT, libvirt >= 0.2.0)
-PKG_CHECK_MODULES(GTK2, gtk+-2.0 >= 2.2.0)
-PKG_CHECK_MODULES(GTKVNC, gtk-vnc-1.0 >= 0.0.1)
+PKG_CHECK_MODULES(LIBVIRT, libvirt >= 0.6.0)
+PKG_CHECK_MODULES(GTK2, gtk+-2.0 >= 2.10.0)
+PKG_CHECK_MODULES(LIBGLADE2, libglade-2.0 >= 2.6.0)
+PKG_CHECK_MODULES(GTKVNC, gtk-vnc-1.0 >= 0.3.8)
+
+dnl Decide if this platform can support the SSH tunnel feature.
+AC_CHECK_HEADERS([sys/socket.h sys/un.h windows.h])
+AC_CHECK_FUNCS([fork socketpair])
 
 dnl --enable-plugin to enable the browser plugin.
 NSPR_REQUIRED=4.0.0
@@ -46,4 +53,5 @@ AC_OUTPUT(Makefile
           src/Makefile
           man/Makefile
 	  plugin/Makefile
-          virt-viewer.spec)
+          virt-viewer.spec
+          mingw32-virt-viewer.spec)
