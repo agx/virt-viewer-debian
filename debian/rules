@@ -14,4 +14,4 @@ clean::
 	rm -f man/virt-viewer.1
 
 post-patches::
-	autoreconf -i
+	autoreconf
