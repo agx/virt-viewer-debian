@@ -10,7 +10,14 @@ DEB_CONFIGURE_EXTRA_FLAGS += --enable-plugin=yes
 DEB_DH_MAKESHLIBS_ARGS_mozilla-virt-viewer += --noscripts -X /plugins/
 
 clean::
+	rm -f $(CURDIR)/aclocal.m4
+	rm -f $(CURDIR)/config.h.in
+	rm -f $(CURDIR)/configure
+	rm -f $(CURDIR)/Makefile.in
+	rm -f $(CURDIR)/man/Makefile.in
 	rm -f $(CURDIR)/man/virt-viewer.1
+	rm -f $(CURDIR)/plugin/Makefile.in
+	rm -f $(CURDIR)/src/Makefile.in
 
 post-patches::
 	autoreconf -i
