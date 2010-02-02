@@ -1,3 +1,35 @@
+virt-viewer (0.2.1-1) unstable; urgency=low
+
+  [ Guido Günther ]
+  * [c2945b4] bump standards version
+  * [8ca5ea3] exclude plugins from dh_makeshlibs
+
+  [ Laurent Léonard ]
+  * [39043d7] Remove libtool issue fix.
+  * [a460a21] Revert "Remove libtool issue fix." This reverts commit
+    39043d7460220d7aeecb30b7b489e9064b591440.
+  * [9ab8056] Bump Debhelper version to 7.
+  * [366e279] Bump Standards-Version to 3.8.3.
+  * [0a4e524] Clean debian/rules.
+  * [e662ab7] Remove debian/docs.
+  * [409e5bf] Update clean target in debian/rules.
+  * [a57c8ba] Allow DM upload and add myself as uploader.
+  * [2f26f4f] Clean debian/watch.
+
+  [ Guido Günther ]
+  * [6806613] Imported Upstream version 0.2.1
+  * [b956a6e] Build-dep on intltool
+  * [b6fa2e2] Use xulrunner-dev instead of iceape-dev
+  * [431a46e] New patch 0001-Fix-build-with-xulrunner-1.9.1.patch: Fix build
+    with xulrunner 1.9.1
+  * [c3381c5] New patch 0002-Define-GLADE_DIR.patch: Define GLADE_DIR
+  * [720c999] Depend on virt-viewer
+  * [94828c7] New patch 0003-Add-some-docs.patch: Adds some docs
+  * [8aaf986] Add example web page
+  * [ae04386] Warn about security implications
+
+ -- Guido Günther <agx@sigxcpu.org>  Tue, 02 Feb 2010 21:27:29 +0100
+
 virt-viewer (0.2.0-1) experimental; urgency=low
 
   * [67b0e98] Imported Upstream version 0.2.0
