@@ -1,10 +1,14 @@
 
-AC_INIT(virt-viewer, 0.2.0)
+AC_INIT(virt-viewer, 0.2.1)
 AC_CONFIG_SRCDIR(src/main.c)
 AM_CONFIG_HEADER(config.h)
 dnl Make automake keep quiet about wildcards & other GNUmake-isms
 AM_INIT_AUTOMAKE([-Wno-portability])
 AC_CANONICAL_HOST
+
+# Use the silent-rules feature when possible.
+m4_ifndef([AM_SILENT_RULES], [m4_define([AM_SILENT_RULES],[])])
+AM_SILENT_RULES([yes])
 
 AC_PROG_CC
 AM_PROG_CC_C_O
@@ -15,6 +19,14 @@ AC_CONFIG_LIBOBJ_DIR([src])
 AC_DEFINE([_GNU_SOURCE], [], [Enable GNU extensions])
 
 VIRT_VIEWER_COMPILE_WARNINGS(maximum)
+
+GETTEXT_PACKAGE=virt-viewer
+AC_SUBST(GETTEXT_PACKAGE)
+AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE,"$GETTEXT_PACKAGE", [GETTEXT package name])
+
+IT_PROG_INTLTOOL([0.35.0])
+AM_GLIB_GNU_GETTEXT
+
 
 PKG_CHECK_MODULES(LIBXML2, libxml-2.0 >= 2.6.0)
 PKG_CHECK_MODULES(LIBVIRT, libvirt >= 0.6.0)
@@ -52,6 +64,7 @@ AM_CONDITIONAL(ENABLE_PLUGIN, [test "x$enable_plugin" = "xyes"])
 AC_OUTPUT(Makefile
           src/Makefile
           man/Makefile
+	  po/Makefile.in
 	  plugin/Makefile
           virt-viewer.spec
           mingw32-virt-viewer.spec)
