@@ -27,7 +27,7 @@ Description: Displaying the graphical console of a virtual machine
 Package: mozilla-virt-viewer
 Architecture: any
 Section: web
-Depends: ${shlibs:Depends}, ${misc:Depends},
+Depends: ${shlibs:Depends}, ${misc:Depends}, virt-viewer (= ${binary:Version}),
  iceweasel | iceape-browser
 Description: A virt-viewer widget for GTK+ (mozilla plugin)
  The console is accessed using the VNC protocol. The guest can be referred to
