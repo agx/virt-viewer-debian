@@ -37,5 +37,6 @@ Description: A virt-viewer widget for GTK+ (mozilla plugin)
  information and then also connect to the remote console using the same network
  transport.
  .
- This package contains the experimental mozilla plugin.
+ This package contains the experimental mozilla plugin. The plugin is not
+ secure. Plase check the README.
 
