@@ -5,7 +5,7 @@
 %define _with_plugin %{?with_plugin:1}%{!?with_plugin:0}
 
 Name: virt-viewer
-Version: 0.2.0
+Version: 0.2.1
 Release: 1%{?dist}%{?extra_release}
 Summary: Virtual Machine Viewer
 Group: Applications/System
@@ -67,11 +67,12 @@ rm -rf $RPM_BUILD_ROOT
 rm -f %{buildroot}%{_libdir}/mozilla/plugins/%{name}-plugin.a
 rm -f %{buildroot}%{_libdir}/mozilla/plugins/%{name}-plugin.la
 %endif
+%find_lang %{name}
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
-%files
+%files -f %{name}.lang
 %defattr(-,root,root,-)
 %doc README COPYING AUTHORS ChangeLog NEWS
 %{_bindir}/%{name}
