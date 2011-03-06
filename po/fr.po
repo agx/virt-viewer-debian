@@ -1,63 +1,68 @@
-# translation of pl.po to Polish
-# Piotr Drąg <piotrdrag@gmail.com>, 2010.
+# translation of virt-viewer.tip.fr.po to French
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
 #
+# Sam Friedmann <sam.friedmann@redhat.com>, 2010.
+# Boris BARNIER <b.barnier@gmail.com>, 2010.
 msgid ""
 msgstr ""
-"Project-Id-Version: pl\n"
+"Project-Id-Version: virt-viewer.tip.fr\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-02-04 07:50+0000\n"
-"PO-Revision-Date: 2011-02-04 12:15+0100\n"
-"Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
-"Language-Team: Polish <trans-pl@lists.fedoraproject.org>\n"
+"POT-Creation-Date: 2010-07-29 07:52+0000\n"
+"PO-Revision-Date: 2010-07-29 23:31+0200\n"
+"Last-Translator: Boris BARNIER <b.barnier@gmail.com>\n"
+"Language-Team: French <trans-fr@lists.fedoraproject.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Lokalize 1.0\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
 #: ../src/main.c:34
 #, c-format
 msgid "%s version %s\n"
-msgstr "%s wersja %s\n"
+msgstr "%s version %s\n"
 
 #: ../src/main.c:53
 msgid "Run '"
-msgstr "Należy wykonać \""
+msgstr "Exécuter '"
 
 #: ../src/main.c:56
 msgid "display version information"
-msgstr "wyświetla informację o wersji"
+msgstr "afficher les informations sur la version"
 
 #: ../src/main.c:58
 msgid "display verbose information"
-msgstr "wyświetla więcej informacji"
+msgstr "afficher les informations détaillées"
 
 #: ../src/main.c:60
 msgid "direct connection with no automatic tunnels"
-msgstr "bezpośrednie połączenie bez automatycznych tuneli"
+msgstr "connexion directe sans tunnels automatiques"
 
 #: ../src/main.c:62
 msgid "connect to hypervisor"
-msgstr "łączy z nadzorcą"
+msgstr "connecter à l'hyperviseur"
 
 #: ../src/main.c:64
 msgid "wait for domain to start"
-msgstr "oczekuje na uruchomienie domeny"
+msgstr "attendez que le domaine démarre"
 
 #: ../src/main.c:66
 msgid "reconnect to domain upon restart"
-msgstr "ponownie łączy z domeną po ponownym uruchomieniu"
+msgstr "reconnecter au domaine lors du redémarrage"
 
 #: ../src/main.c:68
 msgid "Zoom level of window, in percentage"
-msgstr "Poziom powiększenia okna, w procentach"
+msgstr "Niveau de zoom de la fenêtre, en pourcentage"
 
 #: ../src/main.c:70
 msgid "display debugging information"
-msgstr "wyświetla informacje o debugowaniu"
+msgstr "afficher les informations de débogage"
 
 #. Setup command line options
 #: ../src/main.c:82
 msgid "- Virtual machine graphical console"
-msgstr "- graficzna konsola maszyny wirtualnej"
+msgstr "- Console graphique de la machine virtuelle"
 
 #: ../src/main.c:98
 #, c-format
@@ -69,79 +74,57 @@ msgid ""
 "\n"
 msgstr ""
 "\n"
-"Użycie: %s [OPCJE] NAZWA-DOMENY|IDENTYFIKATOR|UUID\n"
+"Usage : %s [OPTIONS] DOMAIN-NAME|ID|UUID\n"
 "\n"
 "%s\n"
 "\n"
 
-#: ../src/viewer.c:830
+#: ../src/viewer.c:909
 #, c-format
-msgid "Cannot determine the graphic type for the guest %s"
-msgstr "Nie można określić typu grafiki dla gościa %s"
+msgid "Cannot determine the VNC port for the guest %s"
+msgstr "Impossible de déterminer le port VNC pour l'invité %s"
 
-#: ../src/viewer.c:842
+#: ../src/viewer.c:915
 #, c-format
-msgid "Unknown graphic type for the guest %s"
-msgstr "Nieznany typ grafiki dla gościa %s"
+msgid "Cannot determine the VNC host for the guest %s"
+msgstr "Impossible de déterminer l'hôte VNC pour l'invité %s"
 
-#: ../src/viewer.c:852
+#: ../src/viewer.c:1015
 #, c-format
-msgid "Cannot determine the graphic address for the guest %s"
-msgstr "Nie można określić adresu grafiki dla gościa %s"
+msgid "Unable to connect to the VNC server %s"
+msgstr "Impossible de se connecter au serveur VNC %s"
 
-#: ../src/viewer.c:861
-#, c-format
-msgid "Cannot determine the host for the guest %s"
-msgstr "Nie można określić gospodarza dla gościa %s"
-
-#: ../src/viewer.c:885
-msgid "Connect to ssh failed."
-msgstr "Połączenie z ssh nie powiodło się."
-
-#: ../src/viewer.c:887
-msgid "Can't connect to channel, SSH only supported."
-msgstr "Nie można połączyć się z kanałem, obsługiwane jest tylko SSH."
-
-#: ../src/viewer.c:892
-msgid "Connect to channel unsupported."
-msgstr "Łączenie z kanałem jest nieobsługiwane."
-
-#: ../src/viewer.c:1049
-#, c-format
-msgid "Unable to connect to the graphic server %s"
-msgstr "Nie można połączyć się z serwerem grafiki %s"
-
-#: ../src/viewer.c:1096
-#, c-format
-msgid "Cannot find guest domain %s"
-msgstr "Nie można odnaleźć domeny gościa %s"
-
-#: ../src/viewer.c:1204
-#, c-format
-msgid "Unable to connect to libvirt with URI %s"
-msgstr "Nie można połączyć się z biblioteką libvirt za pomocą adresu URL %s"
-
-#: ../src/viewer.c:1205
-msgid "[none]"
-msgstr "[brak]"
-
-#: ../src/display-vnc.c:142
-#, c-format
-msgid ""
-"Unable to authenticate with VNC server at %s\n"
-"Unsupported authentication type %d"
-msgstr ""
-"Nie można uwierzytelnić z serwerem VNC na %s\n"
-"Nieobsługiwany typ uwierzytelniania %d"
-
-#: ../src/display-vnc.c:158
+#: ../src/viewer.c:1032
 #, c-format
 msgid ""
 "Unable to authenticate with VNC server at %s: %s\n"
 "Retry connection again?"
 msgstr ""
-"Nie można uwierzytelnić z serwerem VNC na %s: %s\n"
-"Ponownie ponowić połączenie?"
+"Authentification avec le serveur VNC impossible à %s:%s\n"
+"Réessayer d'établir la connexion ?"
+
+#: ../src/viewer.c:1050
+#, c-format
+msgid ""
+"Unable to authenticate with VNC server at %s\n"
+"Unsupported authentication type %d"
+msgstr ""
+"Authentification avec le serveur VNC impossible à %s\n"
+"Type %d d'authentification non pris en charge"
+
+#: ../src/viewer.c:1142
+#, c-format
+msgid "Cannot find guest domain %s"
+msgstr "Impossible de trouver le domaine invité %s"
+
+#: ../src/viewer.c:1246
+#, c-format
+msgid "Unable to connect to libvirt with URI %s"
+msgstr "Impossible de se connecter à libvirt avec URI %s"
+
+#: ../src/viewer.c:1247
+msgid "[none]"
+msgstr "[aucun]"
 
 #.
 #. * Local variables:
@@ -152,11 +135,11 @@ msgstr ""
 #.
 #: ../src/about.glade.h:1
 msgid "A remote desktop client built with GTK-VNC and libvirt"
-msgstr "Zdalny klient zbudowany za pomocą bibliotek GTK-VNC i libvirt"
+msgstr "Un client bureau à distance construit avec GTK-VNC et libvirt"
 
 #: ../src/about.glade.h:2
 msgid "About Glade"
-msgstr "O programie Glade"
+msgstr "À propos de Glade"
 
 #: ../src/about.glade.h:3
 msgid ""
@@ -168,7 +151,7 @@ msgstr ""
 
 #: ../src/about.glade.h:5
 msgid "The Fedora Translation Team"
-msgstr "Zespół tłumaczenia Fedory"
+msgstr "L'équipe de traduction de Fedora"
 
 #: ../src/about.glade.h:6
 msgid ""
@@ -186,22 +169,22 @@ msgid ""
 "along with this program; if not, write to the Free Software\n"
 "Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA\n"
 msgstr ""
-"Niniejszy program jest wolnym oprogramowaniem; można go rozprowadzać\n"
-"dalej i/lub modyfikować na warunkach Powszechnej Licencji Publicznej\n"
-"GNU, wydanej przez Fundację Wolnego Oprogramowania (Free Software\n"
-"Foundation) - według wersji drugiej tej Licencji lub którejś z\n"
-"późniejszych wersji.\n"
+"Ce programme est un logiciel libre, vous pouvez le redistribuer et/ou le "
+"modifier\n"
+"sous les termes de la Licence Publique Générale GNU (GPL) publiée par\n"
+"la Free Software Foundation ; soit la version 2 de la licence, soit\n"
+"(à votre gré) une version plus récente.\n"
 "\n"
-"Niniejszy program rozpowszechniany jest z nadzieją, iż będzie on\n"
-"użyteczny - jednak BEZ JAKIEJKOLWIEK GWARANCJI, nawet domyślnej\n"
-"gwarancji PRZYDATNOŚCI HANDLOWEJ albo PRZYDATNOŚCI DO OKREŚLONYCH\n"
-"ZASTOSOWAŃ. W celu uzyskania bliższych informacji należy zapoznać\n"
-"się z Powszechną Licencją Publiczną GNU.\n"
+"Ce logiciel est distribué dans l'espoir d'être nécessité, mais N'EST PAS\n"
+"garanti ; et ne comporte pas de GARANTIE IMPLICITE DE QUALITÉ MARCHANDE\n"
+"ou d'ADÉQUATION À  UN BUT PARTICULIER. Voir la Licence Publique Générale "
+"GNU\n"
+"pour obtenir plus de détails.\n"
 "\n"
-"Z pewnością wraz z niniejszym programem dostarczono także egzemplarz\n"
-"Powszechnej Licencji Publicznej GNU (GNU General Public License);\n"
-"jeśli nie - proszę napisać do Free Software Foundation, Inc., 51\n"
-"Franklin Street, Fifth Floor, Boston, MA 02110-130159 USA.\n"
+"Vous devriez avoir reçu une copie de la Licence Publique Générale GNU avec\n"
+"ce logiciel. Si ce n'est pas le cas, envoyez un courrier à la\n"
+"Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  "
+"02111-1307 USA\n"
 
 #: ../src/about.glade.h:20
 msgid "virt-manager.org"
@@ -209,15 +192,15 @@ msgstr "virt-manager.org"
 
 #: ../src/auth.glade.h:1
 msgid "Authentication required"
-msgstr "Wymagane jest uwierzytelnienie"
+msgstr "Authentification requise"
 
 #: ../src/auth.glade.h:2
 msgid "Password:"
-msgstr "Hasło:"
+msgstr "Mot de passe :"
 
 #: ../src/auth.glade.h:3
 msgid "Username:"
-msgstr "Nazwa użytkownika:"
+msgstr "Nom d'utilisateur :"
 
 #: ../src/auth.glade.h:4
 msgid "gtk-cancel"
@@ -229,11 +212,11 @@ msgstr "gtk-ok"
 
 #: ../src/auth.glade.h:6
 msgid "label"
-msgstr "etykieta"
+msgstr "label"
 
 #: ../src/viewer.glade.h:1
 msgid "Automatically resize"
-msgstr "Automatyczna zmiana rozmiaru"
+msgstr "Redimensionner automatiquement"
 
 #: ../src/viewer.glade.h:2
 msgid "Ctrl+Alt+F11"
@@ -293,35 +276,35 @@ msgstr "Ctrl+Alt+_Del"
 
 #: ../src/viewer.glade.h:16
 msgid "Full screen"
-msgstr "Pełny ekran"
+msgstr "Plein écran"
 
 #: ../src/viewer.glade.h:17
 msgid "Screenshot"
-msgstr "Zrzut ekranu"
+msgstr "Capture d'écran"
 
 #: ../src/viewer.glade.h:18
 msgid "_File"
-msgstr "_Plik"
+msgstr "_Fichier"
 
 #: ../src/viewer.glade.h:19
 msgid "_Help"
-msgstr "Pomo_c"
+msgstr "_Aide"
 
 #: ../src/viewer.glade.h:20
 msgid "_PrintScreen"
-msgstr "Zrzut _ekranu"
+msgstr "Im_primer l'écran"
 
 #: ../src/viewer.glade.h:21
 msgid "_Send key"
-msgstr "Wyślij klawi_sz"
+msgstr "_Envoyer la clé"
 
 #: ../src/viewer.glade.h:22
 msgid "_View"
-msgstr "_Widok"
+msgstr "Affic_hage"
 
 #: ../src/viewer.glade.h:23
 msgid "_Zoom"
-msgstr "P_owiększenie"
+msgstr "_Zoom"
 
 #: ../src/viewer.glade.h:24
 msgid "gtk-about"
@@ -333,12 +316,10 @@ msgstr "gtk-quit"
 
 #: ../src/viewer.glade.h:26
 msgid "page 1"
-msgstr "strona 1"
+msgstr "page 1"
 
 #: ../src/viewer.glade.h:27
 msgid "page 2"
-msgstr "strona 2"
+msgstr "page 2"
 
-#: ../src/viewer.glade.h:28
-msgid "page 3"
-msgstr "strona 3"
+

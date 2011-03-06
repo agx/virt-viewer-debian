@@ -1,63 +1,69 @@
-# translation of pl.po to Polish
-# Piotr Drąg <piotrdrag@gmail.com>, 2010.
-#
+# translation of es.po to Spanish
+# Spanish translations for PACKAGE package.
+# Copyright (C) 2010 THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# 
+# Manuel Eduardo Ospina Sarmiento <mospina@localhost.localdomain>, 2010.
+# Manuel Ospina <mospina@redhat.com>, 2010.
 msgid ""
 msgstr ""
-"Project-Id-Version: pl\n"
+"Project-Id-Version: es\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-02-04 07:50+0000\n"
-"PO-Revision-Date: 2011-02-04 12:15+0100\n"
-"Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
-"Language-Team: Polish <trans-pl@lists.fedoraproject.org>\n"
+"POT-Creation-Date: 2011-02-08 07:51+0000\n"
+"PO-Revision-Date: 2011-01-10 15:14-0300\n"
+"Last-Translator: Claudio Rodrigo Pereyra Diaz <claudiorodrigo@pereyradiaz.com.ar>\n"
+"Language-Team: Spanish <en@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: KBabel 1.11.4\n"
 
 #: ../src/main.c:34
 #, c-format
 msgid "%s version %s\n"
-msgstr "%s wersja %s\n"
+msgstr "%s versión %s\n"
 
 #: ../src/main.c:53
 msgid "Run '"
-msgstr "Należy wykonać \""
+msgstr "Ejecutar"
 
 #: ../src/main.c:56
 msgid "display version information"
-msgstr "wyświetla informację o wersji"
+msgstr "mostrar información de la versión"
 
 #: ../src/main.c:58
 msgid "display verbose information"
-msgstr "wyświetla więcej informacji"
+msgstr "mostrar mensajes de salida"
 
 #: ../src/main.c:60
 msgid "direct connection with no automatic tunnels"
-msgstr "bezpośrednie połączenie bez automatycznych tuneli"
+msgstr "conexión directa sin tuneles automáticos"
 
 #: ../src/main.c:62
 msgid "connect to hypervisor"
-msgstr "łączy z nadzorcą"
+msgstr "conectar al hipervisor"
 
 #: ../src/main.c:64
 msgid "wait for domain to start"
-msgstr "oczekuje na uruchomienie domeny"
+msgstr "esperar que el dominio inicie"
 
 #: ../src/main.c:66
 msgid "reconnect to domain upon restart"
-msgstr "ponownie łączy z domeną po ponownym uruchomieniu"
+msgstr "volver a conectar al dominio después del reinicio"
 
 #: ../src/main.c:68
 msgid "Zoom level of window, in percentage"
-msgstr "Poziom powiększenia okna, w procentach"
+msgstr "Aumentar acercamiento de ventana, en porcentaje"
 
 #: ../src/main.c:70
 msgid "display debugging information"
-msgstr "wyświetla informacje o debugowaniu"
+msgstr "mostrar información de depuración"
 
 #. Setup command line options
 #: ../src/main.c:82
 msgid "- Virtual machine graphical console"
-msgstr "- graficzna konsola maszyny wirtualnej"
+msgstr "- Consola gráfica de la máquina virtual"
 
 #: ../src/main.c:98
 #, c-format
@@ -69,7 +75,7 @@ msgid ""
 "\n"
 msgstr ""
 "\n"
-"Użycie: %s [OPCJE] NAZWA-DOMENY|IDENTYFIKATOR|UUID\n"
+"Uso: %s [OPCIONES] DOMINIO-NOMBRE|ID|UUID\n"
 "\n"
 "%s\n"
 "\n"
@@ -77,53 +83,48 @@ msgstr ""
 #: ../src/viewer.c:830
 #, c-format
 msgid "Cannot determine the graphic type for the guest %s"
-msgstr "Nie można określić typu grafiki dla gościa %s"
+msgstr "No se puede determinar el tipo de gráficos para el huésped %s"
 
 #: ../src/viewer.c:842
 #, c-format
 msgid "Unknown graphic type for the guest %s"
-msgstr "Nieznany typ grafiki dla gościa %s"
-
-#: ../src/viewer.c:852
-#, c-format
-msgid "Cannot determine the graphic address for the guest %s"
-msgstr "Nie można określić adresu grafiki dla gościa %s"
+msgstr "Tipo de gráficos desconocido para el huésped %s"
 
 #: ../src/viewer.c:861
 #, c-format
 msgid "Cannot determine the host for the guest %s"
-msgstr "Nie można określić gospodarza dla gościa %s"
+msgstr "No se puede determinar el anfitrión para el huésped %s"
 
 #: ../src/viewer.c:885
 msgid "Connect to ssh failed."
-msgstr "Połączenie z ssh nie powiodło się."
+msgstr "Conección a ssh fallida."
 
 #: ../src/viewer.c:887
 msgid "Can't connect to channel, SSH only supported."
-msgstr "Nie można połączyć się z kanałem, obsługiwane jest tylko SSH."
+msgstr "No se puede conectar al canal, soportado solamente SSH."
 
 #: ../src/viewer.c:892
 msgid "Connect to channel unsupported."
-msgstr "Łączenie z kanałem jest nieobsługiwane."
+msgstr "Conectar a canal no soportado."
 
 #: ../src/viewer.c:1049
 #, c-format
 msgid "Unable to connect to the graphic server %s"
-msgstr "Nie można połączyć się z serwerem grafiki %s"
+msgstr "No se pudo conectar al servidor gráfico %s"
 
 #: ../src/viewer.c:1096
 #, c-format
 msgid "Cannot find guest domain %s"
-msgstr "Nie można odnaleźć domeny gościa %s"
+msgstr "No se pudo encontrar el dominio huésped %s"
 
 #: ../src/viewer.c:1204
 #, c-format
 msgid "Unable to connect to libvirt with URI %s"
-msgstr "Nie można połączyć się z biblioteką libvirt za pomocą adresu URL %s"
+msgstr "No se pudo conectar a libvirt con el URI %s"
 
 #: ../src/viewer.c:1205
 msgid "[none]"
-msgstr "[brak]"
+msgstr "[ninguno]"
 
 #: ../src/display-vnc.c:142
 #, c-format
@@ -131,8 +132,8 @@ msgid ""
 "Unable to authenticate with VNC server at %s\n"
 "Unsupported authentication type %d"
 msgstr ""
-"Nie można uwierzytelnić z serwerem VNC na %s\n"
-"Nieobsługiwany typ uwierzytelniania %d"
+"No se pudo autenticar con el servidor VNC en %s\n"
+"No se soporta el tipo de autenticación %d"
 
 #: ../src/display-vnc.c:158
 #, c-format
@@ -140,23 +141,22 @@ msgid ""
 "Unable to authenticate with VNC server at %s: %s\n"
 "Retry connection again?"
 msgstr ""
-"Nie można uwierzytelnić z serwerem VNC na %s: %s\n"
-"Ponownie ponowić połączenie?"
+"No se pudo autenticar con el servidor VNC en %s: %s\n"
+"¿Intentar de nuevo?"
 
-#.
 #. * Local variables:
 #. *  c-indent-level: 8
 #. *  c-basic-offset: 8
 #. *  tab-width: 8
 #. * End:
-#.
+#. 
 #: ../src/about.glade.h:1
 msgid "A remote desktop client built with GTK-VNC and libvirt"
-msgstr "Zdalny klient zbudowany za pomocą bibliotek GTK-VNC i libvirt"
+msgstr "Un cliente de escritorio remoto construido con GTK-VNC y libvirt"
 
 #: ../src/about.glade.h:2
 msgid "About Glade"
-msgstr "O programie Glade"
+msgstr "Acerca de Glade"
 
 #: ../src/about.glade.h:3
 msgid ""
@@ -168,7 +168,7 @@ msgstr ""
 
 #: ../src/about.glade.h:5
 msgid "The Fedora Translation Team"
-msgstr "Zespół tłumaczenia Fedory"
+msgstr "El equipo de traducción de Fedora"
 
 #: ../src/about.glade.h:6
 msgid ""
@@ -186,22 +186,21 @@ msgid ""
 "along with this program; if not, write to the Free Software\n"
 "Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA\n"
 msgstr ""
-"Niniejszy program jest wolnym oprogramowaniem; można go rozprowadzać\n"
-"dalej i/lub modyfikować na warunkach Powszechnej Licencji Publicznej\n"
-"GNU, wydanej przez Fundację Wolnego Oprogramowania (Free Software\n"
-"Foundation) - według wersji drugiej tej Licencji lub którejś z\n"
-"późniejszych wersji.\n"
+"Este programa es software libre; puede distribuirlo y/o modificarlo\n"
+"bajo los términos de la licencia pública GNU (General Public License)\n"
+"tal y como fue publicada por la fundación de software libre (Free\n"
+"Software Foundation); ya sea la versión 2 de ésta, o (según su\n"
+"elección) una versión posterior.\n"
 "\n"
-"Niniejszy program rozpowszechniany jest z nadzieją, iż będzie on\n"
-"użyteczny - jednak BEZ JAKIEJKOLWIEK GWARANCJI, nawet domyślnej\n"
-"gwarancji PRZYDATNOŚCI HANDLOWEJ albo PRZYDATNOŚCI DO OKREŚLONYCH\n"
-"ZASTOSOWAŃ. W celu uzyskania bliższych informacji należy zapoznać\n"
-"się z Powszechną Licencją Publiczną GNU.\n"
+"Este programa es distribuido con la esperanza de que sea útil,\n"
+"pero SIN NINGUNA GARANTÍA, incluso sin la garantía MERCANTIL\n"
+"implícita o sin garantizar la CONVENIENCIA PARA UN PROPÓSITO\n"
+"PARTICULAR.  Vea la Licencia Pública General de GNU para obtener\n"
+"mayor información.\n"
 "\n"
-"Z pewnością wraz z niniejszym programem dostarczono także egzemplarz\n"
-"Powszechnej Licencji Publicznej GNU (GNU General Public License);\n"
-"jeśli nie - proszę napisać do Free Software Foundation, Inc., 51\n"
-"Franklin Street, Fifth Floor, Boston, MA 02110-130159 USA.\n"
+"Debería haber recibido una copia de la licencia (GNU General Public License)\n"
+"junto con este programa; de lo contrario, escriba a Free Software\n"
+"Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA\n"
 
 #: ../src/about.glade.h:20
 msgid "virt-manager.org"
@@ -209,15 +208,15 @@ msgstr "virt-manager.org"
 
 #: ../src/auth.glade.h:1
 msgid "Authentication required"
-msgstr "Wymagane jest uwierzytelnienie"
+msgstr "Autenticación requerida"
 
 #: ../src/auth.glade.h:2
 msgid "Password:"
-msgstr "Hasło:"
+msgstr "Contraseña:"
 
 #: ../src/auth.glade.h:3
 msgid "Username:"
-msgstr "Nazwa użytkownika:"
+msgstr "Usuario:"
 
 #: ../src/auth.glade.h:4
 msgid "gtk-cancel"
@@ -229,11 +228,11 @@ msgstr "gtk-ok"
 
 #: ../src/auth.glade.h:6
 msgid "label"
-msgstr "etykieta"
+msgstr "etiqueta"
 
 #: ../src/viewer.glade.h:1
 msgid "Automatically resize"
-msgstr "Automatyczna zmiana rozmiaru"
+msgstr "Redimensión automática"
 
 #: ../src/viewer.glade.h:2
 msgid "Ctrl+Alt+F11"
@@ -293,35 +292,35 @@ msgstr "Ctrl+Alt+_Del"
 
 #: ../src/viewer.glade.h:16
 msgid "Full screen"
-msgstr "Pełny ekran"
+msgstr "Pantalla completa"
 
 #: ../src/viewer.glade.h:17
 msgid "Screenshot"
-msgstr "Zrzut ekranu"
+msgstr "Captura de pantalla"
 
 #: ../src/viewer.glade.h:18
 msgid "_File"
-msgstr "_Plik"
+msgstr "_Archivo"
 
 #: ../src/viewer.glade.h:19
 msgid "_Help"
-msgstr "Pomo_c"
+msgstr "Ay_uda"
 
 #: ../src/viewer.glade.h:20
 msgid "_PrintScreen"
-msgstr "Zrzut _ekranu"
+msgstr "_PrintScreen"
 
 #: ../src/viewer.glade.h:21
 msgid "_Send key"
-msgstr "Wyślij klawi_sz"
+msgstr "_Send key"
 
 #: ../src/viewer.glade.h:22
 msgid "_View"
-msgstr "_Widok"
+msgstr "_Ver"
 
 #: ../src/viewer.glade.h:23
 msgid "_Zoom"
-msgstr "P_owiększenie"
+msgstr "Acercar"
 
 #: ../src/viewer.glade.h:24
 msgid "gtk-about"
@@ -333,12 +332,20 @@ msgstr "gtk-quit"
 
 #: ../src/viewer.glade.h:26
 msgid "page 1"
-msgstr "strona 1"
+msgstr "Página 1"
 
 #: ../src/viewer.glade.h:27
 msgid "page 2"
-msgstr "strona 2"
+msgstr "Página 2"
 
 #: ../src/viewer.glade.h:28
 msgid "page 3"
-msgstr "strona 3"
+msgstr "página 3"
+
+#: ../src/viewer.c:852
+#, c-format
+msgid "Cannot determine the graphic address for the guest %s"
+msgstr "No se puede determinar la dirección de gráficos para el huésped %s"
+
+#~ msgid "Cannot determine the graphic port for the guest %s"
+#~ msgstr "No se puede determinar el puerto de gráficos para el huésped %s"

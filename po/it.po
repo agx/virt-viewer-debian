@@ -1,63 +1,66 @@
-# translation of pl.po to Polish
-# Piotr Drąg <piotrdrag@gmail.com>, 2010.
-#
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the virt-viewer package.
+# Gianluca Sforna <giallu@fedoraproject.org>, 2010.
+# Francesco Tombolini <tombo@adamantio.net>, 2010.
 msgid ""
 msgstr ""
-"Project-Id-Version: pl\n"
+"Project-Id-Version: it\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-02-04 07:50+0000\n"
-"PO-Revision-Date: 2011-02-04 12:15+0100\n"
-"Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
-"Language-Team: Polish <trans-pl@lists.fedoraproject.org>\n"
+"POT-Creation-Date: 2011-01-29 07:48+0000\n"
+"PO-Revision-Date: 2010-11-18 00:08+0100\n"
+"Last-Translator: Francesco Tombolini <tombo@adamantio.net>\n"
+"Language-Team: Italian <trans-it@lists.fedoraproject.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Lokalize 1.1\n"
 
 #: ../src/main.c:34
 #, c-format
 msgid "%s version %s\n"
-msgstr "%s wersja %s\n"
+msgstr "%s versione %s\n"
 
 #: ../src/main.c:53
 msgid "Run '"
-msgstr "Należy wykonać \""
+msgstr "Esegui '"
 
 #: ../src/main.c:56
 msgid "display version information"
-msgstr "wyświetla informację o wersji"
+msgstr "mostra informazioni sulla versione"
 
 #: ../src/main.c:58
 msgid "display verbose information"
-msgstr "wyświetla więcej informacji"
+msgstr "mostra informazioni dettagliate"
 
 #: ../src/main.c:60
 msgid "direct connection with no automatic tunnels"
-msgstr "bezpośrednie połączenie bez automatycznych tuneli"
+msgstr "connessione diretta senza tunnel automatici"
 
 #: ../src/main.c:62
 msgid "connect to hypervisor"
-msgstr "łączy z nadzorcą"
+msgstr "connetti all'hypervisor"
 
 #: ../src/main.c:64
 msgid "wait for domain to start"
-msgstr "oczekuje na uruchomienie domeny"
+msgstr "attendi l'avvio del dominio"
 
 #: ../src/main.c:66
 msgid "reconnect to domain upon restart"
-msgstr "ponownie łączy z domeną po ponownym uruchomieniu"
+msgstr "riconnetti al dominio dopo il riavvio"
 
 #: ../src/main.c:68
 msgid "Zoom level of window, in percentage"
-msgstr "Poziom powiększenia okna, w procentach"
+msgstr "Livello di zoom della finestra, in percentuale"
 
 #: ../src/main.c:70
 msgid "display debugging information"
-msgstr "wyświetla informacje o debugowaniu"
+msgstr "mostra informazioni di debug"
 
 #. Setup command line options
 #: ../src/main.c:82
 msgid "- Virtual machine graphical console"
-msgstr "- graficzna konsola maszyny wirtualnej"
+msgstr "- Console grafica della virtual machine"
 
 #: ../src/main.c:98
 #, c-format
@@ -69,61 +72,24 @@ msgid ""
 "\n"
 msgstr ""
 "\n"
-"Użycie: %s [OPCJE] NAZWA-DOMENY|IDENTYFIKATOR|UUID\n"
+"Utilizzo: %s [OPZIONI] NOME-DOMINIO|ID|UUID\n"
 "\n"
 "%s\n"
 "\n"
 
-#: ../src/viewer.c:830
-#, c-format
-msgid "Cannot determine the graphic type for the guest %s"
-msgstr "Nie można określić typu grafiki dla gościa %s"
-
-#: ../src/viewer.c:842
-#, c-format
-msgid "Unknown graphic type for the guest %s"
-msgstr "Nieznany typ grafiki dla gościa %s"
-
-#: ../src/viewer.c:852
-#, c-format
-msgid "Cannot determine the graphic address for the guest %s"
-msgstr "Nie można określić adresu grafiki dla gościa %s"
-
-#: ../src/viewer.c:861
-#, c-format
-msgid "Cannot determine the host for the guest %s"
-msgstr "Nie można określić gospodarza dla gościa %s"
-
-#: ../src/viewer.c:885
-msgid "Connect to ssh failed."
-msgstr "Połączenie z ssh nie powiodło się."
-
-#: ../src/viewer.c:887
-msgid "Can't connect to channel, SSH only supported."
-msgstr "Nie można połączyć się z kanałem, obsługiwane jest tylko SSH."
-
-#: ../src/viewer.c:892
-msgid "Connect to channel unsupported."
-msgstr "Łączenie z kanałem jest nieobsługiwane."
-
-#: ../src/viewer.c:1049
-#, c-format
-msgid "Unable to connect to the graphic server %s"
-msgstr "Nie można połączyć się z serwerem grafiki %s"
-
-#: ../src/viewer.c:1096
+#: ../src/viewer.c:1053
 #, c-format
 msgid "Cannot find guest domain %s"
-msgstr "Nie można odnaleźć domeny gościa %s"
+msgstr "Impossibile trovare il dominio guest %s"
 
-#: ../src/viewer.c:1204
+#: ../src/viewer.c:1161
 #, c-format
 msgid "Unable to connect to libvirt with URI %s"
-msgstr "Nie można połączyć się z biblioteką libvirt za pomocą adresu URL %s"
+msgstr "Impossibile connettersi a libvirt con la URI %s"
 
-#: ../src/viewer.c:1205
+#: ../src/viewer.c:1162
 msgid "[none]"
-msgstr "[brak]"
+msgstr "[nessuno]"
 
 #: ../src/display-vnc.c:142
 #, c-format
@@ -131,8 +97,8 @@ msgid ""
 "Unable to authenticate with VNC server at %s\n"
 "Unsupported authentication type %d"
 msgstr ""
-"Nie można uwierzytelnić z serwerem VNC na %s\n"
-"Nieobsługiwany typ uwierzytelniania %d"
+"Impossibile autenticarsi con il server VNC %s\n"
+"Tipo di autenticazione non supportato: %d"
 
 #: ../src/display-vnc.c:158
 #, c-format
@@ -140,23 +106,22 @@ msgid ""
 "Unable to authenticate with VNC server at %s: %s\n"
 "Retry connection again?"
 msgstr ""
-"Nie można uwierzytelnić z serwerem VNC na %s: %s\n"
-"Ponownie ponowić połączenie?"
+"Impossibile autenticarsi con il server VNC %s: %s\n"
+"Riprovare la connessione?"
 
-#.
 #. * Local variables:
 #. *  c-indent-level: 8
 #. *  c-basic-offset: 8
 #. *  tab-width: 8
 #. * End:
-#.
+#. 
 #: ../src/about.glade.h:1
 msgid "A remote desktop client built with GTK-VNC and libvirt"
-msgstr "Zdalny klient zbudowany za pomocą bibliotek GTK-VNC i libvirt"
+msgstr "Un remote desktop client basato su GTK-VNC e libvirt"
 
 #: ../src/about.glade.h:2
 msgid "About Glade"
-msgstr "O programie Glade"
+msgstr "Informazioni su Glade"
 
 #: ../src/about.glade.h:3
 msgid ""
@@ -168,7 +133,10 @@ msgstr ""
 
 #: ../src/about.glade.h:5
 msgid "The Fedora Translation Team"
-msgstr "Zespół tłumaczenia Fedory"
+msgstr ""
+"Il team di traduzione di Fedora\n"
+"Francesco Tombolini <tombo@fedoraproject.org>, 2010\n"
+"Gianluca Sforna <giallu@fedoraproject.org>, 2010"
 
 #: ../src/about.glade.h:6
 msgid ""
@@ -186,22 +154,19 @@ msgid ""
 "along with this program; if not, write to the Free Software\n"
 "Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA\n"
 msgstr ""
-"Niniejszy program jest wolnym oprogramowaniem; można go rozprowadzać\n"
-"dalej i/lub modyfikować na warunkach Powszechnej Licencji Publicznej\n"
-"GNU, wydanej przez Fundację Wolnego Oprogramowania (Free Software\n"
-"Foundation) - według wersji drugiej tej Licencji lub którejś z\n"
-"późniejszych wersji.\n"
+"This program is free software; you can redistribute it and/or modify\n"
+"it under the terms of the GNU General Public License as published by\n"
+"the Free Software Foundation; either version 2 of the License, or\n"
+"(at your option) any later version.\n"
 "\n"
-"Niniejszy program rozpowszechniany jest z nadzieją, iż będzie on\n"
-"użyteczny - jednak BEZ JAKIEJKOLWIEK GWARANCJI, nawet domyślnej\n"
-"gwarancji PRZYDATNOŚCI HANDLOWEJ albo PRZYDATNOŚCI DO OKREŚLONYCH\n"
-"ZASTOSOWAŃ. W celu uzyskania bliższych informacji należy zapoznać\n"
-"się z Powszechną Licencją Publiczną GNU.\n"
+"This program is distributed in the hope that it will be useful,\n"
+"but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+"MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
+"GNU General Public License for more details.\n"
 "\n"
-"Z pewnością wraz z niniejszym programem dostarczono także egzemplarz\n"
-"Powszechnej Licencji Publicznej GNU (GNU General Public License);\n"
-"jeśli nie - proszę napisać do Free Software Foundation, Inc., 51\n"
-"Franklin Street, Fifth Floor, Boston, MA 02110-130159 USA.\n"
+"You should have received a copy of the GNU General Public License\n"
+"along with this program; if not, write to the Free Software\n"
+"Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA\n"
 
 #: ../src/about.glade.h:20
 msgid "virt-manager.org"
@@ -209,15 +174,15 @@ msgstr "virt-manager.org"
 
 #: ../src/auth.glade.h:1
 msgid "Authentication required"
-msgstr "Wymagane jest uwierzytelnienie"
+msgstr "Richiesta autenticazione"
 
 #: ../src/auth.glade.h:2
 msgid "Password:"
-msgstr "Hasło:"
+msgstr "Password:"
 
 #: ../src/auth.glade.h:3
 msgid "Username:"
-msgstr "Nazwa użytkownika:"
+msgstr "Nome utente:"
 
 #: ../src/auth.glade.h:4
 msgid "gtk-cancel"
@@ -229,11 +194,11 @@ msgstr "gtk-ok"
 
 #: ../src/auth.glade.h:6
 msgid "label"
-msgstr "etykieta"
+msgstr "etichetta"
 
 #: ../src/viewer.glade.h:1
 msgid "Automatically resize"
-msgstr "Automatyczna zmiana rozmiaru"
+msgstr "Ridimensiona automaticamente"
 
 #: ../src/viewer.glade.h:2
 msgid "Ctrl+Alt+F11"
@@ -293,35 +258,35 @@ msgstr "Ctrl+Alt+_Del"
 
 #: ../src/viewer.glade.h:16
 msgid "Full screen"
-msgstr "Pełny ekran"
+msgstr "Schermo intero"
 
 #: ../src/viewer.glade.h:17
 msgid "Screenshot"
-msgstr "Zrzut ekranu"
+msgstr "Cattura schermata"
 
 #: ../src/viewer.glade.h:18
 msgid "_File"
-msgstr "_Plik"
+msgstr "_File"
 
 #: ../src/viewer.glade.h:19
 msgid "_Help"
-msgstr "Pomo_c"
+msgstr "_Aiuto"
 
 #: ../src/viewer.glade.h:20
 msgid "_PrintScreen"
-msgstr "Zrzut _ekranu"
+msgstr "_Stamp"
 
 #: ../src/viewer.glade.h:21
 msgid "_Send key"
-msgstr "Wyślij klawi_sz"
+msgstr "_Manda tasto"
 
 #: ../src/viewer.glade.h:22
 msgid "_View"
-msgstr "_Widok"
+msgstr "_Visualizza"
 
 #: ../src/viewer.glade.h:23
 msgid "_Zoom"
-msgstr "P_owiększenie"
+msgstr "_Zoom"
 
 #: ../src/viewer.glade.h:24
 msgid "gtk-about"
@@ -333,12 +298,49 @@ msgstr "gtk-quit"
 
 #: ../src/viewer.glade.h:26
 msgid "page 1"
-msgstr "strona 1"
+msgstr "pagina 1"
 
 #: ../src/viewer.glade.h:27
 msgid "page 2"
-msgstr "strona 2"
+msgstr "pagina 2"
 
 #: ../src/viewer.glade.h:28
 msgid "page 3"
-msgstr "strona 3"
+msgstr "pagina 3"
+
+#: ../src/viewer.c:863
+msgid "Connect to channel unsupported."
+msgstr "Connessione al canale non supportata"
+
+#: ../src/viewer.c:858
+msgid "Can't connect to channel, SSH only supported."
+msgstr "Impossibile connettersi al canale, solo SSH è supportato."
+
+#: ../src/viewer.c:805
+#, c-format
+msgid "Cannot determine the graphic type for the guest %s"
+msgstr "Impossibile determinare il tipo grafico per il guest %s"
+
+#: ../src/viewer.c:824
+#, c-format
+msgid "Cannot determine the graphic port for the guest %s"
+msgstr "Impossibile determinare la porta grafica per il guest %s"
+
+#: ../src/viewer.c:817
+#, c-format
+msgid "Unknown graphic type for the guest %s"
+msgstr "Impossibile determinare il tipo grafico per il guest %s"
+
+#: ../src/viewer.c:856
+msgid "Connect to ssh failed."
+msgstr "Connessione a ssh fallita"
+
+#: ../src/viewer.c:830
+#, c-format
+msgid "Cannot determine the host for the guest %s"
+msgstr "Impossibile determinare l'host per il guest %s"
+
+#: ../src/viewer.c:1006
+#, c-format
+msgid "Unable to connect to the graphic server %s"
+msgstr "Impossibile connettersi al server grafico %s"
