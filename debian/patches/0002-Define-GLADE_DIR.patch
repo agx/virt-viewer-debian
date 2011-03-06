@@ -1,6 +1,6 @@
 From: =?UTF-8?q?Guido=20G=C3=BCnther?= <agx@sigxcpu.org>
 Date: Tue, 2 Feb 2010 20:44:38 +0100
-Subject: [PATCH] Define GLADE_DIR
+Subject: Define GLADE_DIR
 
 so the plugin can find the glade files.
 ---

@@ -1,6 +1,6 @@
 From: =?UTF-8?q?Guido=20G=C3=BCnther?= <agx@sigxcpu.org>
 Date: Tue, 2 Feb 2010 20:16:52 +0100
-Subject: [PATCH] Fix build with xulrunner 1.9.1
+Subject: Fix build with xulrunner 1.9.1
 
 ---
  plugin/npshell.c |    1 -
