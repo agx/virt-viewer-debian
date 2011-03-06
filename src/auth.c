@@ -30,11 +30,8 @@
 #include "auth.h"
 
 
-static int
-viewer_auth_collect_credentials(const char *type,
-				const char *address,
-				char **username,
-				char **password)
+int viewer_auth_collect_credentials(const char *type, const char *address,
+                                    char **username, char **password)
 {
 	GtkWidget *dialog = NULL;
 	GladeXML *creds = viewer_load_glade("auth.glade", "auth");
@@ -60,10 +57,15 @@ viewer_auth_collect_credentials(const char *type,
 	gtk_widget_set_sensitive(credPassword, password != NULL);
 	gtk_widget_set_sensitive(promptPassword, password != NULL);
 
-	message = g_strdup_printf("Authentication is required for the %s connection to:\n\n"
-				  "<b>%s</b>\n\n",
-				  type,
-				  address ? address : "<unknown>");
+	if (address) {
+		message = g_strdup_printf("Authentication is required for the %s connection to:\n\n"
+					  "<b>%s</b>\n\n",
+					  type,
+					  address ? address : "[unknown]");
+	} else {
+		message = g_strdup_printf("Authentication is required for the %s connection:\n",
+					  type);
+	}
 
 	gtk_label_set_markup(GTK_LABEL(labelMessage), message);
 	g_free(message);

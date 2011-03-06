@@ -1,5 +1,5 @@
 
-AC_INIT(virt-viewer, 0.2.1)
+AC_INIT(virt-viewer, 0.3.1)
 AC_CONFIG_SRCDIR(src/main.c)
 AM_CONFIG_HEADER(config.h)
 dnl Make automake keep quiet about wildcards & other GNUmake-isms
@@ -33,6 +33,21 @@ PKG_CHECK_MODULES(LIBVIRT, libvirt >= 0.6.0)
 PKG_CHECK_MODULES(GTK2, gtk+-2.0 >= 2.10.0)
 PKG_CHECK_MODULES(LIBGLADE2, libglade-2.0 >= 2.6.0)
 PKG_CHECK_MODULES(GTKVNC, gtk-vnc-1.0 >= 0.3.8)
+
+AC_ARG_WITH([spice-gtk],
+    AS_HELP_STRING([--without-spice-gtk], [Ignore presence of spice-gtk and disable it]))
+
+AS_IF([test "x$with_spice_gtk" != "xno"],
+      [PKG_CHECK_MODULES(SPICEGTK, spice-client-gtk-2.0 >= 0.5, [have_spice_gtk=yes], [have_spice_gtk=no])],
+      [have_spice_gtk=no])
+
+AS_IF([test "x$have_spice_gtk" = "xyes"],
+      [AC_DEFINE([HAVE_SPICE_GTK], 1, [Have spice-gtk?])],
+      [AS_IF([test "x$with_spice_gtk" = "xyes"],
+             [AC_MSG_ERROR([spice-gtk requested but not found])
+      ])
+])
+AM_CONDITIONAL([HAVE_SPICE_GTK], [test "x$have_spice_gtk" = "xyes"])
 
 dnl Decide if this platform can support the SSH tunnel feature.
 AC_CHECK_HEADERS([sys/socket.h sys/un.h windows.h])
