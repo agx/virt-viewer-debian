@@ -1,3 +1,18 @@
+virt-viewer (0.3.1-1) unstable; urgency=low
+
+  [ Guido Günther ]
+  * [6977871] Add versioned dependency on libvirt-dev
+    since at least 0.6.0 is needed according to configure.ac. (Closes: #590219)
+    Thanks to Matt Taggart
+
+  [ Laurent Léonard ]
+  * [07b9d4d] Imported Upstream version 0.3.1
+  * [ea28cf2] Redo patches
+  * [38b2dc4] Bump Standards-Version to 3.9.1
+  * [ad642d7] Remove mozilla-virt-viewer
+
+ -- Laurent Léonard <laurent@open-minds.org>  Wed, 09 Mar 2011 23:24:35 +0100
+
 virt-viewer (0.2.1-1) unstable; urgency=low
 
   [ Guido Günther ]
