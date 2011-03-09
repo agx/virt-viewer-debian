@@ -10,11 +10,8 @@ Build-Depends: cdbs,
  libgtk-vnc-1.0-dev (>= 0.3.4),
  libxml2-dev,
  libgtk2.0-dev (>= 2.10),
- xulrunner-dev,
  autotools-dev,
- quilt,
  automake,
- autoconf,
  libffi-dev,
  libtool,
  libglade2-dev,
@@ -36,20 +33,3 @@ Description: Displaying the graphical console of a virtual machine
  console The viewer can connect to remote hosts to lookup the console
  information and then also connect to the remote console using the same network
  transport.
-
-Package: mozilla-virt-viewer
-Architecture: any
-Section: web
-Depends: ${shlibs:Depends}, ${misc:Depends}, virt-viewer (= ${binary:Version}),
- iceweasel | iceape-browser
-Description: A virt-viewer widget for GTK+ (mozilla plugin)
- The console is accessed using the VNC protocol. The guest can be referred to
- based on its name, ID, or UUID. If the guest is not already running, then the
- viewer can be told to wait until is starts before attempting to connect to the
- console The viewer can connect to remote hosts to lookup the console
- information and then also connect to the remote console using the same network
- transport.
- .
- This package contains the experimental mozilla plugin. The plugin is not
- secure. Plase check the README.
-
