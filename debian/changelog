@@ -1,3 +1,10 @@
+virt-viewer (0.3.1-2) unstable; urgency=low
+
+  * [7a46ee9] Use DEB_CONFIGURE_SCRIPT_ENV to define LDFLAGS
+  * Upload to unstable (Closes: #618614)
+
+ -- Laurent Léonard <laurent@open-minds.org>  Thu, 17 Mar 2011 22:52:44 +0100
+
 virt-viewer (0.3.1-1) unstable; urgency=low
 
   [ Guido Günther ]
