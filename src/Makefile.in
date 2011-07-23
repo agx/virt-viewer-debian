@@ -37,7 +37,8 @@ build_triplet = @build@
 host_triplet = @host@
 bin_PROGRAMS = virt-viewer$(EXEEXT)
 @HAVE_SPICE_GTK_TRUE@am__append_1 = \
-@HAVE_SPICE_GTK_TRUE@	display-spice.h display-spice.c
+@HAVE_SPICE_GTK_TRUE@	virt-viewer-session-spice.h virt-viewer-session-spice.c \
+@HAVE_SPICE_GTK_TRUE@	virt-viewer-display-spice.h virt-viewer-display-spice.c
 
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
@@ -52,19 +53,32 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
-am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(gladedir)"
+am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(builderxmldir)"
 PROGRAMS = $(bin_PROGRAMS)
-am__virt_viewer_SOURCES_DIST = main.c util.h util.c auth.h auth.c \
-	events.h events.c viewer.h viewer.c viewer-priv.h display.h \
-	display.c display-vnc.h display-vnc.c display-spice.h \
-	display-spice.c
-@HAVE_SPICE_GTK_TRUE@am__objects_1 =  \
-@HAVE_SPICE_GTK_TRUE@	virt_viewer-display-spice.$(OBJEXT)
-am_virt_viewer_OBJECTS = virt_viewer-main.$(OBJEXT) \
-	virt_viewer-util.$(OBJEXT) virt_viewer-auth.$(OBJEXT) \
-	virt_viewer-events.$(OBJEXT) virt_viewer-viewer.$(OBJEXT) \
-	virt_viewer-display.$(OBJEXT) \
-	virt_viewer-display-vnc.$(OBJEXT) $(am__objects_1)
+am__virt_viewer_SOURCES_DIST = virt-viewer-main.c virt-viewer-util.h \
+	virt-viewer-util.c virt-viewer-auth.h virt-viewer-auth.c \
+	virt-viewer-events.h virt-viewer-events.c virt-viewer.h \
+	virt-viewer.c virt-viewer-session.h virt-viewer-session.c \
+	virt-viewer-session-vnc.h virt-viewer-session-vnc.c \
+	virt-viewer-display.h virt-viewer-display.c \
+	virt-viewer-display-vnc.h virt-viewer-display-vnc.c \
+	view/autoDrawer.c view/autoDrawer.h view/drawer.c \
+	view/drawer.h view/ovBox.c view/ovBox.h \
+	virt-viewer-session-spice.h virt-viewer-session-spice.c \
+	virt-viewer-display-spice.h virt-viewer-display-spice.c
+@HAVE_SPICE_GTK_TRUE@am__objects_1 = virt_viewer-virt-viewer-session-spice.$(OBJEXT) \
+@HAVE_SPICE_GTK_TRUE@	virt_viewer-virt-viewer-display-spice.$(OBJEXT)
+am_virt_viewer_OBJECTS = virt_viewer-virt-viewer-main.$(OBJEXT) \
+	virt_viewer-virt-viewer-util.$(OBJEXT) \
+	virt_viewer-virt-viewer-auth.$(OBJEXT) \
+	virt_viewer-virt-viewer-events.$(OBJEXT) \
+	virt_viewer-virt-viewer.$(OBJEXT) \
+	virt_viewer-virt-viewer-session.$(OBJEXT) \
+	virt_viewer-virt-viewer-session-vnc.$(OBJEXT) \
+	virt_viewer-virt-viewer-display.$(OBJEXT) \
+	virt_viewer-virt-viewer-display-vnc.$(OBJEXT) \
+	virt_viewer-autoDrawer.$(OBJEXT) virt_viewer-drawer.$(OBJEXT) \
+	virt_viewer-ovBox.$(OBJEXT) $(am__objects_1)
 virt_viewer_OBJECTS = $(am_virt_viewer_OBJECTS)
 virt_viewer_DEPENDENCIES =
 AM_V_lt = $(am__v_lt_$(V))
@@ -122,7 +136,7 @@ am__nobase_list = $(am__nobase_strip_setup); \
 am__base_list = \
   sed '$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;s/\n/ /g' | \
   sed '$$!N;$$!N;$$!N;$$!N;s/\n/ /g'
-DATA = $(glade_DATA)
+DATA = $(builderxml_DATA)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -146,6 +160,7 @@ CYGPATH_W = @CYGPATH_W@
 DATADIRNAME = @DATADIRNAME@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
+DLLTOOL = @DLLTOOL@
 DSYMUTIL = @DSYMUTIL@
 DUMPBIN = @DUMPBIN@
 ECHO_C = @ECHO_C@
@@ -157,13 +172,18 @@ FGREP = @FGREP@
 FIREFOX_PLUGIN_CFLAGS = @FIREFOX_PLUGIN_CFLAGS@
 FIREFOX_PLUGIN_LIBS = @FIREFOX_PLUGIN_LIBS@
 GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
+GLIB2_CFLAGS = @GLIB2_CFLAGS@
+GLIB2_LIBS = @GLIB2_LIBS@
 GMOFILES = @GMOFILES@
 GMSGFMT = @GMSGFMT@
 GREP = @GREP@
-GTK2_CFLAGS = @GTK2_CFLAGS@
-GTK2_LIBS = @GTK2_LIBS@
-GTKVNC_CFLAGS = @GTKVNC_CFLAGS@
-GTKVNC_LIBS = @GTKVNC_LIBS@
+GTK_API_VERSION = @GTK_API_VERSION@
+GTK_CFLAGS = @GTK_CFLAGS@
+GTK_LIBS = @GTK_LIBS@
+GTK_REQUIRED = @GTK_REQUIRED@
+GTK_VNC_API_VERSION = @GTK_VNC_API_VERSION@
+GTK_VNC_CFLAGS = @GTK_VNC_CFLAGS@
+GTK_VNC_LIBS = @GTK_VNC_LIBS@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -177,8 +197,6 @@ INTLTOOL_PERL = @INTLTOOL_PERL@
 INTLTOOL_UPDATE = @INTLTOOL_UPDATE@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
-LIBGLADE2_CFLAGS = @LIBGLADE2_CFLAGS@
-LIBGLADE2_LIBS = @LIBGLADE2_LIBS@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
@@ -190,6 +208,7 @@ LIPO = @LIPO@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
 MAKEINFO = @MAKEINFO@
+MANIFEST_TOOL = @MANIFEST_TOOL@
 MKDIR_P = @MKDIR_P@
 MKINSTALLDIRS = @MKINSTALLDIRS@
 MOZILLA_PLUGIN_CFLAGS = @MOZILLA_PLUGIN_CFLAGS@
@@ -224,8 +243,8 @@ RANLIB = @RANLIB@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
-SPICEGTK_CFLAGS = @SPICEGTK_CFLAGS@
-SPICEGTK_LIBS = @SPICEGTK_LIBS@
+SPICE_GTK_CFLAGS = @SPICE_GTK_CFLAGS@
+SPICE_GTK_LIBS = @SPICE_GTK_LIBS@
 STRIP = @STRIP@
 USE_NLS = @USE_NLS@
 VERSION = @VERSION@
@@ -235,6 +254,7 @@ abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 abs_top_builddir = @abs_top_builddir@
 abs_top_srcdir = @abs_top_srcdir@
+ac_ct_AR = @ac_ct_AR@
 ac_ct_CC = @ac_ct_CC@
 ac_ct_DUMPBIN = @ac_ct_DUMPBIN@
 am__include = @am__include@
@@ -282,29 +302,39 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-gladedir = $(pkgdatadir)/ui
-glade_DATA = viewer.glade about.glade auth.glade
-EXTRA_DIST = $(glade_DATA)
-virt_viewer_SOURCES = main.c util.h util.c auth.h auth.c events.h \
-	events.c viewer.h viewer.c viewer-priv.h display.h display.c \
-	display-vnc.h display-vnc.c $(am__append_1)
+builderxmldir = $(pkgdatadir)/ui
+builderxml_DATA = \
+	virt-viewer.xml \
+	virt-viewer-about.xml \
+	virt-viewer-auth.xml
+
+EXTRA_DIST = $(builderxml_DATA)
+virt_viewer_SOURCES = virt-viewer-main.c virt-viewer-util.h \
+	virt-viewer-util.c virt-viewer-auth.h virt-viewer-auth.c \
+	virt-viewer-events.h virt-viewer-events.c virt-viewer.h \
+	virt-viewer.c virt-viewer-session.h virt-viewer-session.c \
+	virt-viewer-session-vnc.h virt-viewer-session-vnc.c \
+	virt-viewer-display.h virt-viewer-display.c \
+	virt-viewer-display-vnc.h virt-viewer-display-vnc.c \
+	view/autoDrawer.c view/autoDrawer.h view/drawer.c \
+	view/drawer.h view/ovBox.c view/ovBox.h $(am__append_1)
 virt_viewer_LDADD = \
-	@GTKVNC_LIBS@ \
-	@SPICEGTK_LIBS@ \
-	@GTK2_LIBS@ \
+	@GTK_VNC_LIBS@ \
+	@SPICE_GTK_LIBS@ \
+	@GLIB2_LIBS@ \
+	@GTK_LIBS@ \
 	@LIBXML2_LIBS@ \
-	@LIBGLADE2_LIBS@ \
 	@LIBVIRT_LIBS@
 
 virt_viewer_CFLAGS = \
-	@GTKVNC_CFLAGS@ \
-	@SPICEGTK_CFLAGS@ \
-	@GTK2_CFLAGS@ \
+	@GTK_VNC_CFLAGS@ \
+	@SPICE_GTK_CFLAGS@ \
+	@GLIB2_CFLAGS@ \
+	@GTK_CFLAGS@ \
 	@LIBXML2_CFLAGS@ \
-	@LIBGLADE2_CFLAGS@ \
 	@LIBVIRT_CFLAGS@ \
 	@WARN_CFLAGS@ \
-	-DGLADE_DIR="\"$(gladedir)\"" \
+	-DBUILDER_XML_DIR="\"$(builderxmldir)\"" \
 	-DLOCALE_DIR=\""$(datadir)/locale"\"
 
 all: all-am
@@ -394,14 +424,20 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/virt_viewer-auth.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/virt_viewer-display-spice.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/virt_viewer-display-vnc.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/virt_viewer-display.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/virt_viewer-events.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/virt_viewer-main.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/virt_viewer-util.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/virt_viewer-viewer.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/virt_viewer-autoDrawer.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/virt_viewer-drawer.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/virt_viewer-ovBox.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/virt_viewer-virt-viewer-auth.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/virt_viewer-virt-viewer-display-spice.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/virt_viewer-virt-viewer-display-vnc.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/virt_viewer-virt-viewer-display.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/virt_viewer-virt-viewer-events.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/virt_viewer-virt-viewer-main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/virt_viewer-virt-viewer-session-spice.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/virt_viewer-virt-viewer-session-vnc.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/virt_viewer-virt-viewer-session.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/virt_viewer-virt-viewer-util.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/virt_viewer-virt-viewer.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -427,159 +463,255 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<
 
-virt_viewer-main.o: main.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-main.o -MD -MP -MF $(DEPDIR)/virt_viewer-main.Tpo -c -o virt_viewer-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer-main.Tpo $(DEPDIR)/virt_viewer-main.Po
+virt_viewer-virt-viewer-main.o: virt-viewer-main.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-virt-viewer-main.o -MD -MP -MF $(DEPDIR)/virt_viewer-virt-viewer-main.Tpo -c -o virt_viewer-virt-viewer-main.o `test -f 'virt-viewer-main.c' || echo '$(srcdir)/'`virt-viewer-main.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer-virt-viewer-main.Tpo $(DEPDIR)/virt_viewer-virt-viewer-main.Po
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='main.c' object='virt_viewer-main.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='virt-viewer-main.c' object='virt_viewer-virt-viewer-main.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-virt-viewer-main.o `test -f 'virt-viewer-main.c' || echo '$(srcdir)/'`virt-viewer-main.c
 
-virt_viewer-main.obj: main.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-main.obj -MD -MP -MF $(DEPDIR)/virt_viewer-main.Tpo -c -o virt_viewer-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer-main.Tpo $(DEPDIR)/virt_viewer-main.Po
+virt_viewer-virt-viewer-main.obj: virt-viewer-main.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-virt-viewer-main.obj -MD -MP -MF $(DEPDIR)/virt_viewer-virt-viewer-main.Tpo -c -o virt_viewer-virt-viewer-main.obj `if test -f 'virt-viewer-main.c'; then $(CYGPATH_W) 'virt-viewer-main.c'; else $(CYGPATH_W) '$(srcdir)/virt-viewer-main.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer-virt-viewer-main.Tpo $(DEPDIR)/virt_viewer-virt-viewer-main.Po
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='main.c' object='virt_viewer-main.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='virt-viewer-main.c' object='virt_viewer-virt-viewer-main.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-virt-viewer-main.obj `if test -f 'virt-viewer-main.c'; then $(CYGPATH_W) 'virt-viewer-main.c'; else $(CYGPATH_W) '$(srcdir)/virt-viewer-main.c'; fi`
 
-virt_viewer-util.o: util.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-util.o -MD -MP -MF $(DEPDIR)/virt_viewer-util.Tpo -c -o virt_viewer-util.o `test -f 'util.c' || echo '$(srcdir)/'`util.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer-util.Tpo $(DEPDIR)/virt_viewer-util.Po
+virt_viewer-virt-viewer-util.o: virt-viewer-util.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-virt-viewer-util.o -MD -MP -MF $(DEPDIR)/virt_viewer-virt-viewer-util.Tpo -c -o virt_viewer-virt-viewer-util.o `test -f 'virt-viewer-util.c' || echo '$(srcdir)/'`virt-viewer-util.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer-virt-viewer-util.Tpo $(DEPDIR)/virt_viewer-virt-viewer-util.Po
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='util.c' object='virt_viewer-util.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='virt-viewer-util.c' object='virt_viewer-virt-viewer-util.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-util.o `test -f 'util.c' || echo '$(srcdir)/'`util.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-virt-viewer-util.o `test -f 'virt-viewer-util.c' || echo '$(srcdir)/'`virt-viewer-util.c
 
-virt_viewer-util.obj: util.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-util.obj -MD -MP -MF $(DEPDIR)/virt_viewer-util.Tpo -c -o virt_viewer-util.obj `if test -f 'util.c'; then $(CYGPATH_W) 'util.c'; else $(CYGPATH_W) '$(srcdir)/util.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer-util.Tpo $(DEPDIR)/virt_viewer-util.Po
+virt_viewer-virt-viewer-util.obj: virt-viewer-util.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-virt-viewer-util.obj -MD -MP -MF $(DEPDIR)/virt_viewer-virt-viewer-util.Tpo -c -o virt_viewer-virt-viewer-util.obj `if test -f 'virt-viewer-util.c'; then $(CYGPATH_W) 'virt-viewer-util.c'; else $(CYGPATH_W) '$(srcdir)/virt-viewer-util.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer-virt-viewer-util.Tpo $(DEPDIR)/virt_viewer-virt-viewer-util.Po
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='util.c' object='virt_viewer-util.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='virt-viewer-util.c' object='virt_viewer-virt-viewer-util.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-util.obj `if test -f 'util.c'; then $(CYGPATH_W) 'util.c'; else $(CYGPATH_W) '$(srcdir)/util.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-virt-viewer-util.obj `if test -f 'virt-viewer-util.c'; then $(CYGPATH_W) 'virt-viewer-util.c'; else $(CYGPATH_W) '$(srcdir)/virt-viewer-util.c'; fi`
 
-virt_viewer-auth.o: auth.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-auth.o -MD -MP -MF $(DEPDIR)/virt_viewer-auth.Tpo -c -o virt_viewer-auth.o `test -f 'auth.c' || echo '$(srcdir)/'`auth.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer-auth.Tpo $(DEPDIR)/virt_viewer-auth.Po
+virt_viewer-virt-viewer-auth.o: virt-viewer-auth.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-virt-viewer-auth.o -MD -MP -MF $(DEPDIR)/virt_viewer-virt-viewer-auth.Tpo -c -o virt_viewer-virt-viewer-auth.o `test -f 'virt-viewer-auth.c' || echo '$(srcdir)/'`virt-viewer-auth.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer-virt-viewer-auth.Tpo $(DEPDIR)/virt_viewer-virt-viewer-auth.Po
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='auth.c' object='virt_viewer-auth.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='virt-viewer-auth.c' object='virt_viewer-virt-viewer-auth.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-auth.o `test -f 'auth.c' || echo '$(srcdir)/'`auth.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-virt-viewer-auth.o `test -f 'virt-viewer-auth.c' || echo '$(srcdir)/'`virt-viewer-auth.c
 
-virt_viewer-auth.obj: auth.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-auth.obj -MD -MP -MF $(DEPDIR)/virt_viewer-auth.Tpo -c -o virt_viewer-auth.obj `if test -f 'auth.c'; then $(CYGPATH_W) 'auth.c'; else $(CYGPATH_W) '$(srcdir)/auth.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer-auth.Tpo $(DEPDIR)/virt_viewer-auth.Po
+virt_viewer-virt-viewer-auth.obj: virt-viewer-auth.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-virt-viewer-auth.obj -MD -MP -MF $(DEPDIR)/virt_viewer-virt-viewer-auth.Tpo -c -o virt_viewer-virt-viewer-auth.obj `if test -f 'virt-viewer-auth.c'; then $(CYGPATH_W) 'virt-viewer-auth.c'; else $(CYGPATH_W) '$(srcdir)/virt-viewer-auth.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer-virt-viewer-auth.Tpo $(DEPDIR)/virt_viewer-virt-viewer-auth.Po
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='auth.c' object='virt_viewer-auth.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='virt-viewer-auth.c' object='virt_viewer-virt-viewer-auth.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-auth.obj `if test -f 'auth.c'; then $(CYGPATH_W) 'auth.c'; else $(CYGPATH_W) '$(srcdir)/auth.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-virt-viewer-auth.obj `if test -f 'virt-viewer-auth.c'; then $(CYGPATH_W) 'virt-viewer-auth.c'; else $(CYGPATH_W) '$(srcdir)/virt-viewer-auth.c'; fi`
 
-virt_viewer-events.o: events.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-events.o -MD -MP -MF $(DEPDIR)/virt_viewer-events.Tpo -c -o virt_viewer-events.o `test -f 'events.c' || echo '$(srcdir)/'`events.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer-events.Tpo $(DEPDIR)/virt_viewer-events.Po
+virt_viewer-virt-viewer-events.o: virt-viewer-events.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-virt-viewer-events.o -MD -MP -MF $(DEPDIR)/virt_viewer-virt-viewer-events.Tpo -c -o virt_viewer-virt-viewer-events.o `test -f 'virt-viewer-events.c' || echo '$(srcdir)/'`virt-viewer-events.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer-virt-viewer-events.Tpo $(DEPDIR)/virt_viewer-virt-viewer-events.Po
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='events.c' object='virt_viewer-events.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='virt-viewer-events.c' object='virt_viewer-virt-viewer-events.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-events.o `test -f 'events.c' || echo '$(srcdir)/'`events.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-virt-viewer-events.o `test -f 'virt-viewer-events.c' || echo '$(srcdir)/'`virt-viewer-events.c
 
-virt_viewer-events.obj: events.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-events.obj -MD -MP -MF $(DEPDIR)/virt_viewer-events.Tpo -c -o virt_viewer-events.obj `if test -f 'events.c'; then $(CYGPATH_W) 'events.c'; else $(CYGPATH_W) '$(srcdir)/events.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer-events.Tpo $(DEPDIR)/virt_viewer-events.Po
+virt_viewer-virt-viewer-events.obj: virt-viewer-events.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-virt-viewer-events.obj -MD -MP -MF $(DEPDIR)/virt_viewer-virt-viewer-events.Tpo -c -o virt_viewer-virt-viewer-events.obj `if test -f 'virt-viewer-events.c'; then $(CYGPATH_W) 'virt-viewer-events.c'; else $(CYGPATH_W) '$(srcdir)/virt-viewer-events.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer-virt-viewer-events.Tpo $(DEPDIR)/virt_viewer-virt-viewer-events.Po
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='events.c' object='virt_viewer-events.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='virt-viewer-events.c' object='virt_viewer-virt-viewer-events.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-events.obj `if test -f 'events.c'; then $(CYGPATH_W) 'events.c'; else $(CYGPATH_W) '$(srcdir)/events.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-virt-viewer-events.obj `if test -f 'virt-viewer-events.c'; then $(CYGPATH_W) 'virt-viewer-events.c'; else $(CYGPATH_W) '$(srcdir)/virt-viewer-events.c'; fi`
 
-virt_viewer-viewer.o: viewer.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-viewer.o -MD -MP -MF $(DEPDIR)/virt_viewer-viewer.Tpo -c -o virt_viewer-viewer.o `test -f 'viewer.c' || echo '$(srcdir)/'`viewer.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer-viewer.Tpo $(DEPDIR)/virt_viewer-viewer.Po
+virt_viewer-virt-viewer.o: virt-viewer.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-virt-viewer.o -MD -MP -MF $(DEPDIR)/virt_viewer-virt-viewer.Tpo -c -o virt_viewer-virt-viewer.o `test -f 'virt-viewer.c' || echo '$(srcdir)/'`virt-viewer.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer-virt-viewer.Tpo $(DEPDIR)/virt_viewer-virt-viewer.Po
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='viewer.c' object='virt_viewer-viewer.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='virt-viewer.c' object='virt_viewer-virt-viewer.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-viewer.o `test -f 'viewer.c' || echo '$(srcdir)/'`viewer.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-virt-viewer.o `test -f 'virt-viewer.c' || echo '$(srcdir)/'`virt-viewer.c
 
-virt_viewer-viewer.obj: viewer.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-viewer.obj -MD -MP -MF $(DEPDIR)/virt_viewer-viewer.Tpo -c -o virt_viewer-viewer.obj `if test -f 'viewer.c'; then $(CYGPATH_W) 'viewer.c'; else $(CYGPATH_W) '$(srcdir)/viewer.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer-viewer.Tpo $(DEPDIR)/virt_viewer-viewer.Po
+virt_viewer-virt-viewer.obj: virt-viewer.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-virt-viewer.obj -MD -MP -MF $(DEPDIR)/virt_viewer-virt-viewer.Tpo -c -o virt_viewer-virt-viewer.obj `if test -f 'virt-viewer.c'; then $(CYGPATH_W) 'virt-viewer.c'; else $(CYGPATH_W) '$(srcdir)/virt-viewer.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer-virt-viewer.Tpo $(DEPDIR)/virt_viewer-virt-viewer.Po
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='viewer.c' object='virt_viewer-viewer.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='virt-viewer.c' object='virt_viewer-virt-viewer.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-viewer.obj `if test -f 'viewer.c'; then $(CYGPATH_W) 'viewer.c'; else $(CYGPATH_W) '$(srcdir)/viewer.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-virt-viewer.obj `if test -f 'virt-viewer.c'; then $(CYGPATH_W) 'virt-viewer.c'; else $(CYGPATH_W) '$(srcdir)/virt-viewer.c'; fi`
 
-virt_viewer-display.o: display.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-display.o -MD -MP -MF $(DEPDIR)/virt_viewer-display.Tpo -c -o virt_viewer-display.o `test -f 'display.c' || echo '$(srcdir)/'`display.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer-display.Tpo $(DEPDIR)/virt_viewer-display.Po
+virt_viewer-virt-viewer-session.o: virt-viewer-session.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-virt-viewer-session.o -MD -MP -MF $(DEPDIR)/virt_viewer-virt-viewer-session.Tpo -c -o virt_viewer-virt-viewer-session.o `test -f 'virt-viewer-session.c' || echo '$(srcdir)/'`virt-viewer-session.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer-virt-viewer-session.Tpo $(DEPDIR)/virt_viewer-virt-viewer-session.Po
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='display.c' object='virt_viewer-display.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='virt-viewer-session.c' object='virt_viewer-virt-viewer-session.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-display.o `test -f 'display.c' || echo '$(srcdir)/'`display.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-virt-viewer-session.o `test -f 'virt-viewer-session.c' || echo '$(srcdir)/'`virt-viewer-session.c
 
-virt_viewer-display.obj: display.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-display.obj -MD -MP -MF $(DEPDIR)/virt_viewer-display.Tpo -c -o virt_viewer-display.obj `if test -f 'display.c'; then $(CYGPATH_W) 'display.c'; else $(CYGPATH_W) '$(srcdir)/display.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer-display.Tpo $(DEPDIR)/virt_viewer-display.Po
+virt_viewer-virt-viewer-session.obj: virt-viewer-session.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-virt-viewer-session.obj -MD -MP -MF $(DEPDIR)/virt_viewer-virt-viewer-session.Tpo -c -o virt_viewer-virt-viewer-session.obj `if test -f 'virt-viewer-session.c'; then $(CYGPATH_W) 'virt-viewer-session.c'; else $(CYGPATH_W) '$(srcdir)/virt-viewer-session.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer-virt-viewer-session.Tpo $(DEPDIR)/virt_viewer-virt-viewer-session.Po
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='display.c' object='virt_viewer-display.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='virt-viewer-session.c' object='virt_viewer-virt-viewer-session.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-display.obj `if test -f 'display.c'; then $(CYGPATH_W) 'display.c'; else $(CYGPATH_W) '$(srcdir)/display.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-virt-viewer-session.obj `if test -f 'virt-viewer-session.c'; then $(CYGPATH_W) 'virt-viewer-session.c'; else $(CYGPATH_W) '$(srcdir)/virt-viewer-session.c'; fi`
 
-virt_viewer-display-vnc.o: display-vnc.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-display-vnc.o -MD -MP -MF $(DEPDIR)/virt_viewer-display-vnc.Tpo -c -o virt_viewer-display-vnc.o `test -f 'display-vnc.c' || echo '$(srcdir)/'`display-vnc.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer-display-vnc.Tpo $(DEPDIR)/virt_viewer-display-vnc.Po
+virt_viewer-virt-viewer-session-vnc.o: virt-viewer-session-vnc.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-virt-viewer-session-vnc.o -MD -MP -MF $(DEPDIR)/virt_viewer-virt-viewer-session-vnc.Tpo -c -o virt_viewer-virt-viewer-session-vnc.o `test -f 'virt-viewer-session-vnc.c' || echo '$(srcdir)/'`virt-viewer-session-vnc.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer-virt-viewer-session-vnc.Tpo $(DEPDIR)/virt_viewer-virt-viewer-session-vnc.Po
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='display-vnc.c' object='virt_viewer-display-vnc.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='virt-viewer-session-vnc.c' object='virt_viewer-virt-viewer-session-vnc.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-display-vnc.o `test -f 'display-vnc.c' || echo '$(srcdir)/'`display-vnc.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-virt-viewer-session-vnc.o `test -f 'virt-viewer-session-vnc.c' || echo '$(srcdir)/'`virt-viewer-session-vnc.c
 
-virt_viewer-display-vnc.obj: display-vnc.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-display-vnc.obj -MD -MP -MF $(DEPDIR)/virt_viewer-display-vnc.Tpo -c -o virt_viewer-display-vnc.obj `if test -f 'display-vnc.c'; then $(CYGPATH_W) 'display-vnc.c'; else $(CYGPATH_W) '$(srcdir)/display-vnc.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer-display-vnc.Tpo $(DEPDIR)/virt_viewer-display-vnc.Po
+virt_viewer-virt-viewer-session-vnc.obj: virt-viewer-session-vnc.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-virt-viewer-session-vnc.obj -MD -MP -MF $(DEPDIR)/virt_viewer-virt-viewer-session-vnc.Tpo -c -o virt_viewer-virt-viewer-session-vnc.obj `if test -f 'virt-viewer-session-vnc.c'; then $(CYGPATH_W) 'virt-viewer-session-vnc.c'; else $(CYGPATH_W) '$(srcdir)/virt-viewer-session-vnc.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer-virt-viewer-session-vnc.Tpo $(DEPDIR)/virt_viewer-virt-viewer-session-vnc.Po
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='display-vnc.c' object='virt_viewer-display-vnc.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='virt-viewer-session-vnc.c' object='virt_viewer-virt-viewer-session-vnc.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-display-vnc.obj `if test -f 'display-vnc.c'; then $(CYGPATH_W) 'display-vnc.c'; else $(CYGPATH_W) '$(srcdir)/display-vnc.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-virt-viewer-session-vnc.obj `if test -f 'virt-viewer-session-vnc.c'; then $(CYGPATH_W) 'virt-viewer-session-vnc.c'; else $(CYGPATH_W) '$(srcdir)/virt-viewer-session-vnc.c'; fi`
 
-virt_viewer-display-spice.o: display-spice.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-display-spice.o -MD -MP -MF $(DEPDIR)/virt_viewer-display-spice.Tpo -c -o virt_viewer-display-spice.o `test -f 'display-spice.c' || echo '$(srcdir)/'`display-spice.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer-display-spice.Tpo $(DEPDIR)/virt_viewer-display-spice.Po
+virt_viewer-virt-viewer-display.o: virt-viewer-display.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-virt-viewer-display.o -MD -MP -MF $(DEPDIR)/virt_viewer-virt-viewer-display.Tpo -c -o virt_viewer-virt-viewer-display.o `test -f 'virt-viewer-display.c' || echo '$(srcdir)/'`virt-viewer-display.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer-virt-viewer-display.Tpo $(DEPDIR)/virt_viewer-virt-viewer-display.Po
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='display-spice.c' object='virt_viewer-display-spice.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='virt-viewer-display.c' object='virt_viewer-virt-viewer-display.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-display-spice.o `test -f 'display-spice.c' || echo '$(srcdir)/'`display-spice.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-virt-viewer-display.o `test -f 'virt-viewer-display.c' || echo '$(srcdir)/'`virt-viewer-display.c
 
-virt_viewer-display-spice.obj: display-spice.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-display-spice.obj -MD -MP -MF $(DEPDIR)/virt_viewer-display-spice.Tpo -c -o virt_viewer-display-spice.obj `if test -f 'display-spice.c'; then $(CYGPATH_W) 'display-spice.c'; else $(CYGPATH_W) '$(srcdir)/display-spice.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer-display-spice.Tpo $(DEPDIR)/virt_viewer-display-spice.Po
+virt_viewer-virt-viewer-display.obj: virt-viewer-display.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-virt-viewer-display.obj -MD -MP -MF $(DEPDIR)/virt_viewer-virt-viewer-display.Tpo -c -o virt_viewer-virt-viewer-display.obj `if test -f 'virt-viewer-display.c'; then $(CYGPATH_W) 'virt-viewer-display.c'; else $(CYGPATH_W) '$(srcdir)/virt-viewer-display.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer-virt-viewer-display.Tpo $(DEPDIR)/virt_viewer-virt-viewer-display.Po
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='display-spice.c' object='virt_viewer-display-spice.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='virt-viewer-display.c' object='virt_viewer-virt-viewer-display.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-display-spice.obj `if test -f 'display-spice.c'; then $(CYGPATH_W) 'display-spice.c'; else $(CYGPATH_W) '$(srcdir)/display-spice.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-virt-viewer-display.obj `if test -f 'virt-viewer-display.c'; then $(CYGPATH_W) 'virt-viewer-display.c'; else $(CYGPATH_W) '$(srcdir)/virt-viewer-display.c'; fi`
+
+virt_viewer-virt-viewer-display-vnc.o: virt-viewer-display-vnc.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-virt-viewer-display-vnc.o -MD -MP -MF $(DEPDIR)/virt_viewer-virt-viewer-display-vnc.Tpo -c -o virt_viewer-virt-viewer-display-vnc.o `test -f 'virt-viewer-display-vnc.c' || echo '$(srcdir)/'`virt-viewer-display-vnc.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer-virt-viewer-display-vnc.Tpo $(DEPDIR)/virt_viewer-virt-viewer-display-vnc.Po
+@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='virt-viewer-display-vnc.c' object='virt_viewer-virt-viewer-display-vnc.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-virt-viewer-display-vnc.o `test -f 'virt-viewer-display-vnc.c' || echo '$(srcdir)/'`virt-viewer-display-vnc.c
+
+virt_viewer-virt-viewer-display-vnc.obj: virt-viewer-display-vnc.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-virt-viewer-display-vnc.obj -MD -MP -MF $(DEPDIR)/virt_viewer-virt-viewer-display-vnc.Tpo -c -o virt_viewer-virt-viewer-display-vnc.obj `if test -f 'virt-viewer-display-vnc.c'; then $(CYGPATH_W) 'virt-viewer-display-vnc.c'; else $(CYGPATH_W) '$(srcdir)/virt-viewer-display-vnc.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer-virt-viewer-display-vnc.Tpo $(DEPDIR)/virt_viewer-virt-viewer-display-vnc.Po
+@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='virt-viewer-display-vnc.c' object='virt_viewer-virt-viewer-display-vnc.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-virt-viewer-display-vnc.obj `if test -f 'virt-viewer-display-vnc.c'; then $(CYGPATH_W) 'virt-viewer-display-vnc.c'; else $(CYGPATH_W) '$(srcdir)/virt-viewer-display-vnc.c'; fi`
+
+virt_viewer-autoDrawer.o: view/autoDrawer.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-autoDrawer.o -MD -MP -MF $(DEPDIR)/virt_viewer-autoDrawer.Tpo -c -o virt_viewer-autoDrawer.o `test -f 'view/autoDrawer.c' || echo '$(srcdir)/'`view/autoDrawer.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer-autoDrawer.Tpo $(DEPDIR)/virt_viewer-autoDrawer.Po
+@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='view/autoDrawer.c' object='virt_viewer-autoDrawer.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-autoDrawer.o `test -f 'view/autoDrawer.c' || echo '$(srcdir)/'`view/autoDrawer.c
+
+virt_viewer-autoDrawer.obj: view/autoDrawer.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-autoDrawer.obj -MD -MP -MF $(DEPDIR)/virt_viewer-autoDrawer.Tpo -c -o virt_viewer-autoDrawer.obj `if test -f 'view/autoDrawer.c'; then $(CYGPATH_W) 'view/autoDrawer.c'; else $(CYGPATH_W) '$(srcdir)/view/autoDrawer.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer-autoDrawer.Tpo $(DEPDIR)/virt_viewer-autoDrawer.Po
+@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='view/autoDrawer.c' object='virt_viewer-autoDrawer.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-autoDrawer.obj `if test -f 'view/autoDrawer.c'; then $(CYGPATH_W) 'view/autoDrawer.c'; else $(CYGPATH_W) '$(srcdir)/view/autoDrawer.c'; fi`
+
+virt_viewer-drawer.o: view/drawer.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-drawer.o -MD -MP -MF $(DEPDIR)/virt_viewer-drawer.Tpo -c -o virt_viewer-drawer.o `test -f 'view/drawer.c' || echo '$(srcdir)/'`view/drawer.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer-drawer.Tpo $(DEPDIR)/virt_viewer-drawer.Po
+@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='view/drawer.c' object='virt_viewer-drawer.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-drawer.o `test -f 'view/drawer.c' || echo '$(srcdir)/'`view/drawer.c
+
+virt_viewer-drawer.obj: view/drawer.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-drawer.obj -MD -MP -MF $(DEPDIR)/virt_viewer-drawer.Tpo -c -o virt_viewer-drawer.obj `if test -f 'view/drawer.c'; then $(CYGPATH_W) 'view/drawer.c'; else $(CYGPATH_W) '$(srcdir)/view/drawer.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer-drawer.Tpo $(DEPDIR)/virt_viewer-drawer.Po
+@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='view/drawer.c' object='virt_viewer-drawer.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-drawer.obj `if test -f 'view/drawer.c'; then $(CYGPATH_W) 'view/drawer.c'; else $(CYGPATH_W) '$(srcdir)/view/drawer.c'; fi`
+
+virt_viewer-ovBox.o: view/ovBox.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-ovBox.o -MD -MP -MF $(DEPDIR)/virt_viewer-ovBox.Tpo -c -o virt_viewer-ovBox.o `test -f 'view/ovBox.c' || echo '$(srcdir)/'`view/ovBox.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer-ovBox.Tpo $(DEPDIR)/virt_viewer-ovBox.Po
+@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='view/ovBox.c' object='virt_viewer-ovBox.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-ovBox.o `test -f 'view/ovBox.c' || echo '$(srcdir)/'`view/ovBox.c
+
+virt_viewer-ovBox.obj: view/ovBox.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-ovBox.obj -MD -MP -MF $(DEPDIR)/virt_viewer-ovBox.Tpo -c -o virt_viewer-ovBox.obj `if test -f 'view/ovBox.c'; then $(CYGPATH_W) 'view/ovBox.c'; else $(CYGPATH_W) '$(srcdir)/view/ovBox.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer-ovBox.Tpo $(DEPDIR)/virt_viewer-ovBox.Po
+@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='view/ovBox.c' object='virt_viewer-ovBox.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-ovBox.obj `if test -f 'view/ovBox.c'; then $(CYGPATH_W) 'view/ovBox.c'; else $(CYGPATH_W) '$(srcdir)/view/ovBox.c'; fi`
+
+virt_viewer-virt-viewer-session-spice.o: virt-viewer-session-spice.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-virt-viewer-session-spice.o -MD -MP -MF $(DEPDIR)/virt_viewer-virt-viewer-session-spice.Tpo -c -o virt_viewer-virt-viewer-session-spice.o `test -f 'virt-viewer-session-spice.c' || echo '$(srcdir)/'`virt-viewer-session-spice.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer-virt-viewer-session-spice.Tpo $(DEPDIR)/virt_viewer-virt-viewer-session-spice.Po
+@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='virt-viewer-session-spice.c' object='virt_viewer-virt-viewer-session-spice.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-virt-viewer-session-spice.o `test -f 'virt-viewer-session-spice.c' || echo '$(srcdir)/'`virt-viewer-session-spice.c
+
+virt_viewer-virt-viewer-session-spice.obj: virt-viewer-session-spice.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-virt-viewer-session-spice.obj -MD -MP -MF $(DEPDIR)/virt_viewer-virt-viewer-session-spice.Tpo -c -o virt_viewer-virt-viewer-session-spice.obj `if test -f 'virt-viewer-session-spice.c'; then $(CYGPATH_W) 'virt-viewer-session-spice.c'; else $(CYGPATH_W) '$(srcdir)/virt-viewer-session-spice.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer-virt-viewer-session-spice.Tpo $(DEPDIR)/virt_viewer-virt-viewer-session-spice.Po
+@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='virt-viewer-session-spice.c' object='virt_viewer-virt-viewer-session-spice.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-virt-viewer-session-spice.obj `if test -f 'virt-viewer-session-spice.c'; then $(CYGPATH_W) 'virt-viewer-session-spice.c'; else $(CYGPATH_W) '$(srcdir)/virt-viewer-session-spice.c'; fi`
+
+virt_viewer-virt-viewer-display-spice.o: virt-viewer-display-spice.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-virt-viewer-display-spice.o -MD -MP -MF $(DEPDIR)/virt_viewer-virt-viewer-display-spice.Tpo -c -o virt_viewer-virt-viewer-display-spice.o `test -f 'virt-viewer-display-spice.c' || echo '$(srcdir)/'`virt-viewer-display-spice.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer-virt-viewer-display-spice.Tpo $(DEPDIR)/virt_viewer-virt-viewer-display-spice.Po
+@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='virt-viewer-display-spice.c' object='virt_viewer-virt-viewer-display-spice.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-virt-viewer-display-spice.o `test -f 'virt-viewer-display-spice.c' || echo '$(srcdir)/'`virt-viewer-display-spice.c
+
+virt_viewer-virt-viewer-display-spice.obj: virt-viewer-display-spice.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-virt-viewer-display-spice.obj -MD -MP -MF $(DEPDIR)/virt_viewer-virt-viewer-display-spice.Tpo -c -o virt_viewer-virt-viewer-display-spice.obj `if test -f 'virt-viewer-display-spice.c'; then $(CYGPATH_W) 'virt-viewer-display-spice.c'; else $(CYGPATH_W) '$(srcdir)/virt-viewer-display-spice.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer-virt-viewer-display-spice.Tpo $(DEPDIR)/virt_viewer-virt-viewer-display-spice.Po
+@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='virt-viewer-display-spice.c' object='virt_viewer-virt-viewer-display-spice.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-virt-viewer-display-spice.obj `if test -f 'virt-viewer-display-spice.c'; then $(CYGPATH_W) 'virt-viewer-display-spice.c'; else $(CYGPATH_W) '$(srcdir)/virt-viewer-display-spice.c'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
 
 clean-libtool:
 	-rm -rf .libs _libs
-install-gladeDATA: $(glade_DATA)
+install-builderxmlDATA: $(builderxml_DATA)
 	@$(NORMAL_INSTALL)
-	test -z "$(gladedir)" || $(MKDIR_P) "$(DESTDIR)$(gladedir)"
-	@list='$(glade_DATA)'; test -n "$(gladedir)" || list=; \
+	test -z "$(builderxmldir)" || $(MKDIR_P) "$(DESTDIR)$(builderxmldir)"
+	@list='$(builderxml_DATA)'; test -n "$(builderxmldir)" || list=; \
 	for p in $$list; do \
 	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
 	  echo "$$d$$p"; \
 	done | $(am__base_list) | \
 	while read files; do \
-	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(gladedir)'"; \
-	  $(INSTALL_DATA) $$files "$(DESTDIR)$(gladedir)" || exit $$?; \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(builderxmldir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(builderxmldir)" || exit $$?; \
 	done
 
-uninstall-gladeDATA:
+uninstall-builderxmlDATA:
 	@$(NORMAL_UNINSTALL)
-	@list='$(glade_DATA)'; test -n "$(gladedir)" || list=; \
+	@list='$(builderxml_DATA)'; test -n "$(builderxmldir)" || list=; \
 	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
 	test -n "$$files" || exit 0; \
-	echo " ( cd '$(DESTDIR)$(gladedir)' && rm -f" $$files ")"; \
-	cd "$(DESTDIR)$(gladedir)" && rm -f $$files
+	echo " ( cd '$(DESTDIR)$(builderxmldir)' && rm -f" $$files ")"; \
+	cd "$(DESTDIR)$(builderxmldir)" && rm -f $$files
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \
@@ -667,7 +799,7 @@ check-am: all-am
 check: check-am
 all-am: Makefile $(PROGRAMS) $(DATA)
 installdirs:
-	for dir in "$(DESTDIR)$(bindir)" "$(DESTDIR)$(gladedir)"; do \
+	for dir in "$(DESTDIR)$(bindir)" "$(DESTDIR)$(builderxmldir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -717,7 +849,7 @@ info: info-am
 
 info-am:
 
-install-data-am: install-gladeDATA
+install-data-am: install-builderxmlDATA
 
 install-dvi: install-dvi-am
 
@@ -763,7 +895,7 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-binPROGRAMS uninstall-gladeDATA
+uninstall-am: uninstall-binPROGRAMS uninstall-builderxmlDATA
 
 .MAKE: install-am install-strip
 
@@ -771,15 +903,16 @@ uninstall-am: uninstall-binPROGRAMS uninstall-gladeDATA
 	clean-generic clean-libtool ctags distclean distclean-compile \
 	distclean-generic distclean-libtool distclean-tags distdir dvi \
 	dvi-am html html-am info info-am install install-am \
-	install-binPROGRAMS install-data install-data-am install-dvi \
-	install-dvi-am install-exec install-exec-am install-gladeDATA \
-	install-html install-html-am install-info install-info-am \
-	install-man install-pdf install-pdf-am install-ps \
-	install-ps-am install-strip installcheck installcheck-am \
-	installdirs maintainer-clean maintainer-clean-generic \
-	mostlyclean mostlyclean-compile mostlyclean-generic \
-	mostlyclean-libtool pdf pdf-am ps ps-am tags uninstall \
-	uninstall-am uninstall-binPROGRAMS uninstall-gladeDATA
+	install-binPROGRAMS install-builderxmlDATA install-data \
+	install-data-am install-dvi install-dvi-am install-exec \
+	install-exec-am install-html install-html-am install-info \
+	install-info-am install-man install-pdf install-pdf-am \
+	install-ps install-ps-am install-strip installcheck \
+	installcheck-am installdirs maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-compile \
+	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
+	tags uninstall uninstall-am uninstall-binPROGRAMS \
+	uninstall-builderxmlDATA
 
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

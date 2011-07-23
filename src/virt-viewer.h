@@ -23,16 +23,19 @@
 #ifndef VIRT_VIEWER_H
 #define VIRT_VIEWER_H
 
-#include "util.h"
+#include "virt-viewer-util.h"
 
-extern int viewer_start (const char *uri,
-			 const char *name,
-			 gint zoom,
-			 gboolean direct,
-			 gboolean waitvm,
-			 gboolean reconnect,
-			 gboolean verbose,
-			 gboolean debug,
-			 GtkWidget *container);
+typedef struct _VirtViewer VirtViewer;
+
+extern int virt_viewer_start(const char *uri,
+			     const char *name,
+			     gint zoom,
+			     gboolean direct,
+			     gboolean waitvm,
+			     gboolean reconnect,
+			     gboolean verbose,
+			     gboolean debug,
+			     gboolean fullscreen,
+			     GtkWidget *container);
 
 #endif /* VIRT_VIEWER_H */

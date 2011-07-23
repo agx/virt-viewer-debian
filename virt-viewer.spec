@@ -4,13 +4,23 @@
 # a security audit at very least
 %define _with_plugin %{?with_plugin:1}%{!?with_plugin:0}
 
+%define with_gtk3 0
+%if 0%{?fedora} >= 15
+%define with_gtk3 1
+%endif
+
 %define with_spice 0
-%if 0%{?fedora} >= 14
+%if 0%{?fedora} >= 16
 %define with_spice 1
 %endif
 
+# spice-gtk is x86 x86_64 only currently:
+%ifnarch %{ix86} x86_64
+%define with_spice 0
+%endif
+
 Name: virt-viewer
-Version: 0.3.1
+Version: 0.4.0
 Release: 1%{?dist}%{?extra_release}
 Summary: Virtual Machine Viewer
 Group: Applications/System
@@ -20,13 +30,24 @@ Source0: http://virt-manager.org/download/sources/%{name}/%{name}-%{version}.tar
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires: openssh-clients
 
-BuildRequires: gtk2-devel
+%if %{with_gtk3}
+BuildRequires: gtk3-devel >= 3.0.0
+%else
+BuildRequires: gtk2-devel >= 2.12.0
+%endif
 BuildRequires: libvirt-devel >= 0.6.0
 BuildRequires: libxml2-devel
-BuildRequires: libglade2-devel
+%if %{with_gtk3}
+BuildRequires: gtk-vnc2-devel >= 0.4.3
+%else
 BuildRequires: gtk-vnc-devel >= 0.3.8
+%endif
 %if %{with_spice}
-BuildRequires: spice-gtk-devel >= 0.5
+%if %{with_gtk3}
+BuildRequires: spice-gtk3-devel >= 0.6
+%else
+BuildRequires: spice-gtk-devel >= 0.6
+%endif
 %endif
 BuildRequires: /usr/bin/pod2man
 BuildRequires: intltool
@@ -40,8 +61,8 @@ BuildRequires: firefox-devel
 
 %description
 Virtual Machine Viewer provides a graphical console client for connecting
-to virtual machines. It uses the GTK-VNC widget to provide the display,
-and libvirt for looking up VNC server details.
+to virtual machines. It uses the GTK-VNC or SPICE-GTK widgets to provide
+the display, and libvirt for looking up VNC/SPICE server details.
 
 %if %{_with_plugin}
 %package plugin
@@ -50,8 +71,9 @@ Group: Development/Libraries
 Requires: %{name} = %{version}
 
 %description plugin
-gtk-vnc is a VNC viewer widget for GTK. It is built using coroutines
-allowing it to be completely asynchronous while remaining single threaded.
+Virtual Machine Viewer provides a graphical console client for connecting
+to virtual machines. It uses the GTK-VNC or SPICE-GTK widgets to provide
+the display, and libvirt for looking up VNC/SPICE server details.
 
 This package provides a web browser plugin for Mozilla compatible
 browsers.
@@ -74,7 +96,13 @@ browsers.
 %define spice_arg --disable-spice
 %endif
 
-%configure %{spice_arg} %{plugin_arg}
+%if %{with_gtk3}
+%define gtk_arg --with-gtk=3.0
+%else
+%define gtk_arg --with-gtk=2.0
+%endif
+
+%configure %{spice_arg} %{plugin_arg} %{gtk_arg}
 %__make %{?_smp_mflags}
 
 
@@ -96,9 +124,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_bindir}/%{name}
 %dir %{_datadir}/%{name}
 %dir %{_datadir}/%{name}/ui/
-%{_datadir}/%{name}/ui/auth.glade
-%{_datadir}/%{name}/ui/about.glade
-%{_datadir}/%{name}/ui/viewer.glade
+%{_datadir}/%{name}/ui/virt-viewer.xml
+%{_datadir}/%{name}/ui/virt-viewer-auth.xml
+%{_datadir}/%{name}/ui/virt-viewer-about.xml
 %{_mandir}/man1/%{name}*
 
 %if %{_with_plugin}

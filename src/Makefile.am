@@ -1,41 +1,53 @@
 
 bin_PROGRAMS = virt-viewer
 
-gladedir = $(pkgdatadir)/ui
-glade_DATA = viewer.glade about.glade auth.glade
+builderxmldir = $(pkgdatadir)/ui
+builderxml_DATA = \
+	virt-viewer.xml \
+	virt-viewer-about.xml \
+	virt-viewer-auth.xml
 
-EXTRA_DIST = $(glade_DATA)
+EXTRA_DIST = $(builderxml_DATA)
 
 virt_viewer_SOURCES = \
-	main.c \
-	util.h util.c \
-	auth.h auth.c \
-	events.h events.c \
-	viewer.h viewer.c \
-	viewer-priv.h \
-	display.h display.c \
-	display-vnc.h display-vnc.c
+	virt-viewer-main.c \
+	virt-viewer-util.h virt-viewer-util.c \
+	virt-viewer-auth.h virt-viewer-auth.c \
+	virt-viewer-events.h virt-viewer-events.c \
+	virt-viewer.h virt-viewer.c \
+	virt-viewer-session.h virt-viewer-session.c \
+	virt-viewer-session-vnc.h virt-viewer-session-vnc.c \
+	virt-viewer-display.h virt-viewer-display.c \
+	virt-viewer-display-vnc.h virt-viewer-display-vnc.c \
+	view/autoDrawer.c \
+	view/autoDrawer.h \
+	view/drawer.c \
+	view/drawer.h \
+	view/ovBox.c \
+	view/ovBox.h
+
 
 if HAVE_SPICE_GTK
 virt_viewer_SOURCES += \
-	display-spice.h display-spice.c
+	virt-viewer-session-spice.h virt-viewer-session-spice.c \
+	virt-viewer-display-spice.h virt-viewer-display-spice.c
 endif
 
 virt_viewer_LDADD = \
-	@GTKVNC_LIBS@ \
-	@SPICEGTK_LIBS@ \
-	@GTK2_LIBS@ \
+	@GTK_VNC_LIBS@ \
+	@SPICE_GTK_LIBS@ \
+	@GLIB2_LIBS@ \
+	@GTK_LIBS@ \
 	@LIBXML2_LIBS@ \
-	@LIBGLADE2_LIBS@ \
 	@LIBVIRT_LIBS@
 
 virt_viewer_CFLAGS = \
-	@GTKVNC_CFLAGS@ \
-	@SPICEGTK_CFLAGS@ \
-	@GTK2_CFLAGS@ \
+	@GTK_VNC_CFLAGS@ \
+	@SPICE_GTK_CFLAGS@ \
+	@GLIB2_CFLAGS@ \
+	@GTK_CFLAGS@ \
 	@LIBXML2_CFLAGS@ \
-	@LIBGLADE2_CFLAGS@ \
 	@LIBVIRT_CFLAGS@ \
 	@WARN_CFLAGS@ \
-	-DGLADE_DIR="\"$(gladedir)\"" \
+	-DBUILDER_XML_DIR="\"$(builderxmldir)\"" \
 	-DLOCALE_DIR=\""$(datadir)/locale"\"
