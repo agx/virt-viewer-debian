@@ -27,9 +27,9 @@
 #include <glib/gi18n.h>
 #include <stdlib.h>
 
-#include "viewer.h"
+#include "virt-viewer.h"
 
-static void viewer_version(void)
+static void virt_viewer_version(void)
 {
 	g_print(_("%s version %s\n"), PACKAGE, VERSION);
 
@@ -41,7 +41,7 @@ int main(int argc, char **argv)
 {
 	GOptionContext *context;
 	GError *error = NULL;
-	int ret;
+	int ret = 1;
 	char *uri = NULL;
 	int zoom = 100;
 	gchar **args = NULL;
@@ -50,10 +50,11 @@ int main(int argc, char **argv)
 	gboolean direct = FALSE;
 	gboolean waitvm = FALSE;
 	gboolean reconnect = FALSE;
+	gboolean fullscreen = FALSE;
 	const char *help_msg = N_("Run '" PACKAGE " --help' to see a full list of available command line options");
 	const GOptionEntry options [] = {
 		{ "version", 'V', G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK,
-		  viewer_version, N_("display version information"), NULL },
+		  virt_viewer_version, N_("display version information"), NULL },
 		{ "verbose", 'v', 0, G_OPTION_ARG_NONE, &verbose,
 		  N_("display verbose information"), NULL },
 		{ "direct", 'd', 0, G_OPTION_ARG_NONE, &direct,
@@ -68,9 +69,11 @@ int main(int argc, char **argv)
 		  N_("Zoom level of window, in percentage"), "ZOOM" },
 		{ "debug", '\0', 0, G_OPTION_ARG_NONE, &debug,
 		  N_("display debugging information"), NULL },
-  	     	{ G_OPTION_REMAINING, '\0', 0, G_OPTION_ARG_STRING_ARRAY, &args,
+		{ "full-screen", 'f', 0, G_OPTION_ARG_NONE, &fullscreen,
+		  N_("Open in full screen mode"), NULL },
+		{ G_OPTION_REMAINING, '\0', 0, G_OPTION_ARG_STRING_ARRAY, &args,
 		  NULL, "DOMAIN-NAME|ID|UUID" },
-  		{ NULL, 0, 0, G_OPTION_ARG_NONE, NULL, NULL, NULL }
+		{ NULL, 0, 0, G_OPTION_ARG_NONE, NULL, NULL, NULL }
 	};
 
 	setlocale(LC_ALL, "");
@@ -89,28 +92,32 @@ int main(int argc, char **argv)
 			   error->message,
 			   gettext(help_msg));
 		g_error_free(error);
-		return 1;
+		goto cleanup;
 	}
 
 	g_option_context_free(context);
 
 	if (!args || (g_strv_length(args) != 1)) {
 		fprintf(stderr, _("\nUsage: %s [OPTIONS] DOMAIN-NAME|ID|UUID\n\n%s\n\n"), argv[0], help_msg);
-		return 1;
+		goto cleanup;
 	}
 
 	if (zoom < 10 || zoom > 200) {
 		fprintf(stderr, "Zoom level must be within 10-200\n");
-		return 1;
+		goto cleanup;
 	}
 
-	ret = viewer_start (uri, args[0], zoom, direct, waitvm, reconnect, verbose, debug, NULL);
+	ret = virt_viewer_start(uri, args[0], zoom, direct, waitvm, reconnect, verbose, debug, fullscreen, NULL);
 	if (ret != 0)
 		return ret;
 
 	gtk_main();
 
-	return 0;
+ cleanup:
+	g_free(uri);
+	g_strfreev(args);
+
+	return ret;
 }
 
 /*
@@ -118,5 +125,6 @@ int main(int argc, char **argv)
  *  c-indent-level: 8
  *  c-basic-offset: 8
  *  tab-width: 8
+ *  indent-tabs-mode: t
  * End:
  */

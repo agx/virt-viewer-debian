@@ -27,9 +27,9 @@
 #include <glib.h>
 #include <libvirt/libvirt.h>
 
-#include "events.h"
+#include "virt-viewer-events.h"
 
-struct viewer_event_handle
+struct virt_viewer_events_handle
 {
     int watch;
     int fd;
@@ -44,14 +44,14 @@ struct viewer_event_handle
 
 static int nextwatch = 1;
 static unsigned int nhandles = 0;
-static struct viewer_event_handle **handles = NULL;
+static struct virt_viewer_events_handle **handles = NULL;
 
 static gboolean
-viewer_event_dispatch_handle(GIOChannel *source G_GNUC_UNUSED,
+virt_viewer_events_dispatch_handle(GIOChannel *source G_GNUC_UNUSED,
 			     GIOCondition condition,
 			     gpointer opaque)
 {
-    struct viewer_event_handle *data = opaque;
+    struct virt_viewer_events_handle *data = opaque;
     int events = 0;
 
     if (condition & G_IO_IN)
@@ -63,7 +63,7 @@ viewer_event_dispatch_handle(GIOChannel *source G_GNUC_UNUSED,
     if (condition & G_IO_ERR)
         events |= VIR_EVENT_HANDLE_ERROR;
 
-    DEBUG_LOG("Dispatch handler %d %d %p\n", data->fd, events, data->opaque);
+    DEBUG_LOG("Dispatch handler %d %d %p", data->fd, events, data->opaque);
 
     (data->cb)(data->watch, data->fd, events, data->opaque);
 
@@ -72,13 +72,13 @@ viewer_event_dispatch_handle(GIOChannel *source G_GNUC_UNUSED,
 
 
 static
-int viewer_event_add_handle(int fd,
+int virt_viewer_events_add_handle(int fd,
 			    int events,
 			    virEventHandleCallback cb,
 			    void *opaque,
 			    virFreeCallback ff)
 {
-    struct viewer_event_handle *data;
+    struct virt_viewer_events_handle *data;
     GIOCondition cond = 0;
 
     handles = g_realloc(handles, sizeof(*handles)*(nhandles+1));
@@ -98,11 +98,11 @@ int viewer_event_add_handle(int fd,
     data->channel = g_io_channel_unix_new(fd);
     data->ff = ff;
 
-    DEBUG_LOG("Add handle %d %d %p\n", data->fd, events, data->opaque);
+    DEBUG_LOG("Add handle %d %d %p", data->fd, events, data->opaque);
 
     data->source = g_io_add_watch(data->channel,
                                   cond,
-                                  viewer_event_dispatch_handle,
+                                  virt_viewer_events_dispatch_handle,
                                   data);
 
     handles[nhandles++] = data;
@@ -110,8 +110,8 @@ int viewer_event_add_handle(int fd,
     return data->watch;
 }
 
-static struct viewer_event_handle *
-viewer_event_find_handle(int watch)
+static struct virt_viewer_events_handle *
+virt_viewer_events_find_handle(int watch)
 {
     unsigned int i;
     for (i = 0 ; i < nhandles ; i++)
@@ -122,10 +122,10 @@ viewer_event_find_handle(int watch)
 }
 
 static void
-viewer_event_update_handle(int watch,
+virt_viewer_events_update_handle(int watch,
 			   int events)
 {
-    struct viewer_event_handle *data = viewer_event_find_handle(watch);
+    struct virt_viewer_events_handle *data = virt_viewer_events_find_handle(watch);
 
     if (!data) {
         DEBUG_LOG("Update for missing handle watch %d", watch);
@@ -147,7 +147,7 @@ viewer_event_update_handle(int watch,
             cond |= G_IO_OUT;
         data->source = g_io_add_watch(data->channel,
                                       cond,
-                                      viewer_event_dispatch_handle,
+                                      virt_viewer_events_dispatch_handle,
                                       data);
         data->events = events;
     } else {
@@ -161,16 +161,16 @@ viewer_event_update_handle(int watch,
 }
 
 static int
-viewer_event_remove_handle(int watch)
+virt_viewer_events_remove_handle(int watch)
 {
-    struct viewer_event_handle *data = viewer_event_find_handle(watch);
+    struct virt_viewer_events_handle *data = virt_viewer_events_find_handle(watch);
 
     if (!data) {
         DEBUG_LOG("Remove of missing watch %d", watch);
         return -1;
     }
 
-    DEBUG_LOG("Remove handle %d %d\n", watch, data->fd);
+    DEBUG_LOG("Remove handle %d %d", watch, data->fd);
 
     g_source_remove(data->source);
     data->source = 0;
@@ -182,7 +182,7 @@ viewer_event_remove_handle(int watch)
     return 0;
 }
 
-struct viewer_event_timeout
+struct virt_viewer_events_timeout
 {
     int timer;
     int interval;
@@ -195,25 +195,25 @@ struct viewer_event_timeout
 
 static int nexttimer = 1;
 static unsigned int ntimeouts = 0;
-static struct viewer_event_timeout **timeouts = NULL;
+static struct virt_viewer_events_timeout **timeouts = NULL;
 
 static gboolean
-viewer_event_dispatch_timeout(void *opaque)
+virt_viewer_events_dispatch_timeout(void *opaque)
 {
-    struct viewer_event_timeout *data = opaque;
-    DEBUG_LOG("Dispatch timeout %p %p %d %p\n", data, data->cb, data->timer, data->opaque);
+    struct virt_viewer_events_timeout *data = opaque;
+    DEBUG_LOG("Dispatch timeout %p %p %d %p", data, data->cb, data->timer, data->opaque);
     (data->cb)(data->timer, data->opaque);
 
     return TRUE;
 }
 
 static int
-viewer_event_add_timeout(int interval,
+virt_viewer_events_add_timeout(int interval,
 			 virEventTimeoutCallback cb,
 			 void *opaque,
 			 virFreeCallback ff)
 {
-    struct viewer_event_timeout *data;
+    struct virt_viewer_events_timeout *data;
 
     timeouts = g_realloc(timeouts, sizeof(*timeouts)*(ntimeouts+1));
     data = g_malloc(sizeof(*data));
@@ -226,19 +226,19 @@ viewer_event_add_timeout(int interval,
     data->ff = ff;
     if (interval >= 0)
         data->source = g_timeout_add(interval,
-                                     viewer_event_dispatch_timeout,
+                                     virt_viewer_events_dispatch_timeout,
                                      data);
 
     timeouts[ntimeouts++] = data;
 
-    DEBUG_LOG("Add timeout %p %d %p %p %d\n", data, interval, cb, opaque, data->timer);
+    DEBUG_LOG("Add timeout %p %d %p %p %d", data, interval, cb, opaque, data->timer);
 
     return data->timer;
 }
 
 
-static struct viewer_event_timeout *
-viewer_event_find_timeout(int timer)
+static struct virt_viewer_events_timeout *
+virt_viewer_events_find_timeout(int timer)
 {
     unsigned int i;
     for (i = 0 ; i < ntimeouts ; i++)
@@ -250,17 +250,17 @@ viewer_event_find_timeout(int timer)
 
 
 static void
-viewer_event_update_timeout(int timer,
+virt_viewer_events_update_timeout(int timer,
 			    int interval)
 {
-    struct viewer_event_timeout *data = viewer_event_find_timeout(timer);
+    struct virt_viewer_events_timeout *data = virt_viewer_events_find_timeout(timer);
 
     if (!data) {
         DEBUG_LOG("Update of missing timer %d", timer);
         return;
     }
 
-    DEBUG_LOG("Update timeout %p %d %d\n", data, timer, interval);
+    DEBUG_LOG("Update timeout %p %d %d", data, timer, interval);
 
     if (interval >= 0) {
         if (data->source)
@@ -268,7 +268,7 @@ viewer_event_update_timeout(int timer,
 
         data->interval = interval;
         data->source = g_timeout_add(data->interval,
-                                     viewer_event_dispatch_timeout,
+                                     virt_viewer_events_dispatch_timeout,
                                      data);
     } else {
         if (!data->source)
@@ -280,16 +280,16 @@ viewer_event_update_timeout(int timer,
 }
 
 static int
-viewer_event_remove_timeout(int timer)
+virt_viewer_events_remove_timeout(int timer)
 {
-    struct viewer_event_timeout *data = viewer_event_find_timeout(timer);
+    struct virt_viewer_events_timeout *data = virt_viewer_events_find_timeout(timer);
 
     if (!data) {
         DEBUG_LOG("Remove of missing timer %d", timer);
         return -1;
     }
 
-    DEBUG_LOG("Remove timeout %p %d\n", data, timer);
+    DEBUG_LOG("Remove timeout %p %d", data, timer);
 
     if (!data->source)
         return -1;
@@ -306,12 +306,12 @@ viewer_event_remove_timeout(int timer)
 }
 
 
-void viewer_event_register(void) {
-    virEventRegisterImpl(viewer_event_add_handle,
-                         viewer_event_update_handle,
-                         viewer_event_remove_handle,
-                         viewer_event_add_timeout,
-                         viewer_event_update_timeout,
-                         viewer_event_remove_timeout);
+void virt_viewer_events_register(void) {
+    virEventRegisterImpl(virt_viewer_events_add_handle,
+                         virt_viewer_events_update_handle,
+                         virt_viewer_events_remove_handle,
+                         virt_viewer_events_add_timeout,
+                         virt_viewer_events_update_timeout,
+                         virt_viewer_events_remove_timeout);
 }
 

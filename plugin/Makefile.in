@@ -71,15 +71,17 @@ am__base_list = \
 am__installdirs = "$(DESTDIR)$(plugindir)"
 LTLIBRARIES = $(plugin_LTLIBRARIES)
 virt_viewer_plugin_la_DEPENDENCIES =
-am__virt_viewer_plugin_la_SOURCES_DIST = ../src/util.c ../src/util.h \
-	../src/auth.c ../src/auth.h ../src/viewer.c ../src/viewer.h \
-	../src/events.c ../src/events.h virt-viewer-plugin.c \
+am__virt_viewer_plugin_la_SOURCES_DIST = ../src/virt-viewer-util.c \
+	../src/virt-viewer-util.h ../src/virt-viewer-auth.c \
+	../src/virt-viewer-auth.h ../src/virt-viewer.c \
+	../src/virt-viewer.h ../src/virt-viewer-events.c \
+	../src/virt-viewer-events.h virt-viewer-plugin.c \
 	virt-viewer-plugin.h npshell.c npunix.c
 @ENABLE_PLUGIN_TRUE@am_virt_viewer_plugin_la_OBJECTS =  \
-@ENABLE_PLUGIN_TRUE@	virt_viewer_plugin_la-util.lo \
-@ENABLE_PLUGIN_TRUE@	virt_viewer_plugin_la-auth.lo \
-@ENABLE_PLUGIN_TRUE@	virt_viewer_plugin_la-viewer.lo \
-@ENABLE_PLUGIN_TRUE@	virt_viewer_plugin_la-events.lo \
+@ENABLE_PLUGIN_TRUE@	virt_viewer_plugin_la-virt-viewer-util.lo \
+@ENABLE_PLUGIN_TRUE@	virt_viewer_plugin_la-virt-viewer-auth.lo \
+@ENABLE_PLUGIN_TRUE@	virt_viewer_plugin_la-virt-viewer.lo \
+@ENABLE_PLUGIN_TRUE@	virt_viewer_plugin_la-virt-viewer-events.lo \
 @ENABLE_PLUGIN_TRUE@	virt_viewer_plugin_la-virt-viewer-plugin.lo \
 @ENABLE_PLUGIN_TRUE@	virt_viewer_plugin_la-npshell.lo \
 @ENABLE_PLUGIN_TRUE@	virt_viewer_plugin_la-npunix.lo
@@ -144,6 +146,7 @@ CYGPATH_W = @CYGPATH_W@
 DATADIRNAME = @DATADIRNAME@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
+DLLTOOL = @DLLTOOL@
 DSYMUTIL = @DSYMUTIL@
 DUMPBIN = @DUMPBIN@
 ECHO_C = @ECHO_C@
@@ -155,13 +158,18 @@ FGREP = @FGREP@
 FIREFOX_PLUGIN_CFLAGS = @FIREFOX_PLUGIN_CFLAGS@
 FIREFOX_PLUGIN_LIBS = @FIREFOX_PLUGIN_LIBS@
 GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
+GLIB2_CFLAGS = @GLIB2_CFLAGS@
+GLIB2_LIBS = @GLIB2_LIBS@
 GMOFILES = @GMOFILES@
 GMSGFMT = @GMSGFMT@
 GREP = @GREP@
-GTK2_CFLAGS = @GTK2_CFLAGS@
-GTK2_LIBS = @GTK2_LIBS@
-GTKVNC_CFLAGS = @GTKVNC_CFLAGS@
-GTKVNC_LIBS = @GTKVNC_LIBS@
+GTK_API_VERSION = @GTK_API_VERSION@
+GTK_CFLAGS = @GTK_CFLAGS@
+GTK_LIBS = @GTK_LIBS@
+GTK_REQUIRED = @GTK_REQUIRED@
+GTK_VNC_API_VERSION = @GTK_VNC_API_VERSION@
+GTK_VNC_CFLAGS = @GTK_VNC_CFLAGS@
+GTK_VNC_LIBS = @GTK_VNC_LIBS@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -175,8 +183,6 @@ INTLTOOL_PERL = @INTLTOOL_PERL@
 INTLTOOL_UPDATE = @INTLTOOL_UPDATE@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
-LIBGLADE2_CFLAGS = @LIBGLADE2_CFLAGS@
-LIBGLADE2_LIBS = @LIBGLADE2_LIBS@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
@@ -188,6 +194,7 @@ LIPO = @LIPO@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
 MAKEINFO = @MAKEINFO@
+MANIFEST_TOOL = @MANIFEST_TOOL@
 MKDIR_P = @MKDIR_P@
 MKINSTALLDIRS = @MKINSTALLDIRS@
 MOZILLA_PLUGIN_CFLAGS = @MOZILLA_PLUGIN_CFLAGS@
@@ -222,8 +229,8 @@ RANLIB = @RANLIB@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
-SPICEGTK_CFLAGS = @SPICEGTK_CFLAGS@
-SPICEGTK_LIBS = @SPICEGTK_LIBS@
+SPICE_GTK_CFLAGS = @SPICE_GTK_CFLAGS@
+SPICE_GTK_LIBS = @SPICE_GTK_LIBS@
 STRIP = @STRIP@
 USE_NLS = @USE_NLS@
 VERSION = @VERSION@
@@ -233,6 +240,7 @@ abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 abs_top_builddir = @abs_top_builddir@
 abs_top_srcdir = @abs_top_srcdir@
+ac_ct_AR = @ac_ct_AR@
 ac_ct_CC = @ac_ct_CC@
 ac_ct_DUMPBIN = @ac_ct_DUMPBIN@
 am__include = @am__include@
@@ -283,10 +291,10 @@ top_srcdir = @top_srcdir@
 @ENABLE_PLUGIN_TRUE@plugindir = $(libdir)/mozilla/plugins
 @ENABLE_PLUGIN_TRUE@plugin_LTLIBRARIES = virt-viewer-plugin.la
 @ENABLE_PLUGIN_TRUE@virt_viewer_plugin_la_SOURCES = \
-@ENABLE_PLUGIN_TRUE@	../src/util.c ../src/util.h \
-@ENABLE_PLUGIN_TRUE@	../src/auth.c ../src/auth.h \
-@ENABLE_PLUGIN_TRUE@	../src/viewer.c ../src/viewer.h \
-@ENABLE_PLUGIN_TRUE@	../src/events.c ../src/events.h \
+@ENABLE_PLUGIN_TRUE@	../src/virt-viewer-util.c ../src/virt-viewer-util.h \
+@ENABLE_PLUGIN_TRUE@	../src/virt-viewer-auth.c ../src/virt-viewer-auth.h \
+@ENABLE_PLUGIN_TRUE@	../src/virt-viewer.c ../src/virt-viewer.h \
+@ENABLE_PLUGIN_TRUE@	../src/virt-viewer-events.c ../src/virt-viewer-events.h \
 @ENABLE_PLUGIN_TRUE@	virt-viewer-plugin.c virt-viewer-plugin.h \
 @ENABLE_PLUGIN_TRUE@	npshell.c npunix.c
 
@@ -387,13 +395,13 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/virt_viewer_plugin_la-auth.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/virt_viewer_plugin_la-events.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/virt_viewer_plugin_la-npshell.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/virt_viewer_plugin_la-npunix.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/virt_viewer_plugin_la-util.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/virt_viewer_plugin_la-viewer.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/virt_viewer_plugin_la-virt-viewer-auth.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/virt_viewer_plugin_la-virt-viewer-events.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/virt_viewer_plugin_la-virt-viewer-plugin.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/virt_viewer_plugin_la-virt-viewer-util.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/virt_viewer_plugin_la-virt-viewer.Plo@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -419,37 +427,37 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<
 
-virt_viewer_plugin_la-util.lo: ../src/util.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_plugin_la_CFLAGS) $(CFLAGS) -MT virt_viewer_plugin_la-util.lo -MD -MP -MF $(DEPDIR)/virt_viewer_plugin_la-util.Tpo -c -o virt_viewer_plugin_la-util.lo `test -f '../src/util.c' || echo '$(srcdir)/'`../src/util.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer_plugin_la-util.Tpo $(DEPDIR)/virt_viewer_plugin_la-util.Plo
+virt_viewer_plugin_la-virt-viewer-util.lo: ../src/virt-viewer-util.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_plugin_la_CFLAGS) $(CFLAGS) -MT virt_viewer_plugin_la-virt-viewer-util.lo -MD -MP -MF $(DEPDIR)/virt_viewer_plugin_la-virt-viewer-util.Tpo -c -o virt_viewer_plugin_la-virt-viewer-util.lo `test -f '../src/virt-viewer-util.c' || echo '$(srcdir)/'`../src/virt-viewer-util.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer_plugin_la-virt-viewer-util.Tpo $(DEPDIR)/virt_viewer_plugin_la-virt-viewer-util.Plo
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='../src/util.c' object='virt_viewer_plugin_la-util.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='../src/virt-viewer-util.c' object='virt_viewer_plugin_la-virt-viewer-util.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_plugin_la_CFLAGS) $(CFLAGS) -c -o virt_viewer_plugin_la-util.lo `test -f '../src/util.c' || echo '$(srcdir)/'`../src/util.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_plugin_la_CFLAGS) $(CFLAGS) -c -o virt_viewer_plugin_la-virt-viewer-util.lo `test -f '../src/virt-viewer-util.c' || echo '$(srcdir)/'`../src/virt-viewer-util.c
 
-virt_viewer_plugin_la-auth.lo: ../src/auth.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_plugin_la_CFLAGS) $(CFLAGS) -MT virt_viewer_plugin_la-auth.lo -MD -MP -MF $(DEPDIR)/virt_viewer_plugin_la-auth.Tpo -c -o virt_viewer_plugin_la-auth.lo `test -f '../src/auth.c' || echo '$(srcdir)/'`../src/auth.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer_plugin_la-auth.Tpo $(DEPDIR)/virt_viewer_plugin_la-auth.Plo
+virt_viewer_plugin_la-virt-viewer-auth.lo: ../src/virt-viewer-auth.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_plugin_la_CFLAGS) $(CFLAGS) -MT virt_viewer_plugin_la-virt-viewer-auth.lo -MD -MP -MF $(DEPDIR)/virt_viewer_plugin_la-virt-viewer-auth.Tpo -c -o virt_viewer_plugin_la-virt-viewer-auth.lo `test -f '../src/virt-viewer-auth.c' || echo '$(srcdir)/'`../src/virt-viewer-auth.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer_plugin_la-virt-viewer-auth.Tpo $(DEPDIR)/virt_viewer_plugin_la-virt-viewer-auth.Plo
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='../src/auth.c' object='virt_viewer_plugin_la-auth.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='../src/virt-viewer-auth.c' object='virt_viewer_plugin_la-virt-viewer-auth.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_plugin_la_CFLAGS) $(CFLAGS) -c -o virt_viewer_plugin_la-auth.lo `test -f '../src/auth.c' || echo '$(srcdir)/'`../src/auth.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_plugin_la_CFLAGS) $(CFLAGS) -c -o virt_viewer_plugin_la-virt-viewer-auth.lo `test -f '../src/virt-viewer-auth.c' || echo '$(srcdir)/'`../src/virt-viewer-auth.c
 
-virt_viewer_plugin_la-viewer.lo: ../src/viewer.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_plugin_la_CFLAGS) $(CFLAGS) -MT virt_viewer_plugin_la-viewer.lo -MD -MP -MF $(DEPDIR)/virt_viewer_plugin_la-viewer.Tpo -c -o virt_viewer_plugin_la-viewer.lo `test -f '../src/viewer.c' || echo '$(srcdir)/'`../src/viewer.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer_plugin_la-viewer.Tpo $(DEPDIR)/virt_viewer_plugin_la-viewer.Plo
+virt_viewer_plugin_la-virt-viewer.lo: ../src/virt-viewer.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_plugin_la_CFLAGS) $(CFLAGS) -MT virt_viewer_plugin_la-virt-viewer.lo -MD -MP -MF $(DEPDIR)/virt_viewer_plugin_la-virt-viewer.Tpo -c -o virt_viewer_plugin_la-virt-viewer.lo `test -f '../src/virt-viewer.c' || echo '$(srcdir)/'`../src/virt-viewer.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer_plugin_la-virt-viewer.Tpo $(DEPDIR)/virt_viewer_plugin_la-virt-viewer.Plo
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='../src/viewer.c' object='virt_viewer_plugin_la-viewer.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='../src/virt-viewer.c' object='virt_viewer_plugin_la-virt-viewer.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_plugin_la_CFLAGS) $(CFLAGS) -c -o virt_viewer_plugin_la-viewer.lo `test -f '../src/viewer.c' || echo '$(srcdir)/'`../src/viewer.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_plugin_la_CFLAGS) $(CFLAGS) -c -o virt_viewer_plugin_la-virt-viewer.lo `test -f '../src/virt-viewer.c' || echo '$(srcdir)/'`../src/virt-viewer.c
 
-virt_viewer_plugin_la-events.lo: ../src/events.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_plugin_la_CFLAGS) $(CFLAGS) -MT virt_viewer_plugin_la-events.lo -MD -MP -MF $(DEPDIR)/virt_viewer_plugin_la-events.Tpo -c -o virt_viewer_plugin_la-events.lo `test -f '../src/events.c' || echo '$(srcdir)/'`../src/events.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer_plugin_la-events.Tpo $(DEPDIR)/virt_viewer_plugin_la-events.Plo
+virt_viewer_plugin_la-virt-viewer-events.lo: ../src/virt-viewer-events.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_plugin_la_CFLAGS) $(CFLAGS) -MT virt_viewer_plugin_la-virt-viewer-events.lo -MD -MP -MF $(DEPDIR)/virt_viewer_plugin_la-virt-viewer-events.Tpo -c -o virt_viewer_plugin_la-virt-viewer-events.lo `test -f '../src/virt-viewer-events.c' || echo '$(srcdir)/'`../src/virt-viewer-events.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer_plugin_la-virt-viewer-events.Tpo $(DEPDIR)/virt_viewer_plugin_la-virt-viewer-events.Plo
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='../src/events.c' object='virt_viewer_plugin_la-events.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='../src/virt-viewer-events.c' object='virt_viewer_plugin_la-virt-viewer-events.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_plugin_la_CFLAGS) $(CFLAGS) -c -o virt_viewer_plugin_la-events.lo `test -f '../src/events.c' || echo '$(srcdir)/'`../src/events.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_plugin_la_CFLAGS) $(CFLAGS) -c -o virt_viewer_plugin_la-virt-viewer-events.lo `test -f '../src/virt-viewer-events.c' || echo '$(srcdir)/'`../src/virt-viewer-events.c
 
 virt_viewer_plugin_la-virt-viewer-plugin.lo: virt-viewer-plugin.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_plugin_la_CFLAGS) $(CFLAGS) -MT virt_viewer_plugin_la-virt-viewer-plugin.lo -MD -MP -MF $(DEPDIR)/virt_viewer_plugin_la-virt-viewer-plugin.Tpo -c -o virt_viewer_plugin_la-virt-viewer-plugin.lo `test -f 'virt-viewer-plugin.c' || echo '$(srcdir)/'`virt-viewer-plugin.c

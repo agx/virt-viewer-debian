@@ -27,20 +27,35 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include "util.h"
+#include "virt-viewer-util.h"
 
-GladeXML *viewer_load_glade(const char *name, const char *widget)
+GtkBuilder *virt_viewer_util_load_ui(const char *name)
 {
-	char *path;
 	struct stat sb;
-	GladeXML *xml;
+	GtkBuilder *builder;
+	GError *error = NULL;
 
-	if (stat(name, &sb) >= 0)
-		return glade_xml_new(name, widget, NULL);
+	builder = gtk_builder_new();
+	if (stat(name, &sb) >= 0) {
+		gtk_builder_add_from_file(builder, name, &error);
+	} else {
+		gchar *path = g_strdup_printf("%s/%s", BUILDER_XML_DIR, name);
+		gtk_builder_add_from_file(builder, path, &error);
+		g_free(path);
+	}
 
-	path = g_strdup_printf("%s/%s", GLADE_DIR, name);
+	if (error)
+		g_error("Cannot load UI description %s: %s", name,
+			error->message);
 
-	xml = glade_xml_new(path, widget, NULL);
-	g_free(path);
-	return xml;
+	return builder;
 }
+
+
+/*
+ * Local variables:
+ *  c-indent-level: 8
+ *  c-basic-offset: 8
+ *  tab-width: 8
+ * End:
+ */

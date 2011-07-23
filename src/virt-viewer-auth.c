@@ -24,17 +24,19 @@
 
 #include <vncdisplay.h>
 #include <gtk/gtk.h>
-#include <glade/glade.h>
 #include <string.h>
 
-#include "auth.h"
+#include "virt-viewer-auth.h"
 
 
-int viewer_auth_collect_credentials(const char *type, const char *address,
-                                    char **username, char **password)
+int
+virt_viewer_auth_collect_credentials(const char *type,
+				     const char *address,
+				     char **username,
+				     char **password)
 {
 	GtkWidget *dialog = NULL;
-	GladeXML *creds = viewer_load_glade("auth.glade", "auth");
+	GtkBuilder *creds = virt_viewer_util_load_ui("virt-viewer-auth.xml");
 	GtkWidget *credUsername;
 	GtkWidget *credPassword;
 	GtkWidget *promptUsername;
@@ -43,14 +45,14 @@ int viewer_auth_collect_credentials(const char *type, const char *address,
 	int response;
 	char *message;
 
-	dialog = glade_xml_get_widget(creds, "auth");
+	dialog = GTK_WIDGET(gtk_builder_get_object(creds, "auth"));
 	gtk_dialog_set_default_response(GTK_DIALOG(dialog), GTK_RESPONSE_OK);
 
-	labelMessage = glade_xml_get_widget(creds, "message");
-	credUsername = glade_xml_get_widget(creds, "cred-username");
-	promptUsername = glade_xml_get_widget(creds, "prompt-username");
-	credPassword = glade_xml_get_widget(creds, "cred-password");
-	promptPassword = glade_xml_get_widget(creds, "prompt-password");
+	labelMessage = GTK_WIDGET(gtk_builder_get_object(creds, "message"));
+	credUsername = GTK_WIDGET(gtk_builder_get_object(creds, "cred-username"));
+	promptUsername = GTK_WIDGET(gtk_builder_get_object(creds, "prompt-username"));
+	credPassword = GTK_WIDGET(gtk_builder_get_object(creds, "cred-password"));
+	promptPassword = GTK_WIDGET(gtk_builder_get_object(creds, "prompt-password"));
 
 	gtk_widget_set_sensitive(credUsername, username != NULL);
 	gtk_widget_set_sensitive(promptUsername, username != NULL);
@@ -86,7 +88,10 @@ int viewer_auth_collect_credentials(const char *type, const char *address,
 	return response == GTK_RESPONSE_OK ? 0 : -1;
 }
 
-void viewer_auth_vnc_credentials(GtkWidget *vnc, GValueArray *credList, char **vncAddress)
+void
+virt_viewer_auth_vnc_credentials(GtkWidget *vnc,
+				 GValueArray *credList,
+				 char **vncAddress)
 {
 	char *username = NULL, *password = NULL;
 	gboolean wantPassword = FALSE, wantUsername = FALSE;
@@ -113,9 +118,9 @@ void viewer_auth_vnc_credentials(GtkWidget *vnc, GValueArray *credList, char **v
         }
 
         if (wantUsername || wantPassword) {
-		int ret = viewer_auth_collect_credentials("VNC", vncAddress ? *vncAddress : NULL,
-							  wantUsername ? &username : NULL,
-							  wantPassword ? &password : NULL);
+		int ret = virt_viewer_auth_collect_credentials("VNC", vncAddress ? *vncAddress : NULL,
+							       wantUsername ? &username : NULL,
+							       wantPassword ? &password : NULL);
 
 		if (ret < 0) {
 			vnc_display_close(VNC_DISPLAY(vnc));
@@ -166,9 +171,9 @@ void viewer_auth_vnc_credentials(GtkWidget *vnc, GValueArray *credList, char **v
 
 
 int
-viewer_auth_libvirt_credentials(virConnectCredentialPtr cred,
-				unsigned int ncred,
-				void *cbdata)
+virt_viewer_auth_libvirt_credentials(virConnectCredentialPtr cred,
+				     unsigned int ncred,
+				     void *cbdata)
 {
 	char **username = NULL, **password = NULL;
 	const char *uri = cbdata;
@@ -193,8 +198,8 @@ viewer_auth_libvirt_credentials(virConnectCredentialPtr cred,
         }
 
         if (username || password) {
-		ret = viewer_auth_collect_credentials("libvirt", uri,
-						      username, password);
+		ret = virt_viewer_auth_collect_credentials("libvirt", uri,
+							   username, password);
 		if (ret < 0)
 			goto cleanup;
         } else {

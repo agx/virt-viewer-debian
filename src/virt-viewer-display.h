@@ -24,8 +24,7 @@
 #ifndef _VIRT_VIEWER_DISPLAY_H
 #define _VIRT_VIEWER_DISPLAY_H
 
-#include <glib-object.h>
-#include "viewer-priv.h"
+#include <gtk/gtk.h>
 
 G_BEGIN_DECLS
 
@@ -46,39 +45,57 @@ G_BEGIN_DECLS
 #define VIRT_VIEWER_DISPLAY_GET_CLASS(obj)				\
 	(G_TYPE_INSTANCE_GET_CLASS ((obj), VIRT_VIEWER_TYPE_DISPLAY, VirtViewerDisplayClass))
 
+typedef struct _VirtViewerDisplay       VirtViewerDisplay;
+typedef struct _VirtViewerDisplayClass  VirtViewerDisplayClass;
+typedef struct _VirtViewerDisplayPrivate VirtViewerDisplayPrivate;
+
+typedef struct _VirtViewerDisplayChannel VirtViewerDisplayChannel;
+
+
 /* perhaps this become an interface, and be pushed in gtkvnc and spice? */
 struct _VirtViewerDisplay {
-	GObject parent;
-	gboolean need_align;
-	VirtViewer *viewer;
-	GtkWidget *widget;
+	GtkBin parent;
+
+	VirtViewerDisplayPrivate *priv;
 };
 
 struct _VirtViewerDisplayClass {
-	GObjectClass parent_class;
+	GtkBinClass parent_class;
 
 	/* virtual methods */
-	void (* close) (VirtViewerDisplay* display);
-	void (* send_keys) (VirtViewerDisplay* display,
-			    const guint *keyvals, int nkeyvals);
-	GdkPixbuf* (* get_pixbuf) (VirtViewerDisplay* display);
-	gboolean (* open_fd) (VirtViewerDisplay* display, int fd);
-	gboolean (* open_host) (VirtViewerDisplay* display, char *host, char *port);
-	gboolean (* channel_open_fd) (VirtViewerDisplay* display,
-                                      VirtViewerDisplayChannel* channel, int fd);
+	void (*send_keys)(VirtViewerDisplay* display,
+			  const guint *keyvals, int nkeyvals);
+	GdkPixbuf *(*get_pixbuf)(VirtViewerDisplay* display);
+
+	/* signals */
+	void (*display_pointer_grab)(VirtViewerDisplay *display);
+	void (*display_pointer_ungrab)(VirtViewerDisplay *display);
+	void (*display_keyboard_grab)(VirtViewerDisplay *display);
+	void (*display_keyboard_ungrab)(VirtViewerDisplay *display);
+
+	void (*display_desktop_resize)(VirtViewerDisplay *display);
 };
 
 GType virt_viewer_display_get_type(void);
 
-void virt_viewer_display_close(VirtViewerDisplay* display);
+GtkWidget *virt_viewer_display_new(void);
+
+void virt_viewer_display_set_desktop_size(VirtViewerDisplay *display,
+					  guint width,
+					  guint height);
+
+void virt_viewer_display_get_desktop_size(VirtViewerDisplay *display,
+					  guint *width,
+					  guint *height);
+
+void virt_viewer_display_set_zoom_level(VirtViewerDisplay *display,
+					guint zoom);
+void virt_viewer_display_set_zoom(VirtViewerDisplay *display,
+				  gboolean zoom);
+
 void virt_viewer_display_send_keys(VirtViewerDisplay* display,
 				   const guint *keyvals, int nkeyvals);
 GdkPixbuf* virt_viewer_display_get_pixbuf(VirtViewerDisplay* display);
-gboolean virt_viewer_display_open_fd(VirtViewerDisplay* display, int fd);
-gboolean virt_viewer_display_open_host(VirtViewerDisplay* display, char *host, char *port);
-GObject* virt_viewer_display_get(VirtViewerDisplay* display);
-gboolean virt_viewer_display_channel_open_fd(VirtViewerDisplay* display,
-					     VirtViewerDisplayChannel* channel, int fd);
 
 G_END_DECLS
 
