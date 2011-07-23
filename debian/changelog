@@ -1,3 +1,13 @@
+virt-viewer (0.4.0-1) unstable; urgency=low
+
+  * [8d9bbb8] New upstream version 0.4.0
+  * [2376c06] New patch 0001-Don-t-hardcode-sshport.patch.  Don't hardcode
+    sshport. This unbreaks using different ports via .ssh/config.
+  * [7cad1db] Bump standards version
+  * [8f6536f] Switch to 3.0 (quilt) source format
+
+ -- Guido Günther <agx@sigxcpu.org>  Sat, 23 Jul 2011 18:49:55 +0200
+
 virt-viewer (0.3.1-2) unstable; urgency=low
 
   * [7a46ee9] Use DEB_CONFIGURE_SCRIPT_ENV to define LDFLAGS
