@@ -1,5 +1,5 @@
 
-AC_INIT(virt-viewer, 0.4.0)
+AC_INIT(virt-viewer, 0.4.1)
 AC_CONFIG_SRCDIR(src/virt-viewer-main.c)
 AM_CONFIG_HEADER(config.h)
 dnl Make automake keep quiet about wildcards & other GNUmake-isms
@@ -33,7 +33,6 @@ AC_SUBST(GETTEXT_PACKAGE)
 AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE,"$GETTEXT_PACKAGE", [GETTEXT package name])
 
 IT_PROG_INTLTOOL([0.35.0])
-AM_GLIB_GNU_GETTEXT
 
 
 PKG_CHECK_MODULES(GLIB2, gmodule-export-2.0 >= $GLIB2_REQUIRED)
