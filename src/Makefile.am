@@ -11,14 +11,17 @@ EXTRA_DIST = $(builderxml_DATA)
 
 virt_viewer_SOURCES = \
 	virt-viewer-main.c \
+	virt-viewer.h virt-viewer.c \
 	virt-viewer-util.h virt-viewer-util.c \
 	virt-viewer-auth.h virt-viewer-auth.c \
 	virt-viewer-events.h virt-viewer-events.c \
-	virt-viewer.h virt-viewer.c \
+	virt-viewer-app.h virt-viewer-app.c \
 	virt-viewer-session.h virt-viewer-session.c \
 	virt-viewer-session-vnc.h virt-viewer-session-vnc.c \
 	virt-viewer-display.h virt-viewer-display.c \
 	virt-viewer-display-vnc.h virt-viewer-display-vnc.c \
+	virt-viewer-notebook.h virt-viewer-notebook.c \
+	virt-viewer-window.h virt-viewer-window.c \
 	view/autoDrawer.c \
 	view/autoDrawer.h \
 	view/drawer.c \

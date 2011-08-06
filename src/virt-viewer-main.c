@@ -51,6 +51,7 @@ int main(int argc, char **argv)
 	gboolean waitvm = FALSE;
 	gboolean reconnect = FALSE;
 	gboolean fullscreen = FALSE;
+	VirtViewer *viewer = NULL;
 	const char *help_msg = N_("Run '" PACKAGE " --help' to see a full list of available command line options");
 	const GOptionEntry options [] = {
 		{ "version", 'V', G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK,
@@ -107,13 +108,23 @@ int main(int argc, char **argv)
 		goto cleanup;
 	}
 
-	ret = virt_viewer_start(uri, args[0], zoom, direct, waitvm, reconnect, verbose, debug, fullscreen, NULL);
-	if (ret != 0)
-		return ret;
+	virt_viewer_app_set_debug(debug);
+
+	viewer = virt_viewer_new(uri, args[0], zoom, direct, waitvm, reconnect, verbose, NULL);
+	if (viewer == NULL)
+		goto cleanup;
+
+	g_object_set(viewer, "fullscreen", fullscreen, NULL);
+	if (!virt_viewer_app_start(VIRT_VIEWER_APP(viewer)))
+		goto cleanup;
 
 	gtk_main();
 
- cleanup:
+	ret = 0;
+
+cleanup:
+	if (viewer)
+		g_object_unref(viewer);
 	g_free(uri);
 	g_strfreev(args);
 
