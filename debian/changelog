@@ -1,3 +1,11 @@
+virt-viewer (0.4.1-1) unstable; urgency=low
+
+  * [09d4f14] Imported Upstream version 0.4.1
+  * [16b141a] Drop patch
+    - 0001-Don-t-hardcode-sshport.patch - applied upstream
+
+ -- Laurent Léonard <laurent@open-minds.org>  Sat, 06 Aug 2011 12:37:48 +0200
+
 virt-viewer (0.4.0-1) unstable; urgency=low
 
   * [8d9bbb8] New upstream version 0.4.0
