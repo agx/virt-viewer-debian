@@ -1,3 +1,11 @@
+virt-viewer (0.4.1-2) unstable; urgency=low
+
+  * [3c6e6de] Build against GTK+3
+  * [599a1e1] Really fix using alternate ssh ports. Many,many thanks to Luca
+    Capello for debugging this and for providing a patch. (Closes: #637548)
+
+ -- Guido Günther <agx@sigxcpu.org>  Fri, 12 Aug 2011 19:16:05 +0200
+
 virt-viewer (0.4.1-1) unstable; urgency=low
 
   * [09d4f14] Imported Upstream version 0.4.1
