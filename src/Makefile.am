@@ -1,4 +1,3 @@
-
 bin_PROGRAMS = virt-viewer
 
 builderxmldir = $(pkgdatadir)/ui
@@ -17,9 +16,7 @@ virt_viewer_SOURCES = \
 	virt-viewer-events.h virt-viewer-events.c \
 	virt-viewer-app.h virt-viewer-app.c \
 	virt-viewer-session.h virt-viewer-session.c \
-	virt-viewer-session-vnc.h virt-viewer-session-vnc.c \
 	virt-viewer-display.h virt-viewer-display.c \
-	virt-viewer-display-vnc.h virt-viewer-display-vnc.c \
 	virt-viewer-notebook.h virt-viewer-notebook.c \
 	virt-viewer-window.h virt-viewer-window.c \
 	view/autoDrawer.c \
@@ -29,6 +26,11 @@ virt_viewer_SOURCES = \
 	view/ovBox.c \
 	view/ovBox.h
 
+if HAVE_GTK_VNC
+virt_viewer_SOURCES += \
+	virt-viewer-session-vnc.h virt-viewer-session-vnc.c \
+	virt-viewer-display-vnc.h virt-viewer-display-vnc.c
+endif
 
 if HAVE_SPICE_GTK
 virt_viewer_SOURCES += \
@@ -39,7 +41,7 @@ endif
 virt_viewer_LDADD = \
 	@GTK_VNC_LIBS@ \
 	@SPICE_GTK_LIBS@ \
-	@GLIB2_LIBS@ \
+	@GMODULE2_LIBS@ \
 	@GTK_LIBS@ \
 	@LIBXML2_LIBS@ \
 	@LIBVIRT_LIBS@
@@ -47,10 +49,9 @@ virt_viewer_LDADD = \
 virt_viewer_CFLAGS = \
 	@GTK_VNC_CFLAGS@ \
 	@SPICE_GTK_CFLAGS@ \
-	@GLIB2_CFLAGS@ \
+	@GMODULE2_CFLAGS@ \
 	@GTK_CFLAGS@ \
 	@LIBXML2_CFLAGS@ \
 	@LIBVIRT_CFLAGS@ \
 	@WARN_CFLAGS@ \
-	-DBUILDER_XML_DIR="\"$(builderxmldir)\"" \
 	-DLOCALE_DIR=\""$(datadir)/locale"\"
