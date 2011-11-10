@@ -122,7 +122,30 @@ primary_create(SpiceChannel *channel G_GNUC_UNUSED,
 	DEBUG_LOG("spice desktop resize %dx%d", width, height);
 
 	virt_viewer_display_set_desktop_size(display, width, height);
-	g_signal_emit_by_name(display, "display-desktop-resize");
+}
+
+
+static void
+virt_viewer_display_spice_keyboard_grab(SpiceDisplay *display G_GNUC_UNUSED,
+					int grabbed,
+					VirtViewerDisplaySpice *self)
+{
+	if (grabbed)
+		g_signal_emit_by_name(self, "display-keyboard-grab");
+	else
+		g_signal_emit_by_name(self, "display-keyboard-ungrab");
+}
+
+
+static void
+virt_viewer_display_spice_mouse_grab(SpiceDisplay *display G_GNUC_UNUSED,
+				     int grabbed,
+				     VirtViewerDisplaySpice *self)
+{
+	if (grabbed)
+		g_signal_emit_by_name(self, "display-pointer-grab");
+	else
+		g_signal_emit_by_name(self, "display-pointer-ungrab");
 }
 
 
@@ -158,6 +181,13 @@ virt_viewer_display_spice_new(SpiceChannel *channel,
 		     "scaling", TRUE,
 		     "auto-clipboard", TRUE,
 		     NULL);
+
+	g_signal_connect(self->priv->display,
+			 "keyboard-grab",
+			 G_CALLBACK(virt_viewer_display_spice_keyboard_grab), self);
+	g_signal_connect(self->priv->display,
+			 "mouse-grab",
+			 G_CALLBACK(virt_viewer_display_spice_mouse_grab), self);
 
 	return GTK_WIDGET(self);
 }

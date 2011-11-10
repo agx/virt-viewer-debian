@@ -142,8 +142,8 @@ FGREP = @FGREP@
 FIREFOX_PLUGIN_CFLAGS = @FIREFOX_PLUGIN_CFLAGS@
 FIREFOX_PLUGIN_LIBS = @FIREFOX_PLUGIN_LIBS@
 GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
-GLIB2_CFLAGS = @GLIB2_CFLAGS@
-GLIB2_LIBS = @GLIB2_LIBS@
+GMODULE2_CFLAGS = @GMODULE2_CFLAGS@
+GMODULE2_LIBS = @GMODULE2_LIBS@
 GMSGFMT = @GMSGFMT@
 GREP = @GREP@
 GTK_API_VERSION = @GTK_API_VERSION@
@@ -546,6 +546,9 @@ distdir: $(DISTFILES)
 	      || exit 1; \
 	  fi; \
 	done
+	$(MAKE) $(AM_MAKEFLAGS) \
+	  top_distdir="$(top_distdir)" distdir="$(distdir)" \
+	  dist-hook
 	-test -n "$(am__skip_mode_fix)" \
 	|| find "$(distdir)" -type d ! -perm -755 \
 		-exec chmod u+rwx,go+rx {} \; -o \
@@ -768,8 +771,8 @@ uninstall-am:
 .PHONY: $(RECURSIVE_CLEAN_TARGETS) $(RECURSIVE_TARGETS) CTAGS GTAGS \
 	all all-am am--refresh check check-am clean clean-generic \
 	clean-libtool ctags ctags-recursive dist dist-all dist-bzip2 \
-	dist-gzip dist-lzma dist-shar dist-tarZ dist-xz dist-zip \
-	distcheck distclean distclean-generic distclean-hdr \
+	dist-gzip dist-hook dist-lzma dist-shar dist-tarZ dist-xz \
+	dist-zip distcheck distclean distclean-generic distclean-hdr \
 	distclean-libtool distclean-tags distcleancheck distdir \
 	distuninstallcheck dvi dvi-am html html-am info info-am \
 	install install-am install-data install-data-am install-dvi \
@@ -781,6 +784,19 @@ uninstall-am:
 	mostlyclean mostlyclean-generic mostlyclean-libtool pdf pdf-am \
 	ps ps-am tags tags-recursive uninstall uninstall-am
 
+
+dist-hook: gen-ChangeLog
+
+# Generate the ChangeLog file (with all entries since the switch to git)
+# and insert it into the directory we're about to use to create a tarball.
+.PHONY: gen-ChangeLog
+gen-ChangeLog:
+	if test -d .git || test -d ../.git; then		\
+	  $(top_srcdir)/build-aux/gitlog-to-changelog		\
+	    > $(distdir)/cl-t;					\
+	  rm -f $(distdir)/ChangeLog;				\
+	  mv $(distdir)/cl-t $(distdir)/ChangeLog;		\
+	fi
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

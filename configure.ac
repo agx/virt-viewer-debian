@@ -1,5 +1,5 @@
 
-AC_INIT(virt-viewer, 0.4.1)
+AC_INIT(virt-viewer, 0.4.2)
 AC_CONFIG_SRCDIR(src/virt-viewer-main.c)
 AM_CONFIG_HEADER(config.h)
 dnl Make automake keep quiet about wildcards & other GNUmake-isms
@@ -10,12 +10,12 @@ AC_CANONICAL_HOST
 m4_ifndef([AM_SILENT_RULES], [m4_define([AM_SILENT_RULES],[])])
 AM_SILENT_RULES([yes])
 
-GLIB2_REQUIRED=2.12.0
+GMODULE2_REQUIRED=2.12.0
 LIBXML2_REQUIRED="2.6.0"
 LIBVIRT_REQUIRED="0.6.0"
 GTK2_REQUIRED="2.12.0"
 GTK3_REQUIRED="3.0"
-GTK_VNC_REQUIRED="0.3.8"
+GTK_VNC_REQUIRED="0.4.3"
 SPICE_GTK_REQUIRED="0.6"
 
 AC_PROG_CC
@@ -35,7 +35,7 @@ AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE,"$GETTEXT_PACKAGE", [GETTEXT package name])
 IT_PROG_INTLTOOL([0.35.0])
 
 
-PKG_CHECK_MODULES(GLIB2, gmodule-export-2.0 >= $GLIB2_REQUIRED)
+PKG_CHECK_MODULES(GMODULE2, gmodule-export-2.0 >= $GMODULE2_REQUIRED)
 PKG_CHECK_MODULES(LIBXML2, libxml-2.0 >= $LIBXML2_REQUIRED)
 PKG_CHECK_MODULES(LIBVIRT, libvirt >= $LIBVIRT_REQUIRED)
 
@@ -70,7 +70,22 @@ AM_CONDITIONAL([HAVE_GTK_3],[test "$with_gtk" = "3.0"])
 
 PKG_CHECK_MODULES(GTK, gtk+-$GTK_API_VERSION >= $GTK_REQUIRED)
 
-PKG_CHECK_MODULES(GTK_VNC, gtk-vnc-$GTK_VNC_API_VERSION >= $GTK_VNC_REQUIRED)
+AC_ARG_WITH([gtk-vnc],
+    AS_HELP_STRING([--without-gtk-vnc], [Ignore presence of gtk-vnc and disable it]))
+
+AS_IF([test "x$with_gtk_vnc" != "xno"],
+      [PKG_CHECK_MODULES(GTK_VNC,
+                         gtk-vnc-$GTK_VNC_API_VERSION >= $GTK_VNC_REQUIRED,
+                         [have_gtk_vnc=yes], [have_gtk_vnc=no])],
+      [have_gtk_vnc=no])
+
+AS_IF([test "x$have_gtk_vnc" = "xyes"],
+      [AC_DEFINE([HAVE_GTK_VNC], 1, [Have gtk-vnc?])],
+      [AS_IF([test "x$with_gtk_vnc" = "xyes"],
+             [AC_MSG_ERROR([gtk-vnc requested but not found])
+      ])
+])
+AM_CONDITIONAL([HAVE_GTK_VNC], [test "x$have_gtk_vnc" = "xyes"])
 
 AC_ARG_WITH([spice-gtk],
     AS_HELP_STRING([--without-spice-gtk], [Ignore presence of spice-gtk and disable it]))
@@ -123,3 +138,27 @@ AC_OUTPUT(Makefile
 	  plugin/Makefile
           virt-viewer.spec
           mingw32-virt-viewer.spec)
+
+AC_MSG_NOTICE([])
+AC_MSG_NOTICE([Configuration summary])
+AC_MSG_NOTICE([=====================])
+AC_MSG_NOTICE([])
+AC_MSG_NOTICE([ Features:])
+AC_MSG_NOTICE([])
+AC_MSG_NOTICE([   Plugin: $enable_plugin])
+AC_MSG_NOTICE([      Gtk: $with_gtk])
+AC_MSG_NOTICE([])
+AC_MSG_NOTICE([ Libraries:])
+AC_MSG_NOTICE([])
+AC_MSG_NOTICE([    GMODULE2: $GMODULE2_CFLAGS $GMODULE2_LIBS])
+AC_MSG_NOTICE([])
+AC_MSG_NOTICE([         GTK: $GTK_CFLAGS $GTK_LIBS])
+AC_MSG_NOTICE([])
+AC_MSG_NOTICE([     GTK_VNC: $GTK_VNC_CFLAGS $GTK_VNC_LIBS])
+AC_MSG_NOTICE([])
+AC_MSG_NOTICE([   SPICE_GTK: $SPICE_GTK_CFLAGS $SPICE_GTK_LIBS])
+AC_MSG_NOTICE([])
+AC_MSG_NOTICE([     LIBXML2: $LIBXML2_CFLAGS $LIBXML2_LIBS])
+AC_MSG_NOTICE([])
+AC_MSG_NOTICE([     LIBVIRT: $LIBVIRT_CFLAGS $LIBVIRT_LIBS])
+AC_MSG_NOTICE([])

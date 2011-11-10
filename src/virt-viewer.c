@@ -49,7 +49,6 @@ struct _VirtViewerPrivate {
 	char *uri;
 	virConnectPtr conn;
 	char *domkey;
-	char *domtitle;
 	gboolean withEvents;
 	gboolean waitvm;
 	gboolean reconnect;
@@ -286,6 +285,7 @@ virt_viewer_extract_connect_info(VirtViewer *self,
 	gchar *transport = NULL;
 	gchar *user = NULL;
 	gint port = 0;
+	gchar *uri = NULL;
 
 	virt_viewer_app_free_connect_info(app);
 
@@ -315,15 +315,30 @@ virt_viewer_extract_connect_info(VirtViewer *self,
 			ghost = g_strdup("localhost");
 	}
 
-	if (gport)
+	if (ghost && gport)
 		DEBUG_LOG("Guest graphics address is %s:%s", ghost, gport);
-	else
+	else if (unixsock)
 		DEBUG_LOG("Guest graphics address is %s", unixsock);
 
-	if (virt_viewer_util_extract_host(priv->uri, NULL, &host, &transport, &user, &port) < 0) {
+	uri = virConnectGetURI(priv->conn);
+	if (virt_viewer_util_extract_host(uri, NULL, &host, &transport, &user, &port) < 0) {
 		virt_viewer_app_simple_message_dialog(app, _("Cannot determine the host for the guest %s"),
 						      priv->domkey);
 		goto cleanup;
+	}
+
+	/* If the XML listen attribute shows a wildcard address, we need to
+	 * throw that away since you obviously can't 'connect(2)' to that
+	 * from a remote host. Instead we fallback to the hostname used in
+	 * the libvirt URI. This isn't perfect but it is better than nothing
+	 */
+	if (ghost &&
+	    (strcmp(ghost, "0.0.0.0") == 0 ||
+	     strcmp(ghost, "::") == 0)) {
+		DEBUG_LOG("Guest graphics listen '%s' is a wildcard, replacing with '%s'",
+			  ghost, host);
+		g_free(ghost);
+		ghost = g_strdup(host);
 	}
 
 	virt_viewer_app_set_connect_info(app, host, ghost, gport, transport, unixsock, user, port);
@@ -340,6 +355,7 @@ virt_viewer_extract_connect_info(VirtViewer *self,
 	g_free(type);
 	g_free(xpath);
 	g_free(xmldesc);
+	g_free(uri);
 	return retval;
 }
 
@@ -351,6 +367,8 @@ virt_viewer_update_display(VirtViewer *self, virDomainPtr dom)
 
 	virt_viewer_app_trace(app, "Guest %s is running, determining display\n",
 			      priv->domkey);
+
+	g_object_set(app, "title", virDomainGetName(dom), NULL);
 
 	if (!virt_viewer_app_has_session(app)) {
 		if (!virt_viewer_extract_connect_info(self, dom))
@@ -413,9 +431,6 @@ virt_viewer_initial_connect(VirtViewerApp *app)
 			goto cleanup;
 		}
 	}
-
-	free(priv->domtitle);
-	priv->domtitle = g_strdup(virDomainGetName(dom));
 
 	virt_viewer_app_show_status(app, _("Checking guest domain status"));
 	if (virDomainGetInfo(dom, &info) < 0) {
@@ -527,10 +542,15 @@ virt_viewer_new(const char *uri,
 	self = g_object_new(VIRT_VIEWER_TYPE,
 			    "container", container,
 			    "verbose", verbose,
+			    "guest-name", name,
 			    NULL);
 	app = VIRT_VIEWER_APP(self);
 	priv = self->priv;
 
+	/* Set initial title based on guest name arg, which can be a ID,
+	 * UUID, or NAME string. To be replaced with the real guest name later
+	 */
+	g_object_set(app, "title", name, NULL);
 	virt_viewer_window_set_zoom_level(virt_viewer_app_get_main_window(app), zoom);
 	virt_viewer_app_set_direct(app, direct);
 

@@ -54,7 +54,9 @@
 #include "virt-viewer-auth.h"
 #include "virt-viewer-window.h"
 #include "virt-viewer-session.h"
+#ifdef HAVE_GTK_VNC
 #include "virt-viewer-session-vnc.h"
+#endif
 #ifdef HAVE_SPICE_GTK
 #include "virt-viewer-session-spice.h"
 #endif
@@ -121,6 +123,7 @@ struct _VirtViewerAppPrivate {
 	char *pretty_address;
 	gchar *guest_name;
 	gboolean grabbed;
+	char *title;
 };
 
 
@@ -135,6 +138,7 @@ enum {
 	PROP_SESSION,
 	PROP_GUEST_NAME,
 	PROP_FULLSCREEN,
+	PROP_TITLE,
 };
 
 void
@@ -254,7 +258,7 @@ virt_viewer_app_window_set_visible(VirtViewerApp *self,
 	return FALSE;
 }
 
-void
+G_MODULE_EXPORT void
 virt_viewer_app_about_close(GtkWidget *dialog,
 			    VirtViewerApp *self G_GNUC_UNUSED)
 {
@@ -262,7 +266,7 @@ virt_viewer_app_about_close(GtkWidget *dialog,
 	gtk_widget_destroy(dialog);
 }
 
-void
+G_MODULE_EXPORT void
 virt_viewer_app_about_delete(GtkWidget *dialog,
 			     void *dummy G_GNUC_UNUSED,
 			     VirtViewerApp *self G_GNUC_UNUSED)
@@ -319,7 +323,7 @@ virt_viewer_app_open_tunnel_ssh(const char *sshhost,
 	int n = 0;
 
 	cmd[n++] = "ssh";
-	if (!sshport) {
+	if (sshport) {
 		cmd[n++] = "-p";
 		sprintf(portstr, "%d", sshport);
 		cmd[n++] = portstr;
@@ -386,6 +390,34 @@ virt_viewer_app_trace(VirtViewerApp *self,
 	}
 }
 
+static void
+virt_viewer_app_set_window_subtitle(VirtViewerApp *app,
+				    VirtViewerWindow *window,
+				    int nth)
+{
+	gchar *subtitle = app->priv->title ? g_strdup_printf("%s (%d)", app->priv->title, nth + 1) : NULL;
+	g_object_set(window, "subtitle", subtitle, NULL);
+	g_free(subtitle);
+}
+
+static void
+set_title(gpointer key,
+	  gpointer value,
+	  gpointer user_data)
+{
+	gint *nth = key;
+	VirtViewerApp *app = user_data;
+	VirtViewerWindow *window = value;
+	virt_viewer_app_set_window_subtitle(app, window, *nth);
+}
+
+static void
+virt_viewer_app_set_all_window_subtitles(VirtViewerApp *app)
+{
+	virt_viewer_app_set_window_subtitle(app, app->priv->main_window, 0);
+	g_hash_table_foreach(app->priv->windows, set_title, app);
+}
+
 static void update_title(gpointer key G_GNUC_UNUSED,
 			 gpointer value,
 			 gpointer user_data G_GNUC_UNUSED)
@@ -426,6 +458,7 @@ virt_viewer_app_set_nth_window(VirtViewerApp *self, gint nth, VirtViewerWindow *
 	key = g_malloc(sizeof(gint));
 	*key = nth;
 	g_hash_table_insert(self->priv->windows, key, win);
+	virt_viewer_app_set_window_subtitle(self, win, nth);
 }
 
 static void
@@ -446,6 +479,8 @@ virt_viewer_app_window_new(VirtViewerApp *self, GtkWidget *container, gint nth)
 			      "app", self,
 			      "container", container,
 			      NULL);
+	if (self->priv->main_window)
+		virt_viewer_window_set_zoom_level(window, virt_viewer_window_get_zoom_level(self->priv->main_window));
 	virt_viewer_app_set_nth_window(self, nth, window);
 	w = virt_viewer_window_get_window(window);
 
@@ -541,11 +576,13 @@ virt_viewer_app_create_session(VirtViewerApp *self, const gchar *type)
 	VirtViewerAppPrivate *priv = self->priv;
 	g_return_val_if_fail(priv->session == NULL, -1);
 
+#ifdef HAVE_GTK_VNC
 	if (g_strcasecmp(type, "vnc") == 0) {
 		virt_viewer_app_trace(self, "Guest %s has a %s display\n",
 				      priv->guest_name, type);
 		priv->session = virt_viewer_session_vnc_new();
 	} else
+#endif
 #ifdef HAVE_SPICE_GTK
 	if (g_strcasecmp(type, "spice") == 0) {
 		virt_viewer_app_trace(self, "Guest %s has a %s display\n",
@@ -635,6 +672,8 @@ virt_viewer_app_activate(VirtViewerApp *self)
 	if (priv->transport &&
 	    g_strcasecmp(priv->transport, "ssh") == 0 &&
 	    !priv->direct) {
+		gchar *p = NULL;
+
 		if (priv->gport) {
 			virt_viewer_app_trace(self, "Opening indirect TCP connection to display at %s:%s\n",
 					      priv->ghost, priv->gport);
@@ -642,8 +681,14 @@ virt_viewer_app_activate(VirtViewerApp *self)
 			virt_viewer_app_trace(self, "Opening indirect UNIX connection to display at %s\n",
 					      priv->unixsock);
 		}
-		virt_viewer_app_trace(self, "Setting up SSH tunnel via %s@%s:%d\n",
-				      priv->user, priv->host, priv->port ? priv->port : 22);
+		if (priv->port)
+			p = g_strdup_printf(":%d", priv->port);
+
+		virt_viewer_app_trace(self, "Setting up SSH tunnel via %s%s%s%s\n",
+				      priv->user ? priv->user : "",
+				      priv->user ? "@" : "",
+				      priv->host, p ? p : "");
+		g_free(p);
 
 		if ((fd = virt_viewer_app_open_tunnel_ssh(priv->host, priv->port,
 							  priv->user, priv->ghost,
@@ -941,6 +986,10 @@ virt_viewer_app_get_property (GObject *object, guint property_id,
 		g_value_set_boolean(value, priv->fullscreen);
 		break;
 
+	case PROP_TITLE:
+		g_value_set_string(value, priv->title);
+		break;
+
         default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
         }
@@ -973,6 +1022,12 @@ virt_viewer_app_set_property (GObject *object, guint property_id,
 		virt_viewer_app_set_fullscreen(self, g_value_get_boolean(value));
 		break;
 
+	case PROP_TITLE:
+		g_free(priv->title);
+		priv->title = g_value_dup_string(value);
+		virt_viewer_app_set_all_window_subtitles(self);
+		break;
+
         default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
         }
@@ -998,6 +1053,7 @@ virt_viewer_app_dispose (GObject *object)
 		g_object_unref(priv->container);
 		priv->container = NULL;
 	}
+	g_free(priv->title);
 
 	virt_viewer_app_free_connect_info(self);
 
@@ -1126,6 +1182,16 @@ virt_viewer_app_class_init (VirtViewerAppClass *klass)
 							     G_PARAM_READABLE |
 							     G_PARAM_WRITABLE |
 							     G_PARAM_STATIC_STRINGS));
+	g_object_class_install_property(object_class,
+					PROP_TITLE,
+					g_param_spec_string("title",
+							    "Title",
+							    "Title",
+							    "",
+							    G_PARAM_READABLE |
+							    G_PARAM_WRITABLE |
+							    G_PARAM_STATIC_STRINGS));
+
 }
 
 void
@@ -1311,7 +1377,7 @@ virt_viewer_app_set_connect_info(VirtViewerApp *self,
 	priv->transport = g_strdup(transport);
 	priv->unixsock = g_strdup(unixsock);
 	priv->user = g_strdup(user);
-	priv->port = 0;
+	priv->port = port;
 
 	virt_viewer_app_update_pretty_address(self);
 }
@@ -1357,6 +1423,23 @@ virt_viewer_app_show_status(VirtViewerApp *self, const gchar *fmt, ...)
 
 	g_hash_table_foreach(self->priv->windows, show_status_cb, text);
 	g_free(text);
+}
+
+static void
+show_display_cb(gpointer key G_GNUC_UNUSED,
+		gpointer value,
+		gpointer user_data G_GNUC_UNUSED)
+{
+	VirtViewerNotebook *nb = virt_viewer_window_get_notebook(VIRT_VIEWER_WINDOW(value));
+
+	virt_viewer_notebook_show_display(nb);
+}
+
+void
+virt_viewer_app_show_display(VirtViewerApp *self)
+{
+	g_return_if_fail(VIRT_VIEWER_IS_APP(self));
+	g_hash_table_foreach(self->priv->windows, show_display_cb, self);
 }
 
 /*

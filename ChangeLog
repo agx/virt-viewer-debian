@@ -1,974 +1,937 @@
+2011-11-09  Daniel P. Berrange  <berrange@redhat.com>
+
+	Prep for 0.4.2 release
+
+2011-11-07  Daniel P. Berrange  <berrange@redhat.com>
+
+	Automatically generate changelog from GIT history during make dist
+
+2011-11-07  Marc-André Lureau  <marcandre.lureau@redhat.com>
+
+	Update POTFILES.in, fix make distcheck
+
+2011-11-07  Daniel P. Berrange  <berrange@redhat.com>
+
+	Ignore some more generated files
+
+2011-11-07  Marc-André Lureau  <marcandre.lureau@redhat.com>
+
+	build: make gtk-vnc optional
+
+2011-11-07  Daniel P. Berrange  <berrange@redhat.com>
+
+	Require GTK-VNC 0.4.3 and remove redundant realize() call
+	Remove call to gtk_widget_realize for the GTK-VNC widget. Requires
+	GTK-VNC >= 0.4.3
+
+2011-11-07  Marc-André Lureau  <marcandre.lureau@redhat.com>
+
+	Emit display-desktop-resize from set_desktop_size()
+
+2011-11-07  Daniel P. Berrange  <berrange@redhat.com>
+
+	Don't include INSTALL file in GIT
+
+	Revert 1a56de3acad6a19fd958fae9278cf1c97fdabb18
+	The GLIB2 check previously removed was misleading because it in
+	fact checked for gmodule-export-2.0 which is needed to export
+	the signal handlers. Revert the previous commit, but rename the
+	var to GMODULE2 to make it clearer
+
+	Always use canonical URI from libvirt connection
+	The URI we feed into libvirt may be an alias, so always query the
+	actual URI used internally
+
+2011-11-04  Daniel P. Berrange  <berrange@redhat.com>
+
+	Update automated build to test both GTK2 and GTK3 builds
+
+	Update mingw32 RPM specfile to use GTK3 on F15 or later
+
+	Remove pkgconfig check for GLIB2 since it is implied by GTK2/3
+
+2011-11-03  Daniel P. Berrange  <berrange@redhat.com>
+
+	Fix configure arg for disabling spice
+
+	Print configuration summary
+
+2011-10-11  Daniel P. Berrange  <berrange@redhat.com>
+
+	Fix broken keycombos for F9->F12 menu
+	The table for sending C-A-Fn to guests had messed up mappings
+	for F9->F12
+
+	Wire up SpiceDisplay grab signals
+	To ensure that we can put the key release sequence message in the
+	title bar, wire up VirtViewerDisplaySpice to the grab signals
+	in SpiceDisplay
+
+	Fix setting of window title with --wait
+	When waiting for a VM to appear or start, set the initial window
+	title to the command line arg. When the VM actually appears then
+	update it to the real VM name
+
+2011-09-28  Daniel P. Berrange  <berrange@redhat.com>
+
+	Fix crash from previous commit when using UNIX sockets
+	Code in the previous commit would use 'ghost' even when it was
+	NULL, as with UNIX domain socket based connections.
+
+2011-09-19  Daniel P. Berrange  <berrange@redhat.com>
+
+	Fix hostname when XML gives a wildcard address
+	When the guest XML contains a wildcard address like 0.0.0.0 or ::,
+	we can't directly use connect() on it. Instead we have to use the
+	hostname/IP from the libvirt URI.
+
+2011-09-16  Daniel P. Berrange  <berrange@redhat.com>
+
+	Propagate primary window zoom level to secondary windows
+	Ensure that all windows get a default zoom level of 100. Propagate
+	the primary window's zoom level to all secondary windows  when
+	initially creating them
+
+	Fix setting of window title with domain name
+
+2011-08-16  Daniel P. Berrange  <berrange@redhat.com>
+
+	Fix setting of initial zoom level on display
+
+2011-08-16  Guido Günther  <agx@sigxcpu.org>
+
+	ff callbacks must be invoked from a clean stack
+	If 'ff' callbacks are invoked directly from the remove
+	callback they will likely deadlock in libvirt. They must
+	be invoked from a clean stack, so switch to using a
+	glib idle callback.
+
+2011-08-14  Guido Günther  <agx@sigxcpu.org>
+
+	Don't print (null) as user
+
+	Don't print incorrect port numbers
+	The port isn't 22 when we connect to an alternate port given in
+	.ssh/config.
+
+	Don't hardcode ssh port to 0
+	Many thanks to Luca Capello <luca@pca.it> for debugging this.
+
+2011-08-12  Daniel P. Berrange  <berrange@redhat.com>
+
+	Fix inverted sshport test that broke SSH tunnelling
+
+2011-08-04  Marc-André Lureau  <marcandre.lureau@redhat.com>
+
+	Return if xmlParseURI() failed, instead of crashing
+
+	Lookup UI file correctly, to fix Windows support
+
+	Mark exported function for gtkbuild to lookup on Windows
+
+	Make title more translatable and using application name
+
+	Use g_printerr for errors instead of fprintf(stderr,..)
+
+	Lower severity of unhandled Spice events
+
+	Add virt_viewer_app_show_display()
+	Similar to previous virt_viewer_app_show_status().
+	Used later on by Spice controller to switch between display and status.
+
+	Fix fullscreen should hide taskbar on Windows
+
+2011-08-04  Daniel P. Berrange  <berrange@redhat.com>
+
+	Update for 0.4.1 release
+
+	Update authors & copyright dates
+
+	Fix sort order of displays submenu
+
+2011-08-03  Guido Günther  <agx@sigxcpu.org>
+
+	Don't hardcode SSH port to 22
+	To allow $HOME/.ssh/config to override the default SSH port,
+	don't hardcode '-p 22' in the command line.
+
+2011-08-03  Pavel Raiskup  <praiskup@redhat.com>
+
+	Remove unreachable condition in authentication dialog
+
+2011-07-26  Daniel P. Berrange  <berrange@redhat.com>
+
+	Remove duplicated struct definition
+
+2011-07-26  Marc-André Lureau  <marcandre.lureau@redhat.com>
+
+	If only one display, fullscreen should be on the current display
+
+	Show status on all open windows
+	The split virt_viewer_notebook_show_status() to
+	virt_viewer_notebook_show_status_va() is unnecessary
+	in the end, but it's more future-proof.
+
+	Add a "Displays" submenu, and warn when closing last display
+
+	Don't ignore creation of secondary displays
+
+	Use app fullscreen property instead of app.start() argument
+
+	Implement app_set_fullscreen() to go over existing windows
+
+	Show display and rise its window when we have the display show hint
+	Track event for Spice, and imitate it for VNC.
+
+	Change enter/leave fullscreen to take/restore position
+	That allow positionning windows in multi-head.
+
+	Also, get rid of window_state_cb, since it's impossible to
+	properly catch the event to do the right thing, ie move to a different
+	screen before go full-screen, or disallow it in case nb physical
+	monitors < nb virtual monitors.
+
+	Add nth window to virt_viewer_app_window_new()
+
+	Introduce fullscreen property and virt_viewer_app_set_fullscreen()
+
+	Let virt_viewer_notebook_show_status take varags
+
+	Status messages can be translated
+
+	Add show-hint property to display
+
+	Split VirtViewerApp window into VirtViewerWindow
+
+2011-07-22  Marc-André Lureau  <marcandre.lureau@redhat.com>
+
+	Inherit from VirtViewerApp for VirtViewer
+	Make it a real GObject.
+
+	The parts specific to virt should go in virt-viewer.c
+
+	Turn VirtViewer into a VirtViewerApp object
+
+	Split virt_viewer_start() and virt_viewer_new()
+
+	Split virt_viewer_activate() and virt_viewer_set_domain()
+
+	Split virt_viewer_create_session() out of virt_viewer_extract_connect_info()
+	For future reusability
+
+	Reorder _VirtViewer to make it easier to split with RemoteViewer
+
+	Extract scheme in virt_viewer_extract_host()
+	Needed for remote-viewer.
+
+2011-07-18  Daniel P. Berrange  <berrange@redhat.com>
+
+	Remove use of AM_GLIB_GNU_GETTEXT
+	Since we already invoke the intltool macros, also invoking
+	AM_GLIB_GNU_GETTEXT is wrong and causes problems with the
+	later makefile rules
+
+2011-07-12  Daniel P. Berrange  <berrange@redhat.com>
+
+	Fix build requirements for GTK3
+
+	Remove bogus hardcoded check for GTK2
+
+	Disable SPICE unless on x86 architectures
+
+	Fix compat with GTK 2.18.0
+
+	Updates for 0.4.0 release
+
+	Remove virt-viewer-priv.h from sources, since it is gone
+
+	Remove duplicated typedefs
+
+	Annotate unused variables
+
+	Fix leak of graphics type attribute from XML
+
+	Fix leak of command line arguments
+
+2011-07-11  Daniel P. Berrange  <berrange@redhat.com>
+
+	Split pull part of VirtViewerDisplay out into VirtViewerSession
+	To facilitate introduction of multi-head support, pull some of
+	the VirtViewerDisplay class out into a new VirtViewerSession
+	class.
+
+	Avoid (null) in titlebar
+
+	Fix colour of status label to show up on black background
+
+	Fix reconnecting of SPICE display
+
+2011-07-11  Marc-André Lureau  <marcandre.lureau@redhat.com>
+
+	Fill space on the display alignment with black
+
+	Add support for --fullscreen option
+
+	Skip non-primary monitors in SPICE
+
+2011-07-11  Daniel P. Berrange  <berrange@redhat.com>
+
+	Remove circular dependancy between VirtViewerDisplay and VirtViewer
+	Add many signals to VirtViewerDisplay which are emitted when various
+	events occur. This lets us remove all the code in the VirtViewerDisplay
+	subclasses which call back into VirtViewer methods. Instead VirtViewer
+	can simply connect signals to the display
+
+	Turn VirtViewerDisplay into a proper Gtk widget
+	Turn VirtViewerDisplay into a Gtk widget instead of just a GObject,
+	by merging the functionality from VirtViewerAlign
+
+2011-07-11  Daniel P. Berrange  <dan@berrange.com>
+
+	Update to optionally build with GTK3
+
+2011-07-01  Daniel P. Berrange  <dan@berrange.com>
+
+	Replace use of GtkAlignment with a custom align widget
+	To use the GtkAlignment we have to play evil tricks overriding
+	its size request, to make it reallocate the child to the preferred
+	size we desire based on the virtual desktop size + zoom level.
+
+	By replacing the GtkAlignment with a custom widget we can
+	directly implement the layout/sizing semantics we want without
+	playing stupid games
+
+	Introduce standard naming convention to files & methods
+	All source files must be named
+
+	  virt-viewer-XXXX
+
+	All methods named
+
+	  virt_viewer_XXX
+
+2011-07-01  Daniel P. Berrange  <berrange@redhat.com>
+
+	Fix some compile warnings
+
+	Convert from Glade to GtkBuilder
+
+	Refactor configure.ac to pull out required version
+
+	Enable use of scaling from spice >= 0.6
+	Make the SPICE widget operate in the same way as the VNC widget
+	with display scaling, and auto-resize, but preserving guest
+	aspect ratio
+
+	Hide menu bar on fullscreen & add a hiding toolbar
+	* src/Makefile.am, src/view/autoDrawer.c, src/view/autoDrawer.c
+	  src/view/drawer.c, src/view/drawer.h, src/view/ovBox.c,
+	  src/view/ovBox.c: Import auto-drawer from vinagre
+	* src/viewer-priv.h, src/viewer.c, src/viewer.glade,
+	  src/display-vnc.c: Insert an auto-drawer above the
+	  notebook and display an auto-hiding toolbar when fullscreen
+
+2011-06-30  Daniel P. Berrange  <berrange@redhat.com>
+
+	Add message about whether it is VNC or SPICE display
+
+	Add some useful data for the --verbose flag
+
+2011-05-23  Daniel P. Berrange  <berrange@redhat.com>
+
+	Fix re-connect after authentication failure
+	viewer->display will be non-NULL if we have already attempted a
+	connection. So, remove the check for it being NULL, and instead
+	skip the widget setup step.
+
+2011-05-23  Jiri Denemark  <Jiri.Denemark@gmail.com>
+
+	Add support for listen attribute
+	Virt-viewer now parses listen attribute from graphics element to be able
+	to connect to domains configured with explicit listen address:
+
+	    <graphics type='vnc' port='-1' autoport='yes' listen='123.45.67.89'/>
+
+2011-05-23  Daniel P. Berrange  <berrange@redhat.com>
+
+	Replace .hgignore with .gitignore
+
 2011-02-21  Daniel P. Berrange  <dan@berrange.com>
 
-	* configure.ac:
+	Added tag release-0.3.1 for changeset f71b32a6a583
+
+	Updates for 0.3.1 release
+
 	Fix typo in SPICE configure setup
-	[cfb261f0ffed] [tip]
 
-	* .hgtags:
 	Added tag release-0.3.0 for changeset 807203083e74
-	[22b287a68428]
 
-	* ChangeLog, NEWS, README, configure.ac:
 	Updates for 0.3.0 release
-	[807203083e74] [release-0.3.0]
 
-	* virt-viewer.spec.in:
 	Fix misc RPM specfile bugs
-	[74bd54a2be1b]
 
 2011-02-11  Daniel P. Berrange  <dan@berrange.com>
 
-	* Merge heads
-	[63a275e6efad]
+	Merge heads
+
+	Disable mozilla plugin since it doesn't build currently
+
+	Enable SPICE in Fedora 15 or later
 
 2011-02-08  yurchor  <yurchor@fedoraproject.org>
 
-	* po/uk.po:
 	l10n: Updates to Ukrainian (uk) translation
-
 	Transmitted-via: Transifex (translate.fedoraproject.org)
-	[42abba3e0529]
 
 2011-02-08  elsupergomez  <elsupergomez@fedoraproject.org>
 
-	* po/es.po:
 	l10n: Updates to Spanish (Castilian) (es) translation
-
 	Transmitted-via: Transifex (translate.fedoraproject.org)
-	[f59694a06f0e]
-
-2011-02-11  Daniel P. Berrange  <dan@berrange.com>
-
-	* autobuild.sh:
-	Disable mozilla plugin since it doesn't build currently
-	[a15854eff628]
-
-	* virt-viewer.spec.in:
-	Enable SPICE in Fedora 15 or later
-	[4e4482cfc5df]
 
 2011-02-07  Daniel P. Berrange  <dan@berrange.com>
 
-	* configure.ac:
 	Update pkg-config check for spice-gtk library
-	[35b857dedeee]
 
 2011-02-04  warrink  <warrink@fedoraproject.org>
 
-	* po/nl.po:
 	l10n: Updates to Dutch (Flemish) (nl) translation
-
 	Transmitted-via: Transifex (translate.fedoraproject.org)
-	[4bdba329fd50]
 
 2011-02-04  raven  <raven@fedoraproject.org>
 
-	* po/pl.po:
 	l10n: Updates to Polish (pl) translation
-
 	Transmitted-via: Transifex (translate.fedoraproject.org)
-	[819835e085c6]
 
-	* po/pl.po:
 	l10n: Updates to Polish (pl) translation
-
 	Transmitted-via: Transifex (translate.fedoraproject.org)
-	[8e8defe7444c]
 
 2011-02-03  Daniel P. Berrange  <dan@berrange.com>
 
-	* src/viewer.c:
 	Fix waiting for VM based on UUID
-	[607c42b3aba6]
 
-	* src/viewer-priv.h, src/viewer.c:
 	Support connections over UNIX sockets
-	[4f6b2cf8d10a]
 
-	* src/viewer.c:
 	Avoid fetching XML document multiple times when extracting graphics
-	[eccf7b274d8c]
 
 2011-01-29  fdaluisio  <fdaluisio@fedoraproject.org>
 
-	* po/it.po:
 	l10n: Updates to Italian (it) translation
-
 	Transmitted-via: Transifex (translate.fedoraproject.org)
-	[c1559894facc]
 
 2011-01-28  tomspur  <tomspur@fedoraproject.org>
 
-	* po/de.po:
 	l10n: Updates to German (de) translation
-
 	Transmitted-via: Transifex (translate.fedoraproject.org)
-	[8e6056966e8c]
 
 2011-01-12  andreyjktl  <andreyjktl@fedoraproject.org>
 
-	* po/ru.po:
 	l10n: Updates to Russian (ru) translation
-
 	Transmitted-via: Transifex (translate.fedoraproject.org)
-	[6a5fa15abaa3]
 
 2011-01-10  elsupergomez  <elsupergomez@fedoraproject.org>
 
-	* po/es.po:
 	l10n: Updates to Spanish (Castilian) (es) translation
-
 	Transmitted-via: Transifex (translate.fedoraproject.org)
-	[aaf4f61830cc]
 
 2010-12-21  jassy  <jassy@fedoraproject.org>
 
-	* po/pa.po:
 	l10n: Updates to Panjabi (Punjabi) (pa) translation
-
 	Transmitted-via: Transifex (translate.fedoraproject.org)
-	[72eb4f8f3bc0]
 
 2010-12-16  warrink  <warrink@fedoraproject.org>
 
-	* po/nl.po:
 	l10n: Updates to Dutch (Flemish) (nl) translation
-
 	Transmitted-via: Transifex (translate.fedoraproject.org)
-	[c2bc3efb0265]
 
 2010-12-15  raven  <raven@fedoraproject.org>
 
-	* po/pl.po:
 	l10n: Updates to Polish (pl) translation
-
 	Transmitted-via: Transifex (translate.fedoraproject.org)
-	[879ab95fa860]
 
 2010-12-10  Marc-André Lureau  <marcandre.lureau@redhat.com>
 
-	* configure.ac, src/Makefile.am, src/viewer.c:
 	build: make spice-gtk dependency optional
-	[992d73fd6a85]
 
 2010-11-30  Marc-André Lureau  <marcandre.lureau@redhat.com>
 
-	* src/display-spice.c, src/display-vnc.c, src/display.h, src/viewer.c,
-	src/viewer.glade:
 	viewer: add support for spice resize-guest
-
 	And also turn on clipboard sharing.
-	[328f3f0f57d2]
 
-	* AUTHORS, configure.ac, man/Makefile.am, man/virt-viewer.pod,
-	po/POTFILES.in, src/Makefile.am, src/auth.c, src/auth.h, src
-	/display-spice.c, src/display-spice.h, src/display-vnc.c, src
-	/display-vnc.h, src/display.c, src/display.h, src/viewer-priv.h,
-	src/viewer.c, src/viewer.glade:
 	viewer: Add support for Spice
-	[e9167b61921b]
 
 2010-11-19  Marc-André Lureau  <marcandre.lureau@redhat.com>
 
-	* src/viewer.c:
 	viewer: generalize extract_port() into viewer_extract_xpath_string()
-	[dbcb547de1e9]
 
-	* src/viewer.c:
 	viewer: silence a few warnings of unused variables
-	[bc2713b7997b]
 
-	* src/viewer.c:
 	viewer: split vnc display creation out of viewer_activate()
-	[de2d7bf9bd1e]
 
 2010-12-14  Daniel P. Berrange  <dan@berrange.com>
 
-	* src/auth.c:
 	Improve auth dialog message when no address is available
-	[526813f252f3]
 
 2010-11-17  tombo  <tombo@fedoraproject.org>
 
-	* po/it.po:
 	l10n: Updates to Italian (it) translation
-
 	Transmitted-via: Transifex (translate.fedoraproject.org)
-	[fa512d3379da]
 
 2010-10-04  giallu  <giallu@fedoraproject.org>
 
-	* po/it.po:
 	l10n: Updates to Italian (it) translation
-
 	Transmitted-via: Transifex (translate.fedoraproject.org)
-	[d0eba3f3dcf4]
 
 2010-09-30  aron  <aron@fedoraproject.org>
 
-	* po/zh_CN.po:
 	l10n: Updates to Chinese (China) (zh_CN) translation
-
 	Transmitted-via: Transifex (translate.fedoraproject.org)
-	[eb3fb9f7894c]
 
 2010-08-10  bozzo  <bozzo@fedoraproject.org>
 
-	* po/fr.po:
 	l10n: Updates to French (fr) translation
-
 	Transmitted-via: Transifex (translate.fedoraproject.org)
-	[d5bc241ed9f7]
 
 2010-08-03  warrink  <warrink@fedoraproject.org>
 
-	* po/nl.po:
 	l10n: First Dutch translation
-
 	Transmitted-via: Transifex (translate.fedoraproject.org)
-	[bfb63c06f06d]
 
 2010-07-22  ankit  <ankit@fedoraproject.org>
 
-	* po/gu.po:
 	l10n: Updates to Gujarati (gu) translation
-
 	Transmitted-via: Transifex (translate.fedoraproject.org)
-	[44d8dc6c88f7]
 
 2010-07-09  Daniel P. Berrange  <dan@berrange.com>
 
-	* Merge heads
-	[45de382c1988]
-
-2010-07-06  raven  <raven@fedoraproject.org>
-
-	* po/pl.po:
-	l10n: Updates to Polish (pl) translation
-
-	Transmitted-via: Transifex (translate.fedoraproject.org)
-	[c374cc9b4e33]
-
-2010-07-06  elsupergomez  <elsupergomez@fedoraproject.org>
-
-	* po/es.po:
-	l10n: Updates to Spanish (Castilian) (es) translation
-
-	Transmitted-via: Transifex (translate.fedoraproject.org)
-	[5c703e23a2b4]
+	Merge heads
 
 2010-07-09  Ronnie Sahlberg  <ronniesahlberg@gmail.com>
 
-	* man/virt-viewer.pod:
 	Misc fixes to command line args in virt-viewer manpage
-
 	Fix three issues with the manpage for virt-viewer :
 
 	* Short option for --reconnect is -r, not -w
 	* Show that the short option for zoom takes an argument
 	* Add the --debug argument.
-	[67e2d8113af9]
+
+2010-07-06  raven  <raven@fedoraproject.org>
+
+	l10n: Updates to Polish (pl) translation
+	Transmitted-via: Transifex (translate.fedoraproject.org)
+
+2010-07-06  elsupergomez  <elsupergomez@fedoraproject.org>
+
+	l10n: Updates to Spanish (Castilian) (es) translation
+	Transmitted-via: Transifex (translate.fedoraproject.org)
 
 2010-07-05  Ronnie Sahlberg  <ronniesahlberg@gmail.com>
 
-	* AUTHORS, man/virt-viewer.pod, src/main.c, src/viewer.c,
-	src/viewer.glade, src/viewer.h:
 	Add support for zoom levels
-
 	Add a menu for zooming in/out of the virtual desktop.
 
 	Add a --zoom command line to set the initial zoom level.
 
 	Defaults to 100% zoom at startup
-	[99cd453a8746]
 
 2010-07-05  Daniel P. Berrange  <dan@berrange.com>
 
-	* po/LINGUAS:
 	Add all current languages to LINGUAS file
-
-	No locale files were being installed since all the languages were
-	missing in LINGUAS
-	[9111b6888676]
+	No locale files were being installed since all the
+	languages were missing in LINGUAS
 
 2010-06-27  zoltanh721  <zoltanh721@fedoraproject.org>
 
-	* po/hu.po:
 	l10n: Updates to Hungarian (hu) translation
-
 	Transmitted-via: Transifex (translate.fedoraproject.org)
-	[10cd88edd331]
 
 2010-06-25  htaira  <htaira@fedoraproject.org>
 
-	* po/ja.po:
 	l10n: Updates to Japanese (ja) translation
-
 	Transmitted-via: Transifex (translate.fedoraproject.org)
-	[31ea04a18446]
 
 2010-06-09  htaira  <htaira@fedoraproject.org>
 
-	* po/ja.po:
 	l10n: Updates to Japanese (ja) translation
-
 	Transmitted-via: Transifex (translate.fedoraproject.org)
-	[a0786647b8e9]
 
 2010-04-14  mvdz  <mvdz@fedoraproject.org>
 
-	* po/uk.po:
 	l10n: Updates to Ukrainian (uk) translation
-
 	Transmitted-via: Transifex (translate.fedoraproject.org)
-	[47d846d27fdd]
 
-2010-03-31  enshahar  <enshahar@fedoraproject.org>
+2010-04-01  enshahar  <enshahar@fedoraproject.org>
 
-	* po/ko.po:
 	l10n: Updates to Korean (ko) translation
-
 	Transmitted-via: Transifex (translate.fedoraproject.org)
-	[4ea747fc1d6b]
 
 2010-03-30  webappz  <webappz@fedoraproject.org>
 
-	* po/hu.po:
 	l10n: Updates to Hungarian (hu) translation
-
 	Transmitted-via: Transifex (translate.fedoraproject.org)
-	[c2e41385dabf]
 
-	* po/hu.po:
 	l10n: Updates to Hungarian (hu) translation
-
 	Transmitted-via: Transifex (translate.fedoraproject.org)
-	[f38b2e86c5ef]
 
-	* po/hu.po:
 	l10n: Updates to Hungarian (hu) translation
-
 	Transmitted-via: Transifex (translate.fedoraproject.org)
-	[2e4d842c62af]
 
 2010-03-22  mvdz  <mvdz@fedoraproject.org>
 
-	* po/uk.po:
 	l10n: Added Ukrainian translation.
-
 	Transmitted-via: Transifex (translate.fedoraproject.org)
-	[88ad52cdf0aa]
 
 2010-03-14  amitakhya  <amitakhya@fedoraproject.org>
 
-	* po/as.po:
 	l10n: Adding Assamese translations.
-
 	Transmitted-via: Transifex (translate.fedoraproject.org)
-	[f815e2c8e5ad]
 
 2010-02-26  runab  <runab@fedoraproject.org>
 
-	* po/bn_IN.po:
 	Sending translation for po/bn_IN.po
-	[5c79b3bd5068]
 
 2010-02-24  rajesh  <rajesh@fedoraproject.org>
 
-	* po/hi.po:
 	Sending translation for po/hi.po
-	[c8f2537692e0]
 
 2010-02-20  snicore  <snicore@fedoraproject.org>
 
-	* po/hu.po:
 	Sending translation for po/hu.po
-	[1462825b8e02]
 
 2010-02-08  anipeter  <anipeter@fedoraproject.org>
 
-	* po/ml.po:
 	Sending translation for po/ml.po
-	[cd1284f62107]
 
 2010-02-01  mgiri  <mgiri@fedoraproject.org>
 
-	* po/or.po:
 	Sending translation for po/or.po
-	[78feb4d583ed]
 
 2010-01-29  ifelix  <ifelix@fedoraproject.org>
 
-	* po/ta.po:
 	Sending translation for po/ta.po
-	[7d4d3f5993a2]
 
 2010-01-29  jassy  <jassy@fedoraproject.org>
 
-	* po/pa.po:
 	Sending translation for Punjabi
-	[a5842cd7e908]
 
 2010-01-28  sandeeps  <sandeeps@fedoraproject.org>
 
-	* po/mr.po:
 	Sending translation for po/mr.po
-	[9de827a3645a]
 
 2010-01-28  shanky  <shanky@fedoraproject.org>
 
-	* po/kn.po:
 	Sending translation for po/kn.po
-	[32bedf3379c1]
 
 2010-01-28  giallu  <giallu@fedoraproject.org>
 
-	* po/it.po:
 	Sending translation for Italian
-	[4169a6aa9f03]
 
 2010-01-28  jassy  <jassy@fedoraproject.org>
 
-	* po/pa.po:
 	Sending translation for po/pa.po
-	[90ae444ba69c]
 
 2010-01-28  kkrothap  <kkrothap@fedoraproject.org>
 
-	* po/te.po:
 	Sending translation for po/te.po
-	[fca3f9a5bc8b]
 
 2010-01-28  mospina  <mospina@fedoraproject.org>
 
-	* po/ko.po:
 	Sending translation for Korean
-	[185dc845cc3f]
 
-2010-01-25  "Daniel P. Berrange  <berrange@redhat.com>
+2010-01-25  Daniel P. Berrange  <berrange@redhat.com>
 
-	* po/it_IT.po:
 	Remove bogus it_IT.po file, correct name was it.po
-	[87e34764f943]
 
 2010-01-24  tchuang  <tchuang@fedoraproject.org>
 
-	* po/zh_TW.po:
 	Sending translation for po/zh_TW.po
-	[e50f8116a8ab]
 
 2010-01-24  raven  <raven@fedoraproject.org>
 
-	* po/it.po:
 	Sending translation for po/it.po
-	[9b614ce582ea]
 
 2010-01-23  giallu  <giallu@fedoraproject.org>
 
-	* po/it_IT.po:
 	Sending translation for po/it_IT.po
-	[ee470027df65]
 
 2010-01-22  hedda  <hedda@fedoraproject.org>
 
-	* po/de.po:
 	Sending translation for German
-	[557f60ac53b3]
 
 2010-01-22  leahliu  <leahliu@fedoraproject.org>
 
-	* po/zh_CN.po:
 	Sending translation for Chinese (Simplified)
-	[c9d98ce01d93]
 
 2010-01-22  khasida  <khasida@fedoraproject.org>
 
-	* po/ja.po:
 	Sending translation for po/ja.po
-	[34d80402dbed]
 
 2010-01-22  mospina  <mospina@fedoraproject.org>
 
-	* po/ko.po:
 	Sending translation for po/ko.po
-	[2b9684476fe6]
 
-	* po/es.po:
 	Sending translation for Spanish
-	[e08c6128ea8f]
 
 2010-01-22  ypoyarko  <ypoyarko@fedoraproject.org>
 
-	* po/ru.po:
 	Sending translation for Russian
-	[b11d479ee1f4]
 
 2010-01-22  gcintra  <gcintra@fedoraproject.org>
 
-	* po/pt_BR.po:
 	Sending translation for po/pt_BR.po
-	[892a90a8af67]
 
 2010-01-22  samfreemanz  <samfreemanz@fedoraproject.org>
 
-	* po/fr.po:
 	Sending translation for French
-	[5b55be5a0e46]
 
 2010-01-22  hedda  <hedda@fedoraproject.org>
 
-	* po/de.po:
 	Sending translation for po/de.po
-	[b13384930995]
 
 2010-01-22  leahliu  <leahliu@fedoraproject.org>
 
-	* po/zh_CN.po:
 	Sending translation for Chinese (Simplified)
-	[a2e13f979d94]
 
 2010-01-21  leahliu  <leahliu@fedoraproject.org>
 
-	* po/zh_CN.po:
 	Sending translation for po/zh_CN.po
-	[18b0c5353fef]
 
 2010-01-21  ypoyarko  <ypoyarko@fedoraproject.org>
 
-	* po/ru.po:
 	Sending translation for po/ru.po
-	[f22e478e8046]
 
 2010-01-21  mospina  <mospina@fedoraproject.org>
 
-	* po/es.po:
 	Sending translation for po/es.po
-	[cd6be7781059]
 
 2010-01-21  swkothar  <swkothar@fedoraproject.org>
 
-	* po/gu.po:
 	Sending translation for po/gu.po
-	[ed59815240d9]
 
 2010-01-18  renault  <renault@fedoraproject.org>
 
-	* po/fr.po:
 	Sending translation for po/fr.po
-	[f0a3b5b30f92]
 
-2010-01-15  "Daniel P. Berrange  <berrange@redhat.com>
+2010-01-15  Daniel P. Berrange  <berrange@redhat.com>
 
-	* .hgtags:
 	Added tag release-0.2.1 for changeset 13bcca43c859
-	[236029760251]
 
-	* AUTHORS, ChangeLog, NEWS, README, configure.ac:
 	Updates for 0.2.1 release
-	[13bcca43c859] [release-0.2.1]
 
 2010-01-13  raven  <raven@fedoraproject.org>
 
-	* po/pl.po:
 	Sending translation for Polish
-	[d114aac4cfb8]
 
-2010-01-12  "Daniel P. Berrange  <berrange@redhat.com>
+2010-01-12  Daniel P. Berrange  <berrange@redhat.com>
 
-	* src/viewer.c:
 	Add message dialog displays for important error scenarios
-	[6d1f30e5fb71]
 
-	* src/auth.glade:
 	Fix warning with default widget focus in auth dialog
-	[e0e91e221add]
 
-	* src/viewer.c:
-	Add dialog to alert user to unsuccessful authentication & retry
-	Alert user if VNC server has no compatible auth methods Support VNC
-	bell & cut text events
-	[f098a86755a7]
+	Add dialog to alert user to unsuccessful authentication & retry Alert user if VNC server has no compatible auth methods Support VNC bell & cut text events
 
-	* configure.ac:
 	Turn on automake's silent build rules if available
-	[d388340febbc]
 
-	* src/main.c, src/viewer.c:
 	Various cleanups for Glib/GTK and BZ 474213
-	[c13f1d31eab7]
 
 2010-01-11  raven  <raven@fedoraproject.org>
 
-	* po/pl.po:
 	Sending translation for Polish
-	[31af732a9a55]
 
-2010-01-11  "Daniel P. Berrange  <berrange@redhat.com>
+2010-01-11  Daniel P. Berrange  <berrange@redhat.com>
 
-	* .hgignore, mingw32-virt-viewer.spec.in, po/LINGUAS, po/virt-
-	viewer.pot, src/about.glade, virt-viewer.spec.in:
-	Add 'pl' to LINGUAS. Remove accidentally committed .pot file and add
-	it to .hgignore. Add RPM specfile magic for translations. Fix typo
-	in about.glade URL
-	[09c9db915104]
+	Add 'pl' to LINGUAS. Remove accidentally committed .pot file and add it to .hgignore. Add RPM specfile magic for translations. Fix typo in about.glade URL
 
 2010-01-11  raven  <raven@fedoraproject.org>
 
-	* po/pl.po, po/virt-viewer.pot:
 	Sending translation for po/pl.po
-	[affb21844c39]
 
-2010-01-11  "Daniel P. Berrange  <berrange@redhat.com>
+2010-01-11  Daniel P. Berrange  <berrange@redhat.com>
 
-	* .hgignore, Makefile.am, autogen.sh, configure.ac, intltool-
-	extract.in, intltool-merge.in, intltool-update.in, po/LINGUAS,
-	po/POTFILES.in, src/Makefile.am, src/main.c:
 	Add support for i18n of the UI
+	Add all the boilerplate code required for doing i18n of the UI.
+	No translations available yet though
 
-	Add all the boilerplate code required for doing i18n of the UI. No
-	translations available yet though
-	[07db22b2f766]
+2009-08-15  Yann E. MORIN"  <yann.morin.1998@anciens.enib.fr>
 
-2009-08-15  "Yann E. MORIN"  <yann.morin.1998@anciens.enib.fr>
-
-	* src/util.h:
 	viewer: fix build on 'old' GTK2
+	Debian lenny has gtk2 2.12.12, which is missing gtk_widget_get_window.
+	Provide our own function if GTK2 <= 2.12 .
 
-	Debian lenny has gtk2 2.12.12, which is missing
-	gtk_widget_get_window. Provide our own function if GTK2 <= 2.12 .
+	Highly inspired from: http://osdir.com/ml/svn-commits-list/2009-08/msg00725.html
 
-	Highly inspired from: http://osdir.com/ml/svn-commits-
-	list/2009-08/msg00725.html
-	[e05cd5be9c36]
+2009-07-29  Daniel P. Berrange  <berrange@redhat.com>
 
-2009-07-29  "Daniel P. Berrange  <berrange@redhat.com>
-
-	* .hgtags:
 	Added tag release-0.2.0 for changeset b38a2c67ebfd
-	[99ba88ee7820]
 
-	* NEWS, configure.ac, virt-viewer.spec.in:
 	Update for 0.2.0 release
-	[b38a2c67ebfd] [release-0.2.0]
 
-	* plugin/Makefile.am:
-	Disable compile errors in plugin till we figure out what's up with
-	the header files
-	[f2fabc428441]
+	Disable compile errors in plugin till we figure out what's up with the header files
 
-	* mingw32-virt-viewer.spec.in, virt-viewer.spec.in:
 	Update deps in rpm
-	[d5ef17c7856e]
 
-	* src/viewer.c:
 	Ensure VNC display is centered if being scaled
-	[f5e758b7a271]
 
-	* src/auth.glade:
 	Ensure password is not echoed
-	[e826ca02a7d4]
 
-	* src/auth.c, src/auth.glade, src/auth.h, src/util.h, src/viewer.c:
 	Add support for libvirt graphical auth
-	[a8e92767179f]
 
-	* plugin/Makefile.am, src/Makefile.am, src/auth.c, src/auth.h,
-	src/events.c, src/events.h, src/util.c, src/util.h, src/viewer.c,
-	src/viewer.h:
 	Pull auth code out into separate file
-	[1471c65b8280]
 
-2009-07-28  "Daniel P. Berrange  <berrange@redhat.com>
+2009-07-28  Daniel P. Berrange  <berrange@redhat.com>
 
-	* plugin/Makefile.am, plugin/npshell.c, plugin/npupp.h,
-	plugin/test.html, plugin/virt-viewer-plugin.c, plugin/virt-viewer-
-	plugin.h, src/viewer.c:
 	Make plugin work again
-	[68646d3db76d]
 
-	* src/viewer.c:
 	Add compatability logic for drivers without domain event support
-	[c29276a0f2ec]
 
-	* src/viewer.c:
 	Fix mouse / key grab vs modifier disabling mixup
-	[6cdf7dfa223d]
 
-	* configure.ac, mingw32-virt-viewer.spec.in, plugin/Makefile.am,
-	src/Makefile.am, src/events.c, src/events.h, src/viewer.c, virt-
-	viewer.spec.in:
-	Pull glib event loop integration into tree until libvirt-glib is
-	more mature
-	[dd92609022ac]
+	Pull glib event loop integration into tree until libvirt-glib is more mature
 
-	* src/viewer.c, src/viewer.glade:
 	Re-write the way scaling/resizing works
-
-	* Default to auto-resize mode where we try to fit the VNC widget 1:1
-	in the main window
-	* If local desktop is not large enough for VNC widget, scale down,
-	maintaining aspect ratio
-	* Allow the user to turn off auto-resize and have total manual control
-	over window size
+	* Default to auto-resize mode where we try to fit the VNC widget 1:1 in the main window
+	* If local desktop is not large enough for VNC widget, scale down, maintaining aspect ratio
+	* Allow the user to turn off auto-resize and have total manual control over window size
 	* Always scale the display in fullscreen mode
-	[3521ee2a63e6]
 
-	* plugin/virt-viewer-plugin.c, src/main.c, src/viewer.c, src/viewer.h:
 	Add a --debug command line flag
-	[1a3b36e0b6f2]
 
-	* src/viewer.c:
 	Fix waiting for a VM that does not initially exist
-	[da53b8f99cdf]
 
-	* plugin/Makefile.am, plugin/npshell.c, src/Makefile.am, src/main.c,
-	src/viewer.c:
 	Move most of viewer code out into viewer.c
-	[8f237adf2792]
 
-2008-11-28  "Daniel P. Berrange  <berrange@redhat.com>
+2008-11-28  Daniel P. Berrange  <berrange@redhat.com>
 
-	* autobuild.sh, configure.ac, mingw32-virt-viewer.spec.in, virt-
-	viewer.spec.in:
 	Initial mingw32 build support
-	[92da1556bbf9]
 
-	* src/main.c:
 	Use g_strdup & friends
-	[029b506ca4cf]
 
-	* configure.ac, src/main.c, src/usleep.c:
 	Remove unused usleep code
-	[ac45bee371c8]
 
-2008-11-26  "Daniel P. Berrange  <berrange@redhat.com>
+2008-11-26  Daniel P. Berrange  <berrange@redhat.com>
 
-	* .hgignore, autogen.sh, configure.ac, man/virt-viewer.pod,
-	plugin/Makefile.am, plugin/npshell.c, plugin/virt-viewer-plugin.c,
-	plugin/virt-viewer-plugin.h, src/Makefile.am, src/about.glade,
-	src/auth.glade, src/main.c, src/viewer.glade, src/viewer.h, virt-
-	viewer.spec.in:
-	Re-write completely to use Glade, libvirt events, and libvirt-glib
-	integration
-	[8e98b3d44c8d]
+	Re-write completely to use Glade, libvirt events, and libvirt-glib integration
 
-2008-11-03  "Daniel P. Berrange  <berrange@redhat.com>
+2008-11-03  Daniel P. Berrange  <berrange@redhat.com>
 
-	* plugin/Makefile.am:
 	Fix rule to use DESTDIR on plugin install
-	[e70af57502f9]
 
-2008-10-10  "Richard W.M. Jones  <rjones@redhat.com>
+2008-10-10  Richard W.M. Jones  <rjones@redhat.com>
 
-	* .hgignore, ChangeLog, configure.ac, src/Makefile.am, src/main.c,
-	src/usleep.c:
-	* configure.ac, src/Makefile.am, src/main.c, src/usleep.c: Support
-	for building on Windows using MinGW compiler toolchain (or
-	for cross-compiling using the same).
+		* configure.ac, src/Makefile.am, src/main.c, src/usleep.c: Support 	for building on Windows using MinGW compiler toolchain (or 	for cross-compiling using the same).
+		* .hgignore: Ignore some generated files.
 
-	 * .hgignore: Ignore some generated files.
-	[2cce513346ae]
+2008-06-17  Daniel P. Berrange  <berrange@redhat.com>
 
-2008-06-17  "Daniel P. Berrange  <berrange@redhat.com>
-
-	* src/main.c:
 	Add error message when conecting to inactive VM (Hiroyuki Kaguchi)
-	[57d1fb020d57]
 
-2008-04-27  "Daniel P. Berrange  <berrange@redhat.com>
+2008-04-28  Daniel P. Berrange  <berrange@redhat.com>
 
-	* configure.ac, src/main.c:
 	Use GTK apis for option parsing (Guido G\374nther)
-	[5299a3aaebb5]
 
-2008-04-23  "Daniel P. Berrange  <berrange@redhat.com>
+2008-04-24  Daniel P. Berrange  <berrange@redhat.com>
 
-	* AUTHORS, src/main.c:
-	Avoid caching inactive domain to workaround issues with older XenD
-	(Hiroyuki Kaguchi)
-	[7f20b8bb6abd]
+	Avoid caching inactive domain to workaround issues with older XenD (Hiroyuki Kaguchi)
 
-2008-04-22  "Daniel P. Berrange  <berrange@redhat.com>
+2008-04-22  Daniel P. Berrange  <berrange@redhat.com>
 
-	* AUTHORS, src/main.c:
 	Call gtk_init early to ensure it grabs args like --sync
-	[5f14440985f8]
 
-2008-04-08  "Daniel P. Berrange  <berrange@redhat.com>
+2008-04-08  Daniel P. Berrange  <berrange@redhat.com>
 
-	* man/virt-viewer.pod:
 	Fix manpage typo
-	[e2ee322e3d1a]
 
-2008-03-21  "Daniel P. Berrange  <berrange@redhat.com>
+2008-03-21  Daniel P. Berrange  <berrange@redhat.com>
 
-	* configure.ac:
 	Bump GTK dep to 2.10.0
-	[d8cf9d390762]
 
-2008-03-10  "Daniel P. Berrange  <berrange@redhat.com>
+2008-03-10  Daniel P. Berrange  <berrange@redhat.com>
 
-	* .hgtags:
 	Added tag release-0.0.3 for changeset 05f9c167354b
-	[5d426425c850]
 
-	* ChangeLog, NEWS:
 	Refresh news / changelog for release
-	[05f9c167354b] [release-0.0.3]
 
-2008-03-09  "Daniel P. Berrange  <berrange@redhat.com>
+2008-03-09  Daniel P. Berrange  <berrange@redhat.com>
 
-	* autobuild.sh, configure.ac, virt-viewer.spec.in:
 	Added -plugin sub RPM, disabled by default, except for autobuild
-	[efcac0fc56b5]
 
-2008-03-08  "Daniel P. Berrange  <berrange@redhat.com>
+2008-03-08  Daniel P. Berrange  <berrange@redhat.com>
 
-	* configure.ac:
 	Relax firefox plugin version to 1.5.0
-	[0252cf01fe3c]
 
-2008-03-07  "Daniel P. Berrange  <berrange@redhat.com>
+2008-03-07  Daniel P. Berrange  <berrange@redhat.com>
 
-	* src/main.c:
 	Disable scaling by default if running on composited window
-	[aadb3fb8316e]
 
-	* src/main.c:
 	Block view menu accelerator & remove debug
-	[01e11e3566ff]
 
-	* src/main.c, virt-viewer.spec.in:
 	Added support for desktop scaling with OpenGL
-	[23cd61984e4c]
 
-2008-03-05  "Daniel P. Berrange  <berrange@redhat.com>
+2008-03-05  Daniel P. Berrange  <berrange@redhat.com>
 
-	* .hgignore, acinclude.m4, autobuild.sh, autogen.sh, configure.ac,
-	plugin/Makefile.am, plugin/npshell.c, plugin/npunix.c, plugin/virt-
-	viewer-plugin.c, src/main.c:
-	Kill automake portability warnings. Use a config.h Cleanup misc
-	build issues. Build with fatal compile warnings
-	[7254e127a017]
+	Kill automake portability warnings. Use a config.h Cleanup misc build issues. Build with fatal compile warnings
 
-	* src/main.c:
 	Disable menu accelerators when keyboard is grabbed (Chris Lalancett)
-	[50ed4d0b0632]
 
-	* autogen.sh:
 	Fix type in autogen.sh output (Chris Lalancett)
-	[25932c2b565a]
 
-2008-01-25  "Daniel P. Berrange  <berrange@redhat.com>
+2008-01-25  Daniel P. Berrange  <berrange@redhat.com>
 
-	* .hgignore, Makefile.am, autogen.sh, configure.ac,
-	plugin/Makefile.am, plugin/npshell.c, plugin/npunix.c,
-	plugin/test.html, plugin/virt-viewer-plugin.c, plugin/virt-viewer-
-	plugin.h:
 	Added browser plugin (Richard Jones)
-	[09761c04bdcd]
 
-	* AUTHORS, src/Makefile.am, src/main.c, src/viewer.h:
 	Refactor main method for viewer to prepare for plugin (Richard Jones
-	[270fbc7d4192]
 
-2008-01-11  "Daniel P. Berrange  <berrange@redhat.com>
+2008-01-11  Daniel P. Berrange  <berrange@redhat.com>
 
-	* src/main.c:
 	Whitespace fix
-	[fe1efb558b4b]
 
-	* src/main.c:
 	Hide chars in passwd field
-	[69daa8257222]
 
-2008-01-10  "Daniel P. Berrange  <berrange@redhat.com>
-
-	* AUTHORS, NEWS, README, man/virt-viewer.pod, src/main.c:
 	Fix a few typos (Atsushi SAKAI)
-	[a0d79af724b0]
 
-2007-11-29  "Daniel P. Berrange  <berrange@redhat.com>
+2007-11-29  Daniel P. Berrange  <berrange@redhat.com>
 
-	* AUTHORS, src/main.c:
 	Use proper domain name in title bar, rather than VNC server title
-	[59fccec87973]
 
-2007-08-28  "Daniel P. Berrange  <berrange@redhat.com>
+2007-08-29  Daniel P. Berrange  <berrange@redhat.com>
 
-	* .hgtags:
 	Added tag release-0.0.2 for changeset f3accb51c6f5
-	[97f00b8df38a]
 
-	* src/main.c:
 	Fix crash with no transport
-	[f3accb51c6f5] [release-0.0.2]
 
-	* ChangeLog, NEWS, configure.ac, virt-viewer.spec.in:
 	New release 0.0.2
-	[3d88506cc468]
 
-	* man/virt-viewer.pod:
 	Document the '--direct' option
-	[0d9a8fd612d9]
 
-	* src/main.c:
 	Support TLS credentials & improved SSH tunnelling
-	[2ca6f1a9ba64]
 
-	* src/main.c:
 	Support for connecting over an SSH tunnel
-	[33102c06fd50]
 
-2007-08-27  "Daniel P. Berrange  <berrange@redhat.com>
+2007-08-28  Daniel P. Berrange  <berrange@redhat.com>
 
-	* Merge
-	[c40130b3a7ec]
+	Merge
 
-	* src/main.c:
 	Added initial ability to connect remote hosts
-	[ac9cae161efb]
 
-	* src/main.c:
 	Disable debug flag
-	[61d8448ba53f]
 
-	* src/main.c:
 	Fixed delete-event handler args
-	[21f7b4c5c93c]
 
-2007-08-15  "Daniel P. Berrange  <berrange@redhat.com>
+2007-08-16  Daniel P. Berrange  <berrange@redhat.com>
 
-	* COPYING, INSTALL:
 	Added COPYING/INSTALL files
-	[1f83ef35bb59]
 
-	* .hgtags:
 	Added tag release-0.0.1 for changeset 2b78ab2d18ce
-	[916abae9a263]
 
-	* virt-viewer.spec.in:
 	Fixed build requires & group. Removed exclusivearch
-	[2b78ab2d18ce] [release-0.0.1]
 
-	* AUTHORS, NEWS, README, virt-viewer.spec.in:
 	Fill out authors, news & readme
-	[6a74d1951e33]
 
-2007-07-20  "Daniel P. Berrange  <berrange@redhat.com>
+2007-07-21  Daniel P. Berrange  <berrange@redhat.com>
 
-	* src/main.c:
-	Connected up screenshot & about menus
-	[7cd9b16e3185]
+	Connected up  screenshot & about menus
 
-	* Makefile.am, configure.ac, man/Makefile.am, man/virt-viewer.pod,
-	virt-viewer.spec.in:
+2007-07-20  Daniel P. Berrange  <berrange@redhat.com>
+
 	Added manual page
-	[db9f0ff467e5]
 
-	* .hgignore, AUTHORS, ChangeLog, Makefile.am, NEWS, README,
-	acinclude.m4, autobuild.sh, autogen.sh, configure.ac,
-	src/Makefile.am, src/main.c, virt-viewer.spec.in:
 	Initial commit
-	[df454dc97f2f]
-

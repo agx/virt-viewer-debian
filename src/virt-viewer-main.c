@@ -22,10 +22,13 @@
 
 #include <config.h>
 #include <locale.h>
-#include <vncdisplay.h>
 #include <gtk/gtk.h>
 #include <glib/gi18n.h>
 #include <stdlib.h>
+
+#ifdef HAVE_GTK_VNC
+#include <vncdisplay.h>
+#endif
 
 #include "virt-viewer.h"
 
@@ -82,11 +85,15 @@ int main(int argc, char **argv)
 	bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
 	textdomain(GETTEXT_PACKAGE);
 
+	g_set_application_name(_("Virt Viewer"));
+
 	/* Setup command line options */
 	context = g_option_context_new (_("- Virtual machine graphical console"));
 	g_option_context_add_main_entries (context, options, NULL);
 	g_option_context_add_group (context, gtk_get_option_group (TRUE));
+#ifdef HAVE_GTK_VNC
 	g_option_context_add_group (context, vnc_display_get_option_group ());
+#endif
 	g_option_context_parse (context, &argc, &argv, &error);
 	if (error) {
 		g_printerr("%s\n%s\n",
@@ -99,12 +106,12 @@ int main(int argc, char **argv)
 	g_option_context_free(context);
 
 	if (!args || (g_strv_length(args) != 1)) {
-		fprintf(stderr, _("\nUsage: %s [OPTIONS] DOMAIN-NAME|ID|UUID\n\n%s\n\n"), argv[0], help_msg);
+		g_printerr(_("\nUsage: %s [OPTIONS] DOMAIN-NAME|ID|UUID\n\n%s\n\n"), argv[0], help_msg);
 		goto cleanup;
 	}
 
 	if (zoom < 10 || zoom > 200) {
-		fprintf(stderr, "Zoom level must be within 10-200\n");
+		g_printerr(_("Zoom level must be within 10-200\n"));
 		goto cleanup;
 	}
 

@@ -167,6 +167,7 @@ virt_viewer_window_set_property (GObject *object, guint property_id,
 	case PROP_SUBTITLE:
 		g_free(priv->subtitle);
 		priv->subtitle = g_value_dup_string(value);
+		virt_viewer_window_update_title(VIRT_VIEWER_WINDOW(object));
 		break;
 
 	case PROP_CONTAINER:
@@ -310,6 +311,8 @@ virt_viewer_window_init (VirtViewerWindow *self)
 		priv->accel_list = g_slist_append(priv->accel_list, accels->data);
 		g_object_ref(G_OBJECT(accels->data));
 	}
+
+	priv->zoomlevel = 100;
 }
 
 static void
@@ -322,7 +325,7 @@ virt_viewer_window_desktop_resize(VirtViewerDisplay *display G_GNUC_UNUSED,
 }
 
 
-void
+G_MODULE_EXPORT void
 virt_viewer_window_menu_view_zoom_out(GtkWidget *menu G_GNUC_UNUSED,
 				      VirtViewerWindow *self)
 {
@@ -339,7 +342,7 @@ virt_viewer_window_menu_view_zoom_out(GtkWidget *menu G_GNUC_UNUSED,
 		virt_viewer_display_set_zoom_level(VIRT_VIEWER_DISPLAY(priv->display), priv->zoomlevel);
 }
 
-void
+G_MODULE_EXPORT void
 virt_viewer_window_menu_view_zoom_in(GtkWidget *menu G_GNUC_UNUSED,
 				     VirtViewerWindow *self)
 {
@@ -356,7 +359,7 @@ virt_viewer_window_menu_view_zoom_in(GtkWidget *menu G_GNUC_UNUSED,
 		virt_viewer_display_set_zoom_level(VIRT_VIEWER_DISPLAY(priv->display), priv->zoomlevel);
 }
 
-void
+G_MODULE_EXPORT void
 virt_viewer_window_menu_view_zoom_reset(GtkWidget *menu G_GNUC_UNUSED,
 					VirtViewerWindow *self)
 {
@@ -445,6 +448,9 @@ virt_viewer_window_leave_fullscreen(VirtViewerWindow *self)
 	ViewAutoDrawer_SetActive(VIEW_AUTODRAWER(priv->layout), FALSE);
 	gtk_widget_show(menu);
 	gtk_widget_hide(priv->toolbar);
+#ifdef G_OS_WIN32
+	gtk_widget_set_size_request(GTK_WIDGET(priv->window), -1, -1);
+#endif
 	gtk_window_unfullscreen(GTK_WINDOW(priv->window));
 
 	if (priv->before_saved) {
@@ -488,6 +494,13 @@ virt_viewer_window_enter_fullscreen(VirtViewerWindow *self, gboolean move, gint 
 		gtk_window_move(GTK_WINDOW(priv->window), x, y);
 
 	gtk_window_fullscreen(GTK_WINDOW(priv->window));
+#ifdef G_OS_WIN32
+	/* on windows, fullscreen doesn't always hide the taskbar
+	   See https://bugzilla.gnome.org/show_bug.cgi?id=652049 */
+	gtk_widget_set_size_request(GTK_WIDGET(priv->window),
+				    gdk_screen_width(),
+				    gdk_screen_height());
+#endif
 }
 
 #define MAX_KEY_COMBO 3
@@ -509,15 +522,15 @@ static const struct keyComboDef keyCombos[] = {
 	{ { GDK_Control_L, GDK_Alt_L, GDK_F6 }, 3, "Ctrl+Alt+F_6"},
 	{ { GDK_Control_L, GDK_Alt_L, GDK_F7 }, 3, "Ctrl+Alt+F_7"},
 	{ { GDK_Control_L, GDK_Alt_L, GDK_F8 }, 3, "Ctrl+Alt+F_8"},
-	{ { GDK_Control_L, GDK_Alt_L, GDK_F5 }, 3, "Ctrl+Alt+F_9"},
-	{ { GDK_Control_L, GDK_Alt_L, GDK_F6 }, 3, "Ctrl+Alt+F1_0"},
-	{ { GDK_Control_L, GDK_Alt_L, GDK_F7 }, 3, "Ctrl+Alt+F11"},
-	{ { GDK_Control_L, GDK_Alt_L, GDK_F8 }, 3, "Ctrl+Alt+F12"},
+	{ { GDK_Control_L, GDK_Alt_L, GDK_F9 }, 3, "Ctrl+Alt+F_9"},
+	{ { GDK_Control_L, GDK_Alt_L, GDK_F10 }, 3, "Ctrl+Alt+F1_0"},
+	{ { GDK_Control_L, GDK_Alt_L, GDK_F11 }, 3, "Ctrl+Alt+F11"},
+	{ { GDK_Control_L, GDK_Alt_L, GDK_F12 }, 3, "Ctrl+Alt+F12"},
 	{ {}, 0, "" },
 	{ { GDK_Print }, 1, "_PrintScreen"},
 };
 
-void
+G_MODULE_EXPORT void
 virt_viewer_window_menu_send(GtkWidget *menu G_GNUC_UNUSED,
 			     VirtViewerWindow *self)
 {
@@ -619,7 +632,7 @@ virt_viewer_window_enable_modifiers(VirtViewerWindow *self)
 }
 
 
-gboolean
+G_MODULE_EXPORT gboolean
 virt_viewer_window_delete(GtkWidget *src G_GNUC_UNUSED,
 			  void *dummy G_GNUC_UNUSED,
 			  VirtViewerWindow *self)
@@ -629,7 +642,7 @@ virt_viewer_window_delete(GtkWidget *src G_GNUC_UNUSED,
 }
 
 
-void
+G_MODULE_EXPORT void
 virt_viewer_window_menu_file_quit(GtkWidget *src G_GNUC_UNUSED,
 				  VirtViewerWindow *self)
 {
@@ -645,7 +658,7 @@ virt_viewer_window_toolbar_leave_fullscreen(GtkWidget *button G_GNUC_UNUSED,
 }
 
 
-void
+G_MODULE_EXPORT void
 virt_viewer_window_menu_view_fullscreen(GtkWidget *menu,
 					VirtViewerWindow *self)
 {
@@ -654,7 +667,7 @@ virt_viewer_window_menu_view_fullscreen(GtkWidget *menu,
 	g_object_set(self->priv->app, "fullscreen", fullscreen, NULL);
 }
 
-void
+G_MODULE_EXPORT void
 virt_viewer_window_menu_view_resize(GtkWidget *menu,
 				    VirtViewerWindow *self)
 {
@@ -681,7 +694,7 @@ virt_viewer_window_save_screenshot(VirtViewerWindow *self,
 	gdk_pixbuf_unref(pix);
 }
 
-void
+G_MODULE_EXPORT void
 virt_viewer_window_menu_file_screenshot(GtkWidget *menu G_GNUC_UNUSED,
 					VirtViewerWindow *self)
 {
@@ -712,7 +725,7 @@ virt_viewer_window_menu_file_screenshot(GtkWidget *menu G_GNUC_UNUSED,
 	gtk_widget_destroy (dialog);
 }
 
-void
+G_MODULE_EXPORT void
 virt_viewer_window_menu_help_about(GtkWidget *menu G_GNUC_UNUSED,
 				   VirtViewerWindow *self)
 {
@@ -819,18 +832,25 @@ virt_viewer_window_update_title(VirtViewerWindow *self)
 {
 	VirtViewerWindowPrivate *priv = self->priv;
 	char *title;
-	const char *subtitle;
+	const char *ungrab = NULL;
 
 	if (priv->grabbed)
-		subtitle = "(Press Ctrl+Alt to release pointer) ";
-	else
-		subtitle = "";
+		ungrab = _("(Press Ctrl+Alt to release pointer)");
 
-	if (priv->subtitle)
-		title = g_strdup_printf("%s%s - Virt Viewer",
-					subtitle, priv->subtitle);
+	if (!ungrab && !priv->subtitle)
+		title = g_strdup(g_get_application_name());
 	else
-		title = g_strdup("Virt Viewer");
+		/* translators:
+		 * This is "<ungrab (or empty)><space (or empty)><subtitle (or empty)> - <appname>"
+		 * Such as: "(Press Ctrl+Alt to release pointer) BigCorpTycoon MOTD - Virt Viewer"
+		 */
+		title = g_strdup_printf(_("%s%s%s - %s"),
+					/* translators: <ungrab empty> */
+					ungrab ? ungrab : _(""),
+					/* translators: <space> */
+					ungrab && priv->subtitle ? _(" ") : _(""),
+					priv->subtitle,
+					g_get_application_name());
 
 	gtk_window_set_title(GTK_WINDOW(priv->window), title);
 
@@ -855,9 +875,9 @@ virt_viewer_window_set_display(VirtViewerWindow *self, VirtViewerDisplay *displa
 	if (display != NULL) {
 		priv->display = g_object_ref(display);
 
+		virt_viewer_display_set_zoom_level(VIRT_VIEWER_DISPLAY(priv->display), priv->zoomlevel);
+
 		gtk_notebook_append_page(GTK_NOTEBOOK(priv->notebook), GTK_WIDGET(display), NULL);
-		if (gtk_bin_get_child(GTK_BIN(display)))
-			gtk_widget_realize(GTK_WIDGET(gtk_bin_get_child(GTK_BIN(display))));
 		gtk_widget_show_all(GTK_WIDGET(display));
 
 		g_signal_connect(display, "display-pointer-grab",
@@ -880,6 +900,12 @@ virt_viewer_window_set_zoom_level(VirtViewerWindow *self, gint zoom_level)
 
 	/* FIXME: turn into a dynamic property */
 	self->priv->zoomlevel = zoom_level;
+}
+
+gint virt_viewer_window_get_zoom_level(VirtViewerWindow *self)
+{
+	g_return_val_if_fail(VIRT_VIEWER_IS_WINDOW(self), 100);
+	return self->priv->zoomlevel;
 }
 
 GtkMenuItem*
