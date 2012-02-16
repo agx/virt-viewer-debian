@@ -29,6 +29,7 @@
  *    moused-over and auto-closes when the mouse leaves.
  */
 
+#include <config.h>
 
 #include "autoDrawer.h"
 
@@ -257,7 +258,7 @@ ViewAutoDrawerUpdate(ViewAutoDrawer *that, // IN
       }
 #else
       if (window->group && window->group->grabs) {
-	grabbed = GTK_WIDGET(window->group->grabs->data);
+        grabbed = GTK_WIDGET(window->group->grabs->data);
       }
 #endif
       if (!grabbed) {
@@ -440,7 +441,7 @@ ViewAutoDrawerOnSetFocus(GtkWindow *window G_GNUC_UNUSED,    // IN
 
 static void
 ViewAutoDrawerOnHierarchyChanged(ViewAutoDrawer *that,   // IN
-				 GtkWidget *oldToplevel) // IN
+                                 GtkWidget *oldToplevel) // IN
 {
    GtkWidget *newToplevel = gtk_widget_get_toplevel(GTK_WIDGET(that));
 
@@ -653,7 +654,7 @@ ViewAutoDrawerClassInit(gpointer klass) // IN
 
    ovBoxClass->set_over = ViewAutoDrawerSetOver;
 
-   g_type_class_add_private(objectClass, sizeof(ViewAutoDrawerPrivate));
+   g_type_class_add_private(klass, sizeof(ViewAutoDrawerPrivate));
 }
 
 
@@ -689,7 +690,7 @@ ViewAutoDrawer_GetType(void)
          sizeof (ViewAutoDrawer),
          0, /* n_preallocs */
          (GInstanceInitFunc)ViewAutoDrawerInit,
-	 NULL,
+         NULL,
       };
 
       type = g_type_register_static(VIEW_TYPE_DRAWER, "ViewAutoDrawer", &info, 0);

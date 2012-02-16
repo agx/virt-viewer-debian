@@ -72,13 +72,14 @@
  *  --hpreg
  */
 
+#include <config.h>
 
 #include "ovBox.h"
 
 #if ! GTK_CHECK_VERSION(3, 0, 0)
-#define gtk_widget_set_realized(widget, val)	\
+#define gtk_widget_set_realized(widget, val)        \
   GTK_WIDGET_SET_FLAGS(widget, GTK_REALIZED)
-#define gtk_widget_get_realized(widget)		\
+#define gtk_widget_get_realized(widget)                \
   GTK_WIDGET_REALIZED(widget)
 #endif
 
@@ -706,10 +707,8 @@ ViewOvBoxSetOver(ViewOvBox *that,   // IN
 static void
 ViewOvBoxClassInit(ViewOvBoxClass *klass) // IN
 {
-   GObjectClass *objectClass;
    GtkWidgetClass *widgetClass;
 
-   objectClass = G_OBJECT_CLASS(klass);
    widgetClass = GTK_WIDGET_CLASS(klass);
 
    widgetClass->map = ViewOvBoxMap;
@@ -729,7 +728,7 @@ ViewOvBoxClassInit(ViewOvBoxClass *klass) // IN
 
    parentClass = g_type_class_peek_parent(klass);
 
-   g_type_class_add_private(objectClass, sizeof(ViewOvBoxPrivate));
+   g_type_class_add_private(klass, sizeof(ViewOvBoxPrivate));
 }
 
 
@@ -765,7 +764,7 @@ ViewOvBox_GetType(void)
          sizeof (ViewOvBox),
          0, /* n_preallocs */
          (GInstanceInitFunc)ViewOvBoxInit,
-	 NULL,
+         NULL,
       };
 
       type = g_type_register_static(GTK_TYPE_BOX, "ViewOvBox", &info, 0);

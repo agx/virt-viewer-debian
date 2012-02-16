@@ -2,7 +2,7 @@
   VIRT-VIEWER-PLUGIN
 
   By Richard W.M. Jones <rjones@redhat.com>
-  Copyright (C) 2008 Red Hat Inc.
+  Copyright (C) 2008-2012 Red Hat, Inc.
 
   Largely based on DiamondX (http://multimedia.cx/diamondx/), which itself
   is based on Mozilla sources.
@@ -83,7 +83,7 @@ VirtViewerXSetWindow (NPP instance, NPWindow *window)
   /* Make the VNC widget. */
   if (This->uri && This->name) {
     debug ("calling viewer_start uri=%s name=%s direct=%d waitvm=%d reconnect=%d container=%p",
-	   This->uri, This->name, This->direct, This->waitvm, This->reconnect, This->container);
+           This->uri, This->name, This->direct, This->waitvm, This->reconnect, This->container);
     r = viewer_start (This->uri, This->name, This->direct, This->waitvm, This->reconnect, 1, This->debug, This->container);
     if (r != 0)
       fprintf (stderr, "viewer_start returned %d != 0\n", r);

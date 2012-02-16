@@ -1,8 +1,8 @@
 /*
  * Virt Viewer: A virtual machine console viewer
  *
- * Copyright (C) 2007-2009 Red Hat,
- * Copyright (C) 2009 Daniel P. Berrange
+ * Copyright (C) 2007-2012 Red Hat, Inc.
+ * Copyright (C) 2009-2012 Daniel P. Berrange
  * Copyright (C) 2010 Marc-André Lureau
  *
  * This program is free software; you can redistribute it and/or modify
@@ -34,47 +34,47 @@ G_BEGIN_DECLS
 
 #define VIRT_VIEWER_TYPE_SESSION_SPICE virt_viewer_session_spice_get_type()
 
-#define VIRT_VIEWER_SESSION_SPICE(obj)					\
-	(G_TYPE_CHECK_INSTANCE_CAST ((obj), VIRT_VIEWER_TYPE_SESSION_SPICE, VirtViewerSessionSpice))
+#define VIRT_VIEWER_SESSION_SPICE(obj)                                        \
+    (G_TYPE_CHECK_INSTANCE_CAST ((obj), VIRT_VIEWER_TYPE_SESSION_SPICE, VirtViewerSessionSpice))
 
-#define VIRT_VIEWER_SESSION_SPICE_CLASS(klass)				\
-	(G_TYPE_CHECK_CLASS_CAST ((klass), VIRT_VIEWER_TYPE_SESSION_SPICE, VirtViewerSessionSpiceClass))
+#define VIRT_VIEWER_SESSION_SPICE_CLASS(klass)                                \
+    (G_TYPE_CHECK_CLASS_CAST ((klass), VIRT_VIEWER_TYPE_SESSION_SPICE, VirtViewerSessionSpiceClass))
 
-#define VIRT_VIEWER_IS_SESSION_SPICE(obj)				\
-	(G_TYPE_CHECK_INSTANCE_TYPE ((obj), VIRT_VIEWER_TYPE_SESSION_SPICE))
+#define VIRT_VIEWER_IS_SESSION_SPICE(obj)                                \
+    (G_TYPE_CHECK_INSTANCE_TYPE ((obj), VIRT_VIEWER_TYPE_SESSION_SPICE))
 
-#define VIRT_VIEWER_IS_SESSION_SPICE_CLASS(klass)			\
-	(G_TYPE_CHECK_CLASS_TYPE ((klass), VIRT_VIEWER_TYPE_SESSION_SPICE))
+#define VIRT_VIEWER_IS_SESSION_SPICE_CLASS(klass)                        \
+    (G_TYPE_CHECK_CLASS_TYPE ((klass), VIRT_VIEWER_TYPE_SESSION_SPICE))
 
-#define VIRT_VIEWER_SESSION_SPICE_GET_CLASS(obj)			\
-	(G_TYPE_INSTANCE_GET_CLASS ((obj), VIRT_VIEWER_TYPE_SESSION_SPICE, VirtViewerSessionSpiceClass))
+#define VIRT_VIEWER_SESSION_SPICE_GET_CLASS(obj)                        \
+    (G_TYPE_INSTANCE_GET_CLASS ((obj), VIRT_VIEWER_TYPE_SESSION_SPICE, VirtViewerSessionSpiceClass))
 
 typedef struct _VirtViewerSessionSpice VirtViewerSessionSpice;
 typedef struct _VirtViewerSessionSpiceClass VirtViewerSessionSpiceClass;
 typedef struct _VirtViewerSessionSpicePrivate VirtViewerSessionSpicePrivate;
 
 struct _VirtViewerSessionSpice {
-	VirtViewerSession parent;
+    VirtViewerSession parent;
 
-	VirtViewerSessionSpicePrivate *priv;
+    VirtViewerSessionSpicePrivate *priv;
 };
 
 struct _VirtViewerSessionSpiceClass {
-	VirtViewerSessionClass parent_class;
+    VirtViewerSessionClass parent_class;
 };
 
 GType virt_viewer_session_spice_get_type(void);
 
-VirtViewerSession* virt_viewer_session_spice_new(void);
+VirtViewerSession* virt_viewer_session_spice_new(GtkWindow *main_window);
+SpiceMainChannel* virt_viewer_session_spice_get_main_channel(VirtViewerSessionSpice *self);
 
 G_END_DECLS
 
 #endif /* _VIRT_VIEWER_SESSION_SPICE_H */
-
 /*
  * Local variables:
- *  c-indent-level: 8
- *  c-basic-offset: 8
- *  tab-width: 8
+ *  c-indent-level: 4
+ *  c-basic-offset: 4
+ *  indent-tabs-mode: nil
  * End:
  */

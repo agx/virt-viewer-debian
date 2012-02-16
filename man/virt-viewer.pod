@@ -97,11 +97,11 @@ Written by Daniel P. Berrange, based on the GTK-VNC example program gvncviewer.
 
 =head1 BUGS
 
-Report bugs to the mailing list C<http://www.redhat.com/mailman/listinfo/et-mgmt-tools>
+Report bugs to the mailing list C<http://www.redhat.com/mailman/listinfo/virt-tools-list>
 
 =head1 COPYRIGHT
 
-Copyright (C) 2007-2008 Red Hat, Inc, and various contributors.
+Copyright (C) 2007-2008 Red Hat, Inc., and various contributors.
 This is free software. You may redistribute copies of it under the terms of the GNU General
 Public License C<http://www.gnu.org/licenses/gpl.html>. There is NO WARRANTY, to the extent
 permitted by law.
@@ -111,4 +111,3 @@ permitted by law.
 C<virsh(1)>, C<virt-manager(1)>, the project website C<http://virt-manager.org>
 
 =cut
-
