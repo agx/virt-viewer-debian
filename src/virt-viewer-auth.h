@@ -1,7 +1,7 @@
 /*
  * Virt Viewer: A virtual machine console viewer
  *
- * Copyright (C) 2007-2009 Red Hat,
+ * Copyright (C) 2007-2012 Red Hat, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,21 +23,30 @@
 #ifndef VIRT_VIEWER_AUTH_H
 #define VIRT_VIEWER_AUTH_H
 
+#include "config.h"
+
+#ifdef HAVE_LIBVIRT
 #include <libvirt/libvirt.h>
+#endif
 
 #include "virt-viewer-util.h"
 
-void virt_viewer_auth_vnc_credentials(GtkWidget *vnc,
-				      GValueArray *credList,
-				      char **message);
+void virt_viewer_auth_vnc_credentials(GtkWindow *window,
+                                      GtkWidget *vnc,
+                                      GValueArray *credList,
+                                      char *vncAddress);
 
-int virt_viewer_auth_collect_credentials(const char *type,
-					 const char *address,
-					 char **username,
-					 char **password);
-
-int virt_viewer_auth_libvirt_credentials(virConnectCredentialPtr cred,
-					 unsigned int ncred,
-					 void *cbdata);
+int virt_viewer_auth_collect_credentials(GtkWindow *window,
+                                         const char *type,
+                                         const char *address,
+                                         char **username,
+                                         char **password);
 
 #endif
+/*
+ * Local variables:
+ *  c-indent-level: 4
+ *  c-basic-offset: 4
+ *  indent-tabs-mode: nil
+ * End:
+ */

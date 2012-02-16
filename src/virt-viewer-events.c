@@ -1,7 +1,7 @@
 /*
  * events.c: event loop integration
  *
- * Copyright (C) 2008-2009 Daniel P. Berrange
+ * Copyright (C) 2008-2012 Daniel P. Berrange
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -20,6 +20,7 @@
  * Author: Daniel P. Berrange <berrange@redhat.com>
  */
 
+#include <config.h>
 
 #include <stdio.h>
 #include <string.h>
@@ -48,8 +49,8 @@ static struct virt_viewer_events_handle **handles = NULL;
 
 static gboolean
 virt_viewer_events_dispatch_handle(GIOChannel *source G_GNUC_UNUSED,
-			     GIOCondition condition,
-			     gpointer opaque)
+                                   GIOCondition condition,
+                                   gpointer opaque)
 {
     struct virt_viewer_events_handle *data = opaque;
     int events = 0;
@@ -73,10 +74,10 @@ virt_viewer_events_dispatch_handle(GIOChannel *source G_GNUC_UNUSED,
 
 static
 int virt_viewer_events_add_handle(int fd,
-			    int events,
-			    virEventHandleCallback cb,
-			    void *opaque,
-			    virFreeCallback ff)
+                                  int events,
+                                  virEventHandleCallback cb,
+                                  void *opaque,
+                                  virFreeCallback ff)
 {
     struct virt_viewer_events_handle *data;
     GIOCondition cond = 0;
@@ -123,7 +124,7 @@ virt_viewer_events_find_handle(int watch)
 
 static void
 virt_viewer_events_update_handle(int watch,
-			   int events)
+                                 int events)
 {
     struct virt_viewer_events_handle *data = virt_viewer_events_find_handle(watch);
 
@@ -227,9 +228,9 @@ virt_viewer_events_dispatch_timeout(void *opaque)
 
 static int
 virt_viewer_events_add_timeout(int interval,
-			 virEventTimeoutCallback cb,
-			 void *opaque,
-			 virFreeCallback ff)
+                               virEventTimeoutCallback cb,
+                               void *opaque,
+                               virFreeCallback ff)
 {
     struct virt_viewer_events_timeout *data;
 
@@ -269,7 +270,7 @@ virt_viewer_events_find_timeout(int timer)
 
 static void
 virt_viewer_events_update_timeout(int timer,
-			    int interval)
+                                  int interval)
 {
     struct virt_viewer_events_timeout *data = virt_viewer_events_find_timeout(timer);
 
@@ -346,3 +347,10 @@ void virt_viewer_events_register(void) {
                          virt_viewer_events_remove_timeout);
 }
 
+/*
+ * Local variables:
+ *  c-indent-level: 4
+ *  c-basic-offset: 4
+ *  indent-tabs-mode: nil
+ * End:
+ */

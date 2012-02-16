@@ -1,7 +1,7 @@
 /*
  * Virt Viewer: A virtual machine console viewer
  *
- * Copyright (C) 2007 Red Hat,
+ * Copyright (C) 2007-2012 Red Hat, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,16 +39,23 @@ G_BEGIN_DECLS
 typedef struct _VirtViewerAppPrivate VirtViewerAppPrivate;
 
 typedef struct {
-        GObject parent;
-        VirtViewerAppPrivate *priv;
+    GObject parent;
+    VirtViewerAppPrivate *priv;
 } VirtViewerApp;
 
 typedef struct {
-        GObjectClass parent_class;
+    GObjectClass parent_class;
 
-        gboolean (*start) (VirtViewerApp *self);
-        int (*initial_connect) (VirtViewerApp *self);
-        void (*deactivated) (VirtViewerApp *self);
+    /* signals */
+    void (*window_added) (VirtViewerApp *self, VirtViewerWindow *window);
+    void (*window_removed) (VirtViewerApp *self, VirtViewerWindow *window);
+
+    /*< private >*/
+    gboolean (*start) (VirtViewerApp *self);
+    int (*initial_connect) (VirtViewerApp *self);
+    int (*activate) (VirtViewerApp *self);
+    void (*deactivated) (VirtViewerApp *self);
+    gboolean (*open_connection)(VirtViewerApp *self, int *fd);
 } VirtViewerAppClass;
 
 GType virt_viewer_app_get_type (void);
@@ -67,19 +74,34 @@ int virt_viewer_app_initial_connect(VirtViewerApp *self);
 void virt_viewer_app_start_reconnect_poll(VirtViewerApp *self);
 void virt_viewer_app_set_zoom_level(VirtViewerApp *self, gint zoom_level);
 void virt_viewer_app_set_direct(VirtViewerApp *self, gboolean direct);
+void virt_viewer_app_set_attach(VirtViewerApp *self, gboolean attach);
+gboolean virt_viewer_app_get_attach(VirtViewerApp *self);
 gboolean virt_viewer_app_has_session(VirtViewerApp *self);
 void virt_viewer_app_set_connect_info(VirtViewerApp *self,
                                       const gchar *host,
                                       const gchar *ghost,
                                       const gchar *gport,
+                                      const gchar *gtlsport,
                                       const gchar *transport,
                                       const gchar *unixsock,
                                       const gchar *user,
-                                      gint port);
+                                      gint port,
+                                      const gchar *guri);
 gboolean virt_viewer_app_window_set_visible(VirtViewerApp *self, VirtViewerWindow *window, gboolean visible);
 void virt_viewer_app_show_status(VirtViewerApp *self, const gchar *fmt, ...);
 void virt_viewer_app_show_display(VirtViewerApp *self);
+GHashTable* virt_viewer_app_get_windows(VirtViewerApp *self);
+
+void virt_viewer_app_usb_device_selection(VirtViewerApp   *self,
+                                          GtkWindow       *parent);
 
 G_END_DECLS
 
 #endif /* VIRT_VIEWER_APP_H */
+/*
+ * Local variables:
+ *  c-indent-level: 4
+ *  c-basic-offset: 4
+ *  indent-tabs-mode: nil
+ * End:
+ */

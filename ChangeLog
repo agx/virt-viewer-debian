@@ -1,3 +1,234 @@
+2012-02-14  Daniel P. Berrange  <berrange@redhat.com>
+
+	Update for release 0.5.0
+
+2012-02-14  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	First %d in controller title should be substituted with window nth
+
+	Add libp11-kit-0.dll to nsis script
+
+2012-02-14  Daniel P. Berrange  <berrange@redhat.com>
+
+	Set pretty icon for remote-viewer windows too
+
+	Don't hardcode 'localhost' in no @listen parameter is given
+	If no @listen parameter is given, we must not hardcode 'localhost'
+	since we can't assume we are running on the same host. Instead use
+	the hostname from the connection URI
+
+	Extract tlsPort for SPICE and use it to enable secure connections
+
+2012-02-08  Daniel P. Berrange  <berrange@redhat.com>
+
+	Don't do whitespace checks on icons
+
+	Set transient parent for screenshot dialog
+
+	Ensure auth popup windows have correct transient parent
+
+2012-02-08  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	Make the password field activates default widget
+	When pressing "Enter", the default auth dialog action isn't activated.
+	Setting activates_default to TRUE fixes this issue.
+
+	Do not resize guest desktop if !auto-resize
+	If auto-resize is enabled, the guest desktop size will be resized to
+	match current window*zoom size.
+
+	This can be a problem if the user explicitely set the desktop size to
+	a different resolution and want to keep it. Disabling auto-resize
+	sounds like a simple way to allow that.
+
+	Resize Spice guest display to the container size
+	The SpiceDisplay doesn't receive the full allocation, because
+	VirtViewerDisplay maintains current aspect ratio. However, the guest
+	display can be resize up to its container size.
+
+	This fixes going full-screen and not getting native resolution for
+	instance.
+
+2012-02-08  Daniel P. Berrange  <berrange@redhat.com>
+
+	Ensure About dialog has transient hints setup
+
+	Import a pretty icon for virt-viewer application
+
+	Re-added GtkBuilder XML files to POTFILES.in
+	Adapt syntax-check  rule to allow XML files in POTFILES.in and
+	re-add the GtkBuilder XML files
+
+	Implement SPICE desktop resizing that takes account of zoom level
+	The standard SPICE widget guest resize implementation does not
+	take into account the zoom level settings in virt-viewer, because
+	it has no knowledge of this functionality. The guest resize can,
+	however, be done by calling spice_main_set_display() directly.
+	This allows virt-viewer to resize the guest taking into account
+	zoom levels.
+
+	 ie, if virt-viewer is run with --zoom 50 and the window
+	     is resized to 400x300, then the guest agent should
+	     be told to set its resolution to 800x600
+
+2012-02-07  Daniel P. Berrange  <berrange@redhat.com>
+
+	Revert support for resizing guest desktop
+	The SpiceDisplay widget has built-in support for resizing the
+	guest desktop, but this does not know that virt-viewer has a
+	zoom level setting. This makes the virt-viewer zoom completely
+	inoperable. Revert use of the 'resize-guest' property.
+
+2012-02-06  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	Add spice-xpi-client-remote-viewer alternative
+
+	man: add remote-viewer man page
+
+2012-02-06  Daniel P. Berrange  <berrange@redhat.com>
+
+	Import GNULIB rules for syntax checking code
+
+	Add config.h to every source file
+
+	Use exit() constants
+
+	copyright fix
+
+	End of file whitespace cleanup
+
+	Update POTFILES.in
+
+	Replace @FOO@ with $(FOO) in all Makefile.am
+
+	Update copyright headers
+
+	Remove useless if() before free()
+
+	Update AUTHORS file
+
+	Simplify no-op debug macro & fix plugin header
+
+	Fix makefile.am subsitutions for plugin
+
+	Convert TABS to spaces & reindent everywhere
+
+2012-02-06  Hans de Goede  <hdegoede@redhat.com>
+
+	Only make the USB device selection sensitive when the vm is USB capable
+
+	Add a menu entry for USB device selection
+
+2012-02-06  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	Grab the focus when showing the display
+	Override the grab_focus() method in the display class. Since both VNC
+	and Spice displays are the direct child, let's just grab the child.
+	It can be that this behaviour need to be overriden if Spice or VNC
+	display become more complex (using sub-childs or different objects)
+
+2012-01-31  Daniel P. Berrange  <berrange@redhat.com>
+
+	Ignore more generated files
+
+2012-01-31  Guannan Ren  <gren@redhat.com>
+
+	Disconnect virt-viewer when receiving signal session-cancelled
+
+	Register a new signal session-cancelled
+
+	Tune the first argument in calls to g_type_class_add_private()
+
+2012-01-31  Daniel P. Berrange  <berrange@redhat.com>
+
+	Support for virDomainOpenGraphics API
+	Add a new flag --attach, which instructs virt-viewer to attach
+	to the target display using virDomainOpenGraphics, instead of
+	initiating a VNC/SPICE connection directly.
+
+	Make VNC support opening connections based on URI
+
+	Adapt remote-viewer so that it builds without SPICE
+
+2012-01-31  Marc-André Lureau  <marcandre.lureau@redhat.com>
+
+	Add virt-viewer.nsis
+	Use ${DESTDIR} variable and @prefix@ to look for files.
+	Can't easily be generated, it has too much customization.
+
+2012-01-31  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	Enable spice auto-usbredir
+
+	Remove usage of deprecated property
+
+	Add error dialog for USB redirection failure
+
+	Resize guest desktop with SPICE
+	This is the method we prefer, even though we can't keep aspect ratio.
+	We could eventually support aspect ration in spice-gtk.
+
+2012-01-31  Marc-André Lureau  <marcandre.lureau@redhat.com>
+
+	build: make libvirt optionnal
+
+2012-01-31  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	Use a first letter capital in help
+	The GLib/GNOME convention seems to have first letter as capital for
+	option description strings.
+
+2012-01-31  Marc-André Lureau  <marcandre.lureau@redhat.com>
+
+	Add spice_get_option_group()
+
+	Add spice controller support in remote-viewer
+	Usage is simply "remote-viewer --spice-controller"
+
+	Add remote-viewer program
+	This program is meant for direct URI connections.
+	ex: remote-viewer vnc://uri
+
+2012-01-30  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	Add a few property getters, used by controller
+	- virt_viewer_app_get_windows()
+	- virt_viewer_window_get_builder()
+	- "VirtViewerSessionSpice:spice-session" property
+
+	build: use AM_GLIB_GNU_GETTEXT
+	Using intltool macro only causes build issues on exotic platforms,
+	such as MinGW.
+
+	As long as this bug isn't fixed, we should use AM_GLIB_GNU_GETTEXT
+	https://bugs.launchpad.net/intltool/+bug/398571
+
+	NB this partially reverts
+
+	  3473c4bb49adc0caca58dc1a8b6ce81c6870558a
+
+	The difference is the ordering of the rules. With AM_GLIB_GNU_GETTEXT
+	appearing after IT_PROG_INTLTOOL, the --disable-nls arg to configure
+	is broken. Thus AM_GLIB_GNU_GETTEXT is called first in this change.
+
+2012-01-30  Marc-André Lureau  <marcandre.lureau@redhat.com>
+
+	Make virt_viewer_activate() a vfunc
+	since other equivalent methods are already overridable.
+
+	Add window-added & window-removed signals
+
+	Use graphical URI for connection
+	If specified, use URI for connection details
+
+	Add virt_viewer_session_open_uri
+
+	build: replace deprecated functions
+
+2012-01-30  Daniel P. Berrange  <berrange@redhat.com>
+
+	Add support for --system arg to autogen.sh
+
 2011-11-09  Daniel P. Berrange  <berrange@redhat.com>
 
 	Prep for 0.4.2 release

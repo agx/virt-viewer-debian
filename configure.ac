@@ -1,5 +1,5 @@
 
-AC_INIT(virt-viewer, 0.4.2)
+AC_INIT(virt-viewer, 0.5.0)
 AC_CONFIG_SRCDIR(src/virt-viewer-main.c)
 AM_CONFIG_HEADER(config.h)
 dnl Make automake keep quiet about wildcards & other GNUmake-isms
@@ -16,7 +16,7 @@ LIBVIRT_REQUIRED="0.6.0"
 GTK2_REQUIRED="2.12.0"
 GTK3_REQUIRED="3.0"
 GTK_VNC_REQUIRED="0.4.3"
-SPICE_GTK_REQUIRED="0.6"
+SPICE_GTK_REQUIRED="0.9"
 
 AC_PROG_CC
 AM_PROG_CC_C_O
@@ -26,18 +26,46 @@ AC_CONFIG_LIBOBJ_DIR([src])
 
 AC_DEFINE([_GNU_SOURCE], [], [Enable GNU extensions])
 
+# Autoconf 2.61a.99 and earlier don't support linking a file only
+# in VPATH builds.  But since GNUmakefile is for maintainer use
+# only, it does not matter if we skip the link with older autoconf.
+# Automake 1.10.1 and earlier try to remove GNUmakefile in non-VPATH
+# builds, so use a shell variable to bypass this.
+GNUmakefile=GNUmakefile
+m4_if(m4_version_compare([2.61a.100],
+        m4_defn([m4_PACKAGE_VERSION])), [1], [],
+      [AC_CONFIG_LINKS([$GNUmakefile:$GNUmakefile], [],
+        [GNUmakefile=$GNUmakefile])])
+
 VIRT_VIEWER_COMPILE_WARNINGS(maximum)
 
 GETTEXT_PACKAGE=virt-viewer
 AC_SUBST(GETTEXT_PACKAGE)
-AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE,"$GETTEXT_PACKAGE", [GETTEXT package name])
+AC_DEFINE_UNQUOTED([GETTEXT_PACKAGE],"$GETTEXT_PACKAGE", [GETTEXT package name])
 
+AM_GLIB_GNU_GETTEXT
 IT_PROG_INTLTOOL([0.35.0])
 
 
 PKG_CHECK_MODULES(GMODULE2, gmodule-export-2.0 >= $GMODULE2_REQUIRED)
 PKG_CHECK_MODULES(LIBXML2, libxml-2.0 >= $LIBXML2_REQUIRED)
-PKG_CHECK_MODULES(LIBVIRT, libvirt >= $LIBVIRT_REQUIRED)
+
+AC_ARG_WITH([libvirt],
+    AS_HELP_STRING([--without-libvirt], [Ignore presence of libvirt and disable it]))
+
+AS_IF([test "x$with_libvirt" != "xno"],
+      [PKG_CHECK_MODULES(LIBVIRT,
+                         [libvirt],
+                         [have_libvirt=yes], [have_libvirt=no])],
+      [have_libvirt=no])
+
+AS_IF([test "x$have_libvirt" = "xyes"],
+      [AC_DEFINE([HAVE_LIBVIRT], 1, [Have libvirt?])],
+      [AS_IF([test "x$with_libvirt" = "xyes"],
+             [AC_MSG_ERROR([libvirt requested but not found])
+      ])
+])
+AM_CONDITIONAL([HAVE_LIBVIRT], [test "x$have_libvirt" = "xyes"])
 
 AC_MSG_CHECKING([which gtk+ version to compile against])
 AC_ARG_WITH([gtk],
@@ -92,7 +120,8 @@ AC_ARG_WITH([spice-gtk],
 
 AS_IF([test "x$with_spice_gtk" != "xno"],
       [PKG_CHECK_MODULES(SPICE_GTK,
-                         spice-client-gtk-$SPICE_GTK_API_VERSION >= $SPICE_GTK_REQUIRED,
+                         [spice-client-gtk-$SPICE_GTK_API_VERSION >= $SPICE_GTK_REQUIRED
+                          spice-controller],
                          [have_spice_gtk=yes], [have_spice_gtk=no])],
       [have_spice_gtk=no])
 
@@ -131,13 +160,24 @@ if test "x$enable_plugin" = "xyes"; then
 fi
 AM_CONDITIONAL(ENABLE_PLUGIN, [test "x$enable_plugin" = "xyes"])
 
-AC_OUTPUT(Makefile
-          src/Makefile
-          man/Makefile
-	  po/Makefile.in
-	  plugin/Makefile
-          virt-viewer.spec
-          mingw32-virt-viewer.spec)
+AC_OUTPUT([
+    Makefile
+    data/Makefile
+    data/virt-viewer.nsis
+    icons/Makefile
+    icons/16x16/Makefile
+    icons/22x22/Makefile
+    icons/24x24/Makefile
+    icons/32x32/Makefile
+    icons/48x48/Makefile
+    icons/256x256/Makefile
+    man/Makefile
+    mingw32-virt-viewer.spec
+    plugin/Makefile
+    po/Makefile.in
+    src/Makefile
+    virt-viewer.spec
+])
 
 AC_MSG_NOTICE([])
 AC_MSG_NOTICE([Configuration summary])
