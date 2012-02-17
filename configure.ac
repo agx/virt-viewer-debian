@@ -1,5 +1,5 @@
 
-AC_INIT(virt-viewer, 0.5.0)
+AC_INIT(virt-viewer, 0.5.1)
 AC_CONFIG_SRCDIR(src/virt-viewer-main.c)
 AM_CONFIG_HEADER(config.h)
 dnl Make automake keep quiet about wildcards & other GNUmake-isms
@@ -15,7 +15,8 @@ LIBXML2_REQUIRED="2.6.0"
 LIBVIRT_REQUIRED="0.6.0"
 GTK2_REQUIRED="2.12.0"
 GTK3_REQUIRED="3.0"
-GTK_VNC_REQUIRED="0.4.3"
+GTK_VNC1_REQUIRED="0.3.8"
+GTK_VNC2_REQUIRED="0.4.0"
 SPICE_GTK_REQUIRED="0.9"
 
 AC_PROG_CC
@@ -80,11 +81,13 @@ AC_MSG_RESULT([$with_gtk])
 case "$with_gtk" in
   2.0) GTK_API_VERSION=2.0
        GTK_REQUIRED=$GTK2_REQUIRED
+       GTK_VNC_REQUIRED=$GTK_VNC1_REQUIRED
        GTK_VNC_API_VERSION=1.0
        SPICE_GTK_API_VERSION=2.0
        ;;
   3.0) GTK_API_VERSION=3.0
        GTK_REQUIRED=$GTK3_REQUIRED
+       GTK_VNC_REQUIRED=$GTK_VNC2_REQUIRED
        GTK_VNC_API_VERSION=2.0
        SPICE_GTK_API_VERSION=3.0
        ;;
@@ -120,12 +123,12 @@ AC_ARG_WITH([spice-gtk],
 
 AS_IF([test "x$with_spice_gtk" != "xno"],
       [PKG_CHECK_MODULES(SPICE_GTK,
-                         [spice-client-gtk-$SPICE_GTK_API_VERSION >= $SPICE_GTK_REQUIRED
-                          spice-controller],
+                         [spice-client-gtk-$SPICE_GTK_API_VERSION >= $SPICE_GTK_REQUIRED],
                          [have_spice_gtk=yes], [have_spice_gtk=no])],
       [have_spice_gtk=no])
 
 AS_IF([test "x$have_spice_gtk" = "xyes"],
+      [PKG_CHECK_MODULES(SPICE_CONTROLLER, [spice-controller])]
       [AC_DEFINE([HAVE_SPICE_GTK], 1, [Have spice-gtk?])],
       [AS_IF([test "x$with_spice_gtk" = "xyes"],
              [AC_MSG_ERROR([spice-gtk requested but not found])
