@@ -1,156 +1,134 @@
-# translation of pt_BR.po to Portuguese
-# Portuguese translations for PACKAGE package.
-# Copyright (C) 2010 THE PACKAGE'S COPYRIGHT HOLDER
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
-#
-# Automatically generated, 2010.
-# Glaucia Cintra <gcintra@redhat.com>, 2010.
+# 
+# Translators:
 msgid ""
 msgstr ""
-"Project-Id-Version: pt_BR\n"
+"Project-Id-Version: virt-viewer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-01-22 00:33+0000\n"
-"PO-Revision-Date: 2010-01-22 11:25+1000\n"
-"Last-Translator: Glaucia Cintra <gcintra@redhat.com>\n"
-"Language-Team: Portuguese <en@li.org>\n"
+"POT-Creation-Date: 2012-02-14 17:56+0000\n"
+"PO-Revision-Date: 2012-02-14 17:31+0000\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: Portuguese (Brazil) <trans-pt_br@lists.fedoraproject.org>\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: KBabel 1.11.4\n"
+"Language: pt_BR\n"
+"Plural-Forms: nplurals=2; plural=(n > 1)\n"
 
-#: ../src/main.c:34
+#: ../src/remote-viewer-main.c:42
 #, c-format
-msgid "%s version %s\n"
-msgstr "%s versão %s\n"
+msgid "remote-viewer version %s\n"
+msgstr ""
 
-#: ../src/main.c:52
+#: ../src/remote-viewer-main.c:63 ../src/virt-viewer-main.c:60
 msgid "Run '"
-msgstr "Executar '"
+msgstr ""
 
-#: ../src/main.c:55
-msgid "display version information"
-msgstr "exibir informações sobre versão"
+#: ../src/remote-viewer-main.c:66 ../src/virt-viewer-main.c:63
+msgid "Display version information"
+msgstr ""
 
-#: ../src/main.c:57
-msgid "display verbose information"
-msgstr "exibir informações sobre verbose"
+#: ../src/remote-viewer-main.c:68 ../src/virt-viewer-main.c:65
+msgid "Display verbose information"
+msgstr ""
 
-#: ../src/main.c:59
-msgid "direct connection with no automatic tunnels"
-msgstr "conexão direta sem túneis automáticos"
+#: ../src/remote-viewer-main.c:70 ../src/virt-viewer-main.c:67
+msgid "Direct connection with no automatic tunnels"
+msgstr ""
 
-#: ../src/main.c:61
-msgid "connect to hypervisor"
-msgstr "conectar ao hipervisor"
+#: ../src/remote-viewer-main.c:72 ../src/virt-viewer-main.c:77
+msgid "Zoom level of window, in percentage"
+msgstr ""
 
-#: ../src/main.c:63
-msgid "wait for domain to start"
-msgstr "esperar o domínio iniciar"
+#: ../src/remote-viewer-main.c:74 ../src/virt-viewer-main.c:79
+msgid "Display debugging information"
+msgstr ""
 
-#: ../src/main.c:65
-msgid "reconnect to domain upon restart"
-msgstr "reconectar ao domínio ao reiniciar"
+#: ../src/remote-viewer-main.c:76 ../src/virt-viewer-main.c:81
+msgid "Open in full screen mode"
+msgstr ""
 
-#: ../src/main.c:67
-msgid "display debugging information"
-msgstr "exibir informações sobre depuração"
+#: ../src/remote-viewer-main.c:79
+msgid "Open connection using Spice controller communication"
+msgstr ""
 
 #. Setup command line options
-#: ../src/main.c:79
-msgid "- Virtual machine graphical console"
-msgstr "- Console gráfico de máquina virtual"
+#: ../src/remote-viewer-main.c:92
+msgid "- Remote viewer client"
+msgstr ""
 
-#: ../src/main.c:95
+#: ../src/remote-viewer-main.c:117
 #, c-format
 msgid ""
 "\n"
-"Usage: %s [OPTIONS] DOMAIN-NAME|ID|UUID\n"
+"Usage: %s [OPTIONS] URI\n"
 "\n"
 "%s\n"
 "\n"
 msgstr ""
-"\n"
-"Uso: %s [OPÇÕES] DOMAIN-NAME|ID|UUID\n"
-"\n"
-"%s\n"
-"\n"
 
-#: ../src/viewer.c:878
+#: ../src/remote-viewer-main.c:122 ../src/virt-viewer-main.c:121
 #, c-format
-msgid "Cannot determine the VNC port for the guest %s"
-msgstr "Não é possível determinar a porta VNC para o convidado %s"
-
-#: ../src/viewer.c:884
-#, c-format
-msgid "Cannot determine the VNC host for the guest %s"
-msgstr "Não é possível determinar o host do VNC para o convidado %s"
-
-#: ../src/viewer.c:984
-#, c-format
-msgid "Unable to connect to the VNC server %s"
-msgstr "Não é possível conectar ao servidor do VNC  %s"
-
-#: ../src/viewer.c:1001
-#, c-format
-msgid ""
-"Unable to authenticate with VNC server at %s: %s\n"
-"Retry connection again?"
+msgid "Zoom level must be within 10-200\n"
 msgstr ""
-"Não é possível autenticar com o servidor VNC em  %s: %s\n "
-"Tentar conexão novamente?"
 
-#: ../src/viewer.c:1019
-#, c-format
-msgid ""
-"Unable to authenticate with VNC server at %s\n"
-"Unsupported authentication type %d"
+#: ../src/remote-viewer.c:185 ../src/remote-viewer.c:482
+msgid "Failed to initiate connection"
 msgstr ""
-"Não é possível autenticar com o servidor do VNC em %s\n "
-"Tipo de autenticação não suportada %d"
 
-#: ../src/viewer.c:1111
+#: ../src/remote-viewer.c:198
+msgid "Display disabled by controller"
+msgstr ""
+
+#: ../src/remote-viewer.c:398
 #, c-format
-msgid "Cannot find guest domain %s"
-msgstr "Não é possível encontrar domínio do convidado %s"
+msgid "Controller connection failed: %s"
+msgstr ""
 
-#: ../src/viewer.c:1213
+#: ../src/remote-viewer.c:452
+msgid "Couldn't create a Spice session"
+msgstr ""
+
+#: ../src/remote-viewer.c:462
+msgid "Setting up Spice session..."
+msgstr ""
+
+#: ../src/remote-viewer.c:472
+msgid "Cannot determine the connection type from URI"
+msgstr ""
+
+#: ../src/remote-viewer.c:477
 #, c-format
-msgid "Unable to connect to libvirt with URI %s"
-msgstr "Não é possível conectar ao libvirt com o URI %s"
+msgid "Couldn't create a session for this type: %s"
+msgstr ""
 
-#: ../src/viewer.c:1214
-msgid "[none]"
-msgstr "[nenhum]"
-
-#.
 #. * Local variables:
-#. *  c-indent-level: 8
-#. *  c-basic-offset: 8
-#. *  tab-width: 8
+#. *  c-indent-level: 4
+#. *  c-basic-offset: 4
+#. *  indent-tabs-mode: nil
 #. * End:
-#.
-#: ../src/about.glade.h:1
-msgid "A remote desktop client built with GTK-VNC and libvirt"
-msgstr "Um cliente de desktop remoto construído com o GTK-VNC e libvirt"
-
-#: ../src/about.glade.h:2
-msgid "About Glade"
-msgstr "Sobre o Glade"
-
-#: ../src/about.glade.h:3
-msgid ""
-"Copyright 2007-2008 Daniel P. Berrange\n"
-"Copyright 2007-2008 Red Hat, Inc."
+#. 
+#: ../src/virt-viewer-about.xml.h:1
+msgid "A remote desktop client built with GTK-VNC, SPICE-GTK and libvirt"
 msgstr ""
-"Copyright 2007-2008 Daniel P. Berrange\n"
-"Copyright 2007-2008 Red Hat, Inc."
 
-#: ../src/about.glade.h:5
+#: ../src/virt-viewer-about.xml.h:2
+msgid "About Glade"
+msgstr ""
+
+#: ../src/virt-viewer-about.xml.h:3
+msgid ""
+"Copyright (C) 2007-2012 Daniel P. Berrange\n"
+"Copyright (C) 2007-2012 Red Hat, Inc."
+msgstr ""
+
+#: ../src/virt-viewer-about.xml.h:5
 msgid "The Fedora Translation Team"
-msgstr "A equipe de Traduções do Fedora"
+msgstr ""
 
-#: ../src/about.glade.h:6
+#: ../src/virt-viewer-about.xml.h:6
 msgid ""
 "This program is free software; you can redistribute it and/or modify\n"
 "it under the terms of the GNU General Public License as published by\n"
@@ -166,149 +144,325 @@ msgid ""
 "along with this program; if not, write to the Free Software\n"
 "Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA\n"
 msgstr ""
-"Este programa é um software livre. Você pode redistribuí-lo e/ou modificá-lo \n"
-"sob os termos da Licensa Pública Geral GNU, de acordo com o publicado pela \n"
-"Fundação de Software Livre, sendo a versão 2 da Licensa, ou  \n"
-"(como queira) qualquer outra versão posterior.\n"
-"\n"
-"Espera-se que este programa seja útil, \n"
-"porém SEM NENHUMA GARANTIA, até mesmo sem a garantia implicada de \n"
-"MERCANTIBILIDADE ou PARA UM PRÒPÓSITO ESPECÍFICO. Veja a \n"
-"Licensa Pública Geral GNU para maiores detalhes. \n"
-"\n"
-"Uma cópia da Licensa Pública Geral do GNU deve ter sido anexada n "
-"à este programam. Caso não tenha recebido, escreva para Free Software \n"
-"Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA \n"
 
-#: ../src/about.glade.h:20
+#: ../src/virt-viewer-about.xml.h:20
 msgid "virt-manager.org"
-msgstr "virt-manager.org"
+msgstr ""
 
-#: ../src/auth.glade.h:1
+#: ../src/virt-viewer-app.c:259
+msgid "This is the last visible display. Do you want to quit?"
+msgstr ""
+
+#: ../src/virt-viewer-app.c:573
+#, c-format
+msgid "Waiting for display %d..."
+msgstr ""
+
+#: ../src/virt-viewer-app.c:655
+#, c-format
+msgid "Unknown graphic type for the guest %s"
+msgstr ""
+
+#: ../src/virt-viewer-app.c:730
+msgid "Connect to ssh failed."
+msgstr ""
+
+#: ../src/virt-viewer-app.c:732
+msgid "Can't connect to channel, SSH only supported."
+msgstr ""
+
+#: ../src/virt-viewer-app.c:744
+msgid "Connect to channel unsupported."
+msgstr ""
+
+#: ../src/virt-viewer-app.c:824
+msgid "Connecting to graphic server"
+msgstr ""
+
+#: ../src/virt-viewer-app.c:954
+msgid "Guest domain has shutdown"
+msgstr ""
+
+#: ../src/virt-viewer-app.c:1004
+msgid "Connected to graphic server"
+msgstr ""
+
+#: ../src/virt-viewer-app.c:1027
+#, c-format
+msgid "Unable to connect to the graphic server %s"
+msgstr ""
+
+#: ../src/virt-viewer-app.c:1056
+#, c-format
+msgid ""
+"Unable to authenticate with remote desktop server at %s: %s\n"
+"Retry connection again?"
+msgstr ""
+
+#: ../src/virt-viewer-app.c:1076
+#, c-format
+msgid "Unable to authenticate with remote desktop server: %s"
+msgstr ""
+
+#: ../src/virt-viewer-app.c:1084
+#, c-format
+msgid "USB redirection error: %s"
+msgstr ""
+
+#. * Local variables:
+#. *  c-indent-level: 4
+#. *  c-basic-offset: 4
+#. *  indent-tabs-mode: nil
+#. * End:
+#. 
+#: ../src/virt-viewer-auth.xml.h:1
 msgid "Authentication required"
-msgstr "Autenticação requerida"
+msgstr ""
 
-#: ../src/auth.glade.h:2
+#: ../src/virt-viewer-auth.xml.h:2
 msgid "Password:"
-msgstr "Senha:"
+msgstr ""
 
-#: ../src/auth.glade.h:3
+#: ../src/virt-viewer-auth.xml.h:3
 msgid "Username:"
-msgstr "Nome do Usuário:"
+msgstr ""
 
-#: ../src/auth.glade.h:4
-msgid "gtk-cancel"
-msgstr "gtk-cancel"
-
-#: ../src/auth.glade.h:5
-msgid "gtk-ok"
-msgstr "gtk-ok"
-
-#: ../src/auth.glade.h:6
+#: ../src/virt-viewer-auth.xml.h:4
 msgid "label"
-msgstr "rótulo"
+msgstr ""
 
-#: ../src/viewer.glade.h:1
+#: ../src/virt-viewer-main.c:38
+#, c-format
+msgid "%s version %s\n"
+msgstr ""
+
+#: ../src/virt-viewer-main.c:69
+msgid "Attach to the local display using libvirt"
+msgstr ""
+
+#: ../src/virt-viewer-main.c:71
+msgid "Connect to hypervisor"
+msgstr ""
+
+#: ../src/virt-viewer-main.c:73
+msgid "Wait for domain to start"
+msgstr ""
+
+#: ../src/virt-viewer-main.c:75
+msgid "Reconnect to domain upon restart"
+msgstr ""
+
+#: ../src/virt-viewer-main.c:92
+msgid "Virt Viewer"
+msgstr ""
+
+#. Setup command line options
+#: ../src/virt-viewer-main.c:95
+msgid "- Virtual machine graphical console"
+msgstr ""
+
+#: ../src/virt-viewer-main.c:116
+#, c-format
+msgid ""
+"\n"
+"Usage: %s [OPTIONS] DOMAIN-NAME|ID|UUID\n"
+"\n"
+"%s\n"
+"\n"
+msgstr ""
+
+#: ../src/virt-viewer-session-spice.c:347
+msgid "Select USB devices for redirection"
+msgstr ""
+
+#: ../src/virt-viewer-session-vnc.c:140
+#, c-format
+msgid "Unsupported authentication type %d"
+msgstr ""
+
+#: ../src/virt-viewer-window.c:774
+msgid "Disconnect"
+msgstr ""
+
+#: ../src/virt-viewer-window.c:781 ../src/virt-viewer-window.c:782
+msgid "Leave fullscreen"
+msgstr ""
+
+#: ../src/virt-viewer-window.c:854
+msgid "(Press Ctrl+Alt to release pointer)"
+msgstr ""
+
+#. translators:
+#. * This is "<ungrab (or empty)><space (or empty)><subtitle (or empty)> -
+#. <appname>"
+#. * Such as: "(Press Ctrl+Alt to release pointer) BigCorpTycoon MOTD - Virt
+#. Viewer"
+#. 
+#: ../src/virt-viewer-window.c:863
+#, c-format
+msgid "%s%s%s - %s"
+msgstr ""
+
+#. translators: <space>
+#: ../src/virt-viewer-window.c:867
+msgid " "
+msgstr ""
+
+#: ../src/virt-viewer.c:144
+msgid "Waiting for guest domain to re-start"
+msgstr ""
+
+#: ../src/virt-viewer.c:308
+#, c-format
+msgid "Cannot determine the graphic type for the guest %s"
+msgstr ""
+
+#: ../src/virt-viewer.c:321
+#, c-format
+msgid "Cannot determine the graphic address for the guest %s"
+msgstr ""
+
+#: ../src/virt-viewer.c:344
+#, c-format
+msgid "Cannot determine the host for the guest %s"
+msgstr ""
+
+#: ../src/virt-viewer.c:474
+msgid "Finding guest domain"
+msgstr ""
+
+#: ../src/virt-viewer.c:478
+msgid "Waiting for guest domain to be created"
+msgstr ""
+
+#: ../src/virt-viewer.c:483
+#, c-format
+msgid "Cannot find guest domain %s"
+msgstr ""
+
+#: ../src/virt-viewer.c:490
+msgid "Checking guest domain status"
+msgstr ""
+
+#: ../src/virt-viewer.c:497
+msgid "Waiting for guest domain to start"
+msgstr ""
+
+#: ../src/virt-viewer.c:504
+msgid "Waiting for guest domain to start server"
+msgstr ""
+
+#: ../src/virt-viewer.c:624
+#, c-format
+msgid "Unable to connect to libvirt with URI %s"
+msgstr ""
+
+#: ../src/virt-viewer.c:625
+msgid "[none]"
+msgstr ""
+
+#. * Local variables:
+#. *  c-indent-level: 4
+#. *  c-basic-offset: 4
+#. *  indent-tabs-mode: nil
+#. * End:
+#. 
+#: ../src/virt-viewer.xml.h:1
 msgid "Automatically resize"
-msgstr "redefinição automática do tamanho"
+msgstr ""
 
-#: ../src/viewer.glade.h:2
+#: ../src/virt-viewer.xml.h:2
 msgid "Ctrl+Alt+F11"
-msgstr "Ctrl+Alt+F11"
+msgstr ""
 
-#: ../src/viewer.glade.h:3
+#: ../src/virt-viewer.xml.h:3
 msgid "Ctrl+Alt+F12"
-msgstr "Ctrl+Alt+F12"
+msgstr ""
 
-#: ../src/viewer.glade.h:4
+#: ../src/virt-viewer.xml.h:4
 msgid "Ctrl+Alt+F1_0"
-msgstr "Ctrl+Alt+F1_0"
+msgstr ""
 
-#: ../src/viewer.glade.h:5
+#: ../src/virt-viewer.xml.h:5
 msgid "Ctrl+Alt+F_1"
-msgstr "Ctrl+Alt+F_1"
+msgstr ""
 
-#: ../src/viewer.glade.h:6
+#: ../src/virt-viewer.xml.h:6
 msgid "Ctrl+Alt+F_2"
-msgstr "Ctrl+Alt+F_2"
+msgstr ""
 
-#: ../src/viewer.glade.h:7
+#: ../src/virt-viewer.xml.h:7
 msgid "Ctrl+Alt+F_3"
-msgstr "Ctrl+Alt+F_3"
+msgstr ""
 
-#: ../src/viewer.glade.h:8
+#: ../src/virt-viewer.xml.h:8
 msgid "Ctrl+Alt+F_4"
-msgstr "Ctrl+Alt+F_4"
+msgstr ""
 
-#: ../src/viewer.glade.h:9
+#: ../src/virt-viewer.xml.h:9
 msgid "Ctrl+Alt+F_5"
-msgstr "Ctrl+Alt+F_5"
+msgstr ""
 
-#: ../src/viewer.glade.h:10
+#: ../src/virt-viewer.xml.h:10
 msgid "Ctrl+Alt+F_6"
-msgstr "Ctrl+Alt+F_6"
+msgstr ""
 
-#: ../src/viewer.glade.h:11
+#: ../src/virt-viewer.xml.h:11
 msgid "Ctrl+Alt+F_7"
-msgstr "Ctrl+Alt+F_7"
+msgstr ""
 
-#: ../src/viewer.glade.h:12
+#: ../src/virt-viewer.xml.h:12
 msgid "Ctrl+Alt+F_8"
-msgstr "Ctrl+Alt+F_8"
+msgstr ""
 
-#: ../src/viewer.glade.h:13
+#: ../src/virt-viewer.xml.h:13
 msgid "Ctrl+Alt+F_9"
-msgstr "Ctrl+Alt+F_9"
+msgstr ""
 
-#: ../src/viewer.glade.h:14
+#: ../src/virt-viewer.xml.h:14
 msgid "Ctrl+Alt+_Backspace"
-msgstr "Ctrl+Alt+_Backspace"
+msgstr ""
 
-#: ../src/viewer.glade.h:15
+#: ../src/virt-viewer.xml.h:15
 msgid "Ctrl+Alt+_Del"
-msgstr "Ctrl+Alt+_Del"
+msgstr ""
 
-#: ../src/viewer.glade.h:16
+#: ../src/virt-viewer.xml.h:16
+msgid "Displays"
+msgstr ""
+
+#: ../src/virt-viewer.xml.h:17
 msgid "Full screen"
-msgstr "Tela cheia"
+msgstr ""
 
-#: ../src/viewer.glade.h:17
+#: ../src/virt-viewer.xml.h:18
 msgid "Screenshot"
-msgstr "Screenshot"
+msgstr ""
 
-#: ../src/viewer.glade.h:18
+#: ../src/virt-viewer.xml.h:19
+msgid "USB device selection"
+msgstr ""
+
+#: ../src/virt-viewer.xml.h:20
 msgid "_File"
-msgstr "_File"
+msgstr ""
 
-#: ../src/viewer.glade.h:19
+#: ../src/virt-viewer.xml.h:21
 msgid "_Help"
-msgstr "_Help"
+msgstr ""
 
-#: ../src/viewer.glade.h:20
+#: ../src/virt-viewer.xml.h:22
 msgid "_PrintScreen"
-msgstr "_PrintScreen"
+msgstr ""
 
-#: ../src/viewer.glade.h:21
+#: ../src/virt-viewer.xml.h:23
 msgid "_Send key"
-msgstr "_Send key"
+msgstr ""
 
-#: ../src/viewer.glade.h:22
+#: ../src/virt-viewer.xml.h:24
 msgid "_View"
-msgstr "_View"
+msgstr ""
 
-#: ../src/viewer.glade.h:23
-msgid "gtk-about"
-msgstr "gtk-about"
-
-#: ../src/viewer.glade.h:24
-msgid "gtk-quit"
-msgstr "gtk-quit"
-
-#: ../src/viewer.glade.h:25
-msgid "page 1"
-msgstr "página 1"
-
-#: ../src/viewer.glade.h:26
-msgid "page 2"
-msgstr "página 2"
-
+#: ../src/virt-viewer.xml.h:25
+msgid "_Zoom"
+msgstr ""

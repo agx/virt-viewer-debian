@@ -1,4 +1,37 @@
+2012-02-17  Daniel P. Berrange  <berrange@redhat.com>
+
+	Prepare for release 0.5.1
+
+2012-02-16  Daniel P. Berrange  <berrange@redhat.com>
+
+	Remove virt-viewer.pot from git, as it is generated dynamically
+
+	Add back compat for GObject 2.22 which lacks GBinding
+
+	Relax GTK-VNC version again
+	A previous commit needlessly increased the min required GTK-VNC
+
+	Only link remote-viewer program against SPICE controller
+
+	Remove use of a libtool convenience library
+	The use of a libtool convenience library causes some platforms to
+	loose the ability to use the GNU_RELRO security feature in the
+	resulting binary. Refactor the makefile to simply compile the
+	common files twice, once for virt-viewer & once for remote-viewer
+
+	Import latest translations from transifex
+
+2012-02-15  Daniel P. Berrange  <berrange@redhat.com>
+
+	Adjust POTFILES.in check to strip type prefix
+
+	Add transifex configuration file
+
 2012-02-14  Daniel P. Berrange  <berrange@redhat.com>
+
+	Fix inclusion of GtkBuilder files in virt-viewer.pot
+
+	Refresh translation files
 
 	Update for release 0.5.0
 
