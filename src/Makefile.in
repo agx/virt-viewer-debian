@@ -58,10 +58,11 @@ bin_PROGRAMS = $(am__EXEEXT_1) remote-viewer$(EXEEXT)
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
-	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
-	$(top_srcdir)/m4/ltversion.m4 $(top_srcdir)/m4/lt~obsolete.m4 \
-	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.ac
+am__aclocal_m4_deps = $(top_srcdir)/m4/intltool.m4 \
+	$(top_srcdir)/m4/libtool.m4 $(top_srcdir)/m4/ltoptions.m4 \
+	$(top_srcdir)/m4/ltsugar.m4 $(top_srcdir)/m4/ltversion.m4 \
+	$(top_srcdir)/m4/lt~obsolete.m4 $(top_srcdir)/acinclude.m4 \
+	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
@@ -71,19 +72,19 @@ CONFIG_CLEAN_VPATH_FILES =
 @HAVE_LIBVIRT_TRUE@am__EXEEXT_1 = virt-viewer$(EXEEXT)
 am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(builderxmldir)"
 PROGRAMS = $(bin_PROGRAMS)
-am__remote_viewer_SOURCES_DIST = virt-viewer-util.h virt-viewer-util.c \
-	virt-viewer-auth.h virt-viewer-auth.c virt-viewer-app.h \
-	virt-viewer-app.c virt-viewer-session.h virt-viewer-session.c \
-	virt-viewer-display.h virt-viewer-display.c \
-	virt-viewer-notebook.h virt-viewer-notebook.c \
-	virt-viewer-window.h virt-viewer-window.c view/autoDrawer.c \
-	view/autoDrawer.h view/drawer.c view/drawer.h view/ovBox.c \
-	view/ovBox.h virt-viewer-session-vnc.h \
-	virt-viewer-session-vnc.c virt-viewer-display-vnc.h \
-	virt-viewer-display-vnc.c virt-viewer-session-spice.h \
-	virt-viewer-session-spice.c virt-viewer-display-spice.h \
-	virt-viewer-display-spice.c remote-viewer.h remote-viewer.c \
-	remote-viewer-main.c
+am__remote_viewer_SOURCES_DIST = virt-gtk-compat.h virt-viewer-util.h \
+	virt-viewer-util.c virt-viewer-auth.h virt-viewer-auth.c \
+	virt-viewer-app.h virt-viewer-app.c virt-viewer-session.h \
+	virt-viewer-session.c virt-viewer-display.h \
+	virt-viewer-display.c virt-viewer-notebook.h \
+	virt-viewer-notebook.c virt-viewer-window.h \
+	virt-viewer-window.c view/autoDrawer.c view/autoDrawer.h \
+	view/drawer.c view/drawer.h view/ovBox.c view/ovBox.h \
+	virt-viewer-session-vnc.h virt-viewer-session-vnc.c \
+	virt-viewer-display-vnc.h virt-viewer-display-vnc.c \
+	virt-viewer-session-spice.h virt-viewer-session-spice.c \
+	virt-viewer-display-spice.h virt-viewer-display-spice.c \
+	remote-viewer.h remote-viewer.c remote-viewer-main.c
 am__objects_1 =
 @HAVE_GTK_VNC_TRUE@am__objects_2 = remote_viewer-virt-viewer-session-vnc.$(OBJEXT) \
 @HAVE_GTK_VNC_TRUE@	remote_viewer-virt-viewer-display-vnc.$(OBJEXT) \
@@ -112,20 +113,20 @@ am__v_lt_0 = --silent
 remote_viewer_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(remote_viewer_CFLAGS) \
 	$(CFLAGS) $(remote_viewer_LDFLAGS) $(LDFLAGS) -o $@
-am__virt_viewer_SOURCES_DIST = virt-viewer-util.h virt-viewer-util.c \
-	virt-viewer-auth.h virt-viewer-auth.c virt-viewer-app.h \
-	virt-viewer-app.c virt-viewer-session.h virt-viewer-session.c \
-	virt-viewer-display.h virt-viewer-display.c \
-	virt-viewer-notebook.h virt-viewer-notebook.c \
-	virt-viewer-window.h virt-viewer-window.c view/autoDrawer.c \
-	view/autoDrawer.h view/drawer.c view/drawer.h view/ovBox.c \
-	view/ovBox.h virt-viewer-session-vnc.h \
-	virt-viewer-session-vnc.c virt-viewer-display-vnc.h \
-	virt-viewer-display-vnc.c virt-viewer-session-spice.h \
-	virt-viewer-session-spice.c virt-viewer-display-spice.h \
-	virt-viewer-display-spice.c virt-viewer-events.h \
-	virt-viewer-events.c virt-viewer.h virt-viewer.c \
-	virt-viewer-main.c
+am__virt_viewer_SOURCES_DIST = virt-gtk-compat.h virt-viewer-util.h \
+	virt-viewer-util.c virt-viewer-auth.h virt-viewer-auth.c \
+	virt-viewer-app.h virt-viewer-app.c virt-viewer-session.h \
+	virt-viewer-session.c virt-viewer-display.h \
+	virt-viewer-display.c virt-viewer-notebook.h \
+	virt-viewer-notebook.c virt-viewer-window.h \
+	virt-viewer-window.c view/autoDrawer.c view/autoDrawer.h \
+	view/drawer.c view/drawer.h view/ovBox.c view/ovBox.h \
+	virt-viewer-session-vnc.h virt-viewer-session-vnc.c \
+	virt-viewer-display-vnc.h virt-viewer-display-vnc.c \
+	virt-viewer-session-spice.h virt-viewer-session-spice.c \
+	virt-viewer-display-spice.h virt-viewer-display-spice.c \
+	virt-viewer-events.h virt-viewer-events.c virt-viewer.h \
+	virt-viewer.c virt-viewer-main.c
 @HAVE_GTK_VNC_TRUE@am__objects_5 = virt_viewer-virt-viewer-session-vnc.$(OBJEXT) \
 @HAVE_GTK_VNC_TRUE@	virt_viewer-virt-viewer-display-vnc.$(OBJEXT) \
 @HAVE_GTK_VNC_TRUE@	$(am__objects_1)
@@ -313,6 +314,8 @@ SPICE_CONTROLLER_CFLAGS = @SPICE_CONTROLLER_CFLAGS@
 SPICE_CONTROLLER_LIBS = @SPICE_CONTROLLER_LIBS@
 SPICE_GTK_CFLAGS = @SPICE_GTK_CFLAGS@
 SPICE_GTK_LIBS = @SPICE_GTK_LIBS@
+SPICE_PROTOCOL_CFLAGS = @SPICE_PROTOCOL_CFLAGS@
+SPICE_PROTOCOL_LIBS = @SPICE_PROTOCOL_LIBS@
 STRIP = @STRIP@
 USE_NLS = @USE_NLS@
 VERSION = @VERSION@
@@ -382,14 +385,15 @@ EXTRA_DIST = $(builderxml_DATA) \
 	gbinding.c \
 	gbinding.h
 
-COMMON_SOURCES = virt-viewer-util.h virt-viewer-util.c \
-	virt-viewer-auth.h virt-viewer-auth.c virt-viewer-app.h \
-	virt-viewer-app.c virt-viewer-session.h virt-viewer-session.c \
-	virt-viewer-display.h virt-viewer-display.c \
-	virt-viewer-notebook.h virt-viewer-notebook.c \
-	virt-viewer-window.h virt-viewer-window.c view/autoDrawer.c \
-	view/autoDrawer.h view/drawer.c view/drawer.h view/ovBox.c \
-	view/ovBox.h $(NULL) $(am__append_1) $(am__append_2)
+COMMON_SOURCES = virt-gtk-compat.h virt-viewer-util.h \
+	virt-viewer-util.c virt-viewer-auth.h virt-viewer-auth.c \
+	virt-viewer-app.h virt-viewer-app.c virt-viewer-session.h \
+	virt-viewer-session.c virt-viewer-display.h \
+	virt-viewer-display.c virt-viewer-notebook.h \
+	virt-viewer-notebook.c virt-viewer-window.h \
+	virt-viewer-window.c view/autoDrawer.c view/autoDrawer.h \
+	view/drawer.c view/drawer.h view/ovBox.c view/ovBox.h $(NULL) \
+	$(am__append_1) $(am__append_2)
 @HAVE_LIBVIRT_TRUE@virt_viewer_SOURCES = \
 @HAVE_LIBVIRT_TRUE@	$(COMMON_SOURCES)				\
 @HAVE_LIBVIRT_TRUE@	virt-viewer-events.h virt-viewer-events.c	\

@@ -3,8 +3,7 @@
 # This file is distributed under the same license as the PACKAGE package.
 # 
 # Translators:
-# Boris BARNIER <b.barnier@gmail.com>, 2010.
-# Sam Friedmann <sam.friedmann@redhat.com>, 2010.
+# Geert Warrink <geert.warrink@onsnet.nu>, 2010, 2011.
 msgid ""
 msgstr ""
 "Project-Id-Version: virt-viewer\n"
@@ -12,12 +11,12 @@ msgstr ""
 "POT-Creation-Date: 2012-03-07 10:17+0000\n"
 "PO-Revision-Date: 2012-02-28 16:07+0000\n"
 "Last-Translator: Daniel Berrange <dan-transifex@berrange.com>\n"
-"Language-Team: French <trans-fr@lists.fedoraproject.org>\n"
+"Language-Team: Dutch (http://www.transifex.net/projects/p/fedora/language/nl/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: fr\n"
-"Plural-Forms: nplurals=2; plural=(n > 1)\n"
+"Language: nl\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
 
 #: ../src/gbinding.c:637
 msgid "Source"
@@ -66,7 +65,7 @@ msgstr ""
 
 #: ../src/remote-viewer-main.c:63 ../src/virt-viewer-main.c:60
 msgid "Run '"
-msgstr "Exécuter '"
+msgstr "Uitvoeren '"
 
 #: ../src/remote-viewer-main.c:66 ../src/virt-viewer-main.c:63
 msgid "Display version information"
@@ -82,7 +81,7 @@ msgstr ""
 
 #: ../src/remote-viewer-main.c:72 ../src/virt-viewer-main.c:77
 msgid "Zoom level of window, in percentage"
-msgstr "Niveau de zoom de la fenêtre, en pourcentage"
+msgstr "Zoom niveau in percentage van het venster"
 
 #: ../src/remote-viewer-main.c:74 ../src/virt-viewer-main.c:79
 msgid "Display debugging information"
@@ -203,19 +202,19 @@ msgstr ""
 #: ../src/virt-viewer-app.c:695
 #, c-format
 msgid "Unknown graphic type for the guest %s"
-msgstr ""
+msgstr "Onbekend grafisch type voor de gast %s"
 
 #: ../src/virt-viewer-app.c:770
 msgid "Connect to ssh failed."
-msgstr ""
+msgstr "Verbinden met ssh mislukte."
 
 #: ../src/virt-viewer-app.c:772
 msgid "Can't connect to channel, SSH only supported."
-msgstr ""
+msgstr "Kan geen verbinding maken met kanaal, alleen SSH wordt ondersteund"
 
 #: ../src/virt-viewer-app.c:784
 msgid "Connect to channel unsupported."
-msgstr ""
+msgstr "Verbinding maken met kanaal wordt niet ondersteund."
 
 #: ../src/virt-viewer-app.c:864
 msgid "Connecting to graphic server"
@@ -232,7 +231,7 @@ msgstr ""
 #: ../src/virt-viewer-app.c:1070
 #, c-format
 msgid "Unable to connect to the graphic server %s"
-msgstr ""
+msgstr "Ka niet verbinden met de grafische server %s"
 
 #: ../src/virt-viewer-app.c:1099
 #, c-format
@@ -276,7 +275,7 @@ msgstr ""
 #: ../src/virt-viewer-main.c:38
 #, c-format
 msgid "%s version %s\n"
-msgstr "%s version %s\n"
+msgstr "%s versie %s\n"
 
 #: ../src/virt-viewer-main.c:69
 msgid "Attach to the local display using libvirt"
@@ -301,7 +300,7 @@ msgstr ""
 #. Setup command line options
 #: ../src/virt-viewer-main.c:95
 msgid "- Virtual machine graphical console"
-msgstr "- Console graphique de la machine virtuelle"
+msgstr "- Virtuele machine grafische console"
 
 #: ../src/virt-viewer-main.c:116
 #, c-format
@@ -311,7 +310,7 @@ msgid ""
 "\n"
 "%s\n"
 "\n"
-msgstr "\nUsage : %s [OPTIONS] DOMAIN-NAME|ID|UUID\n\n%s\n\n"
+msgstr "\nGebruik: %s [OPTIES] DOMEIN-NAAM|ID|UUID\n\n%s\n\n"
 
 #. Create the widgets
 #: ../src/virt-viewer-session-spice.c:370
@@ -363,17 +362,17 @@ msgstr ""
 #: ../src/virt-viewer.c:308
 #, c-format
 msgid "Cannot determine the graphic type for the guest %s"
-msgstr ""
+msgstr "Kan het grafische type voor de gast %s niet bepalen"
 
 #: ../src/virt-viewer.c:321
 #, c-format
 msgid "Cannot determine the graphic address for the guest %s"
-msgstr ""
+msgstr "Kan het grafische adres voor de gast %s niet bepalen"
 
 #: ../src/virt-viewer.c:344
 #, c-format
 msgid "Cannot determine the host for the guest %s"
-msgstr ""
+msgstr "Kan de host voor de gast %s niet bepalen"
 
 #: ../src/virt-viewer.c:474
 msgid "Finding guest domain"
@@ -386,7 +385,7 @@ msgstr ""
 #: ../src/virt-viewer.c:483
 #, c-format
 msgid "Cannot find guest domain %s"
-msgstr "Impossible de trouver le domaine invité %s"
+msgstr "Kan gast domein %s niet vinden"
 
 #: ../src/virt-viewer.c:490
 msgid "Checking guest domain status"
@@ -403,11 +402,11 @@ msgstr ""
 #: ../src/virt-viewer.c:624
 #, c-format
 msgid "Unable to connect to libvirt with URI %s"
-msgstr "Impossible de se connecter à libvirt avec URI %s"
+msgstr "Kan niet verbinden met libvirt met URI %s"
 
 #: ../src/virt-viewer.c:625
 msgid "[none]"
-msgstr "[aucun]"
+msgstr "[geen]"
 
 #. * Local variables:
 #. *  c-indent-level: 4
