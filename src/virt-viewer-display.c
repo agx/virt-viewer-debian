@@ -268,7 +268,7 @@ virt_viewer_display_set_property(GObject *object,
         break;
     case PROP_SESSION:
         g_warn_if_fail(priv->session == NULL);
-        priv->session = g_value_dup_object(value);
+        priv->session = g_value_get_object(value);
         break;
 
     default:
@@ -565,6 +565,18 @@ gboolean virt_viewer_display_get_auto_resize(VirtViewerDisplay *self)
     g_return_val_if_fail(VIRT_VIEWER_IS_DISPLAY(self), FALSE);
 
     return self->priv->auto_resize;
+}
+
+void virt_viewer_display_release_cursor(VirtViewerDisplay *self)
+{
+    VirtViewerDisplayClass *klass;
+
+    g_return_if_fail(VIRT_VIEWER_IS_DISPLAY(self));
+
+    klass = VIRT_VIEWER_DISPLAY_GET_CLASS(self);
+    g_return_if_fail(klass->release_cursor != NULL);
+
+    klass->release_cursor(self);
 }
 
 /*

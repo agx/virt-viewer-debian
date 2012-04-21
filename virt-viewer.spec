@@ -14,13 +14,17 @@
 %define with_spice 1
 %endif
 
+%if 0%{?rhel} >= 6
+%define with_spice 1
+%endif
+
 # spice-gtk is x86 x86_64 only currently:
 %ifnarch %{ix86} x86_64
 %define with_spice 0
 %endif
 
 Name: virt-viewer
-Version: 0.5.1
+Version: 0.5.2
 Release: 1%{?dist}%{?extra_release}
 Summary: Virtual Machine Viewer
 Group: Applications/System
@@ -37,7 +41,7 @@ BuildRequires: gtk3-devel >= 3.0.0
 %else
 BuildRequires: gtk2-devel >= 2.12.0
 %endif
-BuildRequires: libvirt-devel >= 0.6.0
+BuildRequires: libvirt-devel >= 0.9.7
 BuildRequires: libxml2-devel
 %if %{with_gtk3}
 BuildRequires: gtk-vnc2-devel >= 0.4.0
@@ -46,10 +50,11 @@ BuildRequires: gtk-vnc-devel >= 0.3.8
 %endif
 %if %{with_spice}
 %if %{with_gtk3}
-BuildRequires: spice-gtk3-devel >= 0.9
+BuildRequires: spice-gtk3-devel >= 0.11
 %else
-BuildRequires: spice-gtk-devel >= 0.9
+BuildRequires: spice-gtk-devel >= 0.11
 %endif
+BuildRequires: spice-protocol >= 0.10.1
 %endif
 BuildRequires: /usr/bin/pod2man
 BuildRequires: intltool

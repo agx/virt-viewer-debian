@@ -1,3 +1,217 @@
+2012-03-09  Daniel P. Berrange  <berrange@redhat.com>
+
+	Update NEWS for 0.5.2 release
+
+	Import newer translations from transifex
+
+	Fix libvirt/SPICE min versions
+	We require libvirt >= 0.9.7 to get virDomainOpenGraphics
+
+	We require spice-gtk >= 0.11 to get the fix for dealing with
+	authentication over an SSH tunnel
+
+	We requires spice-protocol >= 0.10.1 to get a constant
+	required by USB redirection
+
+2012-03-08  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	Add a send-key menu in fullscreen
+
+2012-03-07  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	build: fix autogen message
+	When running ./autogen.sh on a pristine git checkout, I got:
+
+	libtoolize: Consider adding `AC_CONFIG_MACRO_DIR([m4])' to configure.ac and
+	libtoolize: rerunning libtoolize, to keep the correct libtool macros in-tree.
+	You should add the contents of '/usr/share/aclocal/intltool.m4' to 'aclocal.m4'.
+
+2012-03-07  Hans de Goede  <hdegoede@redhat.com>
+
+	virt-viewer-window: Don't try to resize non visible windows
+	Trying to resize not visible windows leads to the following being printed
+	to the console:
+	Gdk-CRITICAL **: IA__gdk_window_get_origin: assertion `GDK_IS_WINDOW (window)'
+
+	This gets triggered by the gdk_screen_get_monitor_geometry() call in
+	virt_viewer_window_resize()
+
+	virt-viewer-window: Add show / hide utility functions
+
+	virt-viewer-window: Move checks before resize to virt_viewer_window_resize
+
+	virt-viewer-window: Remove useless tests for priv->window != NULL
+	priv->window gets set on init and never unset, so there is no need to check
+	for it.
+
+2012-03-07  Daniel P. Berrange  <berrange@redhat.com>
+
+	Update AUTHORS file
+
+	Refresh translations
+
+2012-03-06  Hans de Goede  <hdegoede@redhat.com>
+
+	virt-viewer-window: Add a USB device selection to the fullscreen menu (v2)
+	Note this button only gets shown on USB redir capable virtual machines.
+
+	Changes in v2:
+	-Use gtk_widget_set_visible for simpler code
+
+	window: Call virt_viewer_app_quit instead of gtk_main_quit
+	When quiting from the fullscreen menu call virt_viewer_app_quit instead of
+	gtk_main_quit so that the session gets properly disconnected before quiting.
+
+	virt_viewer_app_quit: Cleanly close the connection before quiting
+	Even though the previous patches in this series ensure that the session
+	gets properly finalized, we still need to wait for the disconnect signal,
+	as spice-glib uses co-routines which need some time to cleanly close the
+	connection / session.
+
+	session-spice: Delay the disconnected signal till all channels are closed
+	Before this patch session-spice would emit the disconnected signal as soon
+	as the main channel is closed, but other channels may still be open at
+	that time and raising the disconnected signal usally leads to the app class
+	calling gtk_main_quit, at which point the other channels never get properly
+	finalized (as there co-routines still hold a reference to them).
+
+	This is esp. bad for usbredir channels as these re-attach the kernel driver
+	for redirected devices when finalized. So exiting without properly finalizing
+	them leads to the formerly redirected devices not being usuable until the
+	driver is manually reloaded or the device is unplugged and re-plugged
+	(the kernel does not automatically re-bind kernel drivers when userspace
+	 closes a usbfs node).
+
+	This patch fixes this by delaying the emitting of the disconnect signal
+	until the last channel has been destroyed.
+
+	virt-viewer-app: unref the session on dispose
+	With this patch combined with the previous patches in this series, the
+	VirtViewerSession (finally) gets properly finalized on exit.
+
+	virt-viewer-display: Use a borrowed reference to session
+	Before this patch there was a cyclic reference between VirtViewerSesion and
+	VirtViewerDisplay, since all VirtViewerDisplays are created / destroyed by
+	VirtViewerSession it is safe to assume that lifetime of VirtViewerSession >=
+	VirtViewerDisplay, so VirtViewerDisplay can take a borrowed reference
+	breaking the circle, and allowing proper cleanup on exit.
+
+	Note that there is no g_object_unref removed from virt-viewer-display, this
+	because there is no finalize / dispose and before this patch
+	VirtViewerDisplay never unref-ed the reference it hold to the session.
+
+	virt-viewer-window: Use a borrowed reference to app
+	Before this patch there was a cyclic reference between VirtViewerApp and
+	VirtViewerWindow, since all VirtViewerWindows are created / destroyed by
+	VirtViewerApp it is safe to assume that lifetime of VirtViewerApp >=
+	VirtViewerWindow, so VirtViewerWindow can take a borrowed reference
+	breaking the circle, and allowing proper cleanup on exit.
+
+	virt-viewer-app: main_window is part of our windows hashtable
+	This means that:
+	1) There is no need to explictly set its title separately
+	2) It is unref-ed when we do g_hash_table_unref(priv->windows), so it
+	   should not be unref-ed separately otherwise it is unref-ed twice!
+
+	Notice that 2 was never a problem because of circular references
+	between VirtViewerApp and VirtViewerWindow, but once the follow
+	up patch to this one breaks the circle 2 becomes an issue.
+
+	session-spice: dispose should chain up to dispose not finalize!!
+
+	usbredir: Gnome HIG-ify USB device selection dialog
+	These changes match the changes already made to the spice-gtk
+	usb device selection widget to match the spacing advised by the Gnome HIG.
+
+	usbredir: Shrink the usb device selection dialog when devices are unplugged
+
+2012-03-05  Christophe Fergeau  <cfergeau@redhat.com>
+
+	Don't attempt to translate ""
+	The empty string has a magic meaning for gettext, it's used to
+	store a translation header with all kind of information about the
+	po file. This is not something we want to use as a window title, so
+	change to _("") to "" when we want an empty string.
+
+	Fix path to spice-controller.h
+
+2012-03-01  Daniel P. Berrange  <berrange@redhat.com>
+
+	Remove trailing blank line
+
+2012-03-01  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	fix make distcheck
+
+	Prepare for release 0.5.2
+
+	update .mailmap
+
+2012-03-01  Marc-Andre Lureau  <marcandre.lureau@redhat.com>
+
+	remote-viewer: support spice foreign menu
+
+2012-03-01  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	Add property app:has-focus
+
+	Fix compilation with gtk 2.18
+
+	spice: fix connecting via ssh to a password-protected server
+	spice_session_connect() will attempt to connect directly to the
+	server, we need to continue calling spice_session_open_fd() for ssh
+	tunnel to work.
+
+	spice: fix double unref of main channel
+	When doing unref() on a channel, channel-destroy signal may be emitted
+	during object dispose time, and it will attempt to unref() the channel
+	again likely leading to a crash.
+
+	It may be that spice-gtk should have a different/simpler object
+	life-cycle model, but it's also a good assumption to not take strong
+	references on the channels, but just keep a weak reference as the
+	session is really the channel life-cycle manager.
+
+	https://bugzilla.redhat.com/show_bug.cgi?id=797082
+
+2012-02-27  Daniel P. Berrange  <berrange@redhat.com>
+
+	Import translations
+
+2012-02-23  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	nsis: set HKCU "Software\spice-space.org\spicex\client"
+	With recent RHEV portal plugin, the Spice client is chosen according
+	to this key.
+
+2012-02-22  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	remote-viewer: add smartcard controller message
+
+	spice: teach customizable key bindings with controller
+	Tested with RHEVM 3.0 instance with custom bindings for fullscreen &
+	ungrab.
+
+	Small code simplification
+
+	Use the accelgroup to define key bindings
+	With accelgroups, we can redefine the keybindings
+
+	Add hidden menu smartcard remove/insert and release-cursor
+
+	Add virt_viewer_app_get_session()
+
+	spice: implement smartcard-{insert,remove} virtual methods
+
+	Add smartcard-{insert,remove} and release-cursor virtual methods
+
+	Do not disable accelgroup if accels are enabled
+
+	Add VirtViewerApp:enable-accel property
+
+	Require an accel group for full-screen menu
+	Bump Gtk depedency to 2.18, since we already use symbols from it.
+
 2012-02-17  Daniel P. Berrange  <berrange@redhat.com>
 
 	Prepare for release 0.5.1

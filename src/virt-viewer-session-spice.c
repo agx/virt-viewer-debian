@@ -48,6 +48,7 @@ struct _VirtViewerSessionSpicePrivate {
     SpiceGtkSession *gtk_session;
     SpiceMainChannel *main_channel;
     SpiceAudio *audio;
+    int channel_count;
 };
 
 #define VIRT_VIEWER_SESSION_SPICE_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE((o), VIRT_VIEWER_TYPE_SESSION_SPICE, VirtViewerSessionSpicePrivate))
@@ -71,7 +72,8 @@ static void virt_viewer_session_spice_channel_new(SpiceSession *s,
 static void virt_viewer_session_spice_channel_destroy(SpiceSession *s,
                                                       SpiceChannel *channel,
                                                       VirtViewerSession *session);
-
+static void virt_viewer_session_spice_smartcard_insert(VirtViewerSession *session);
+static void virt_viewer_session_spice_smartcard_remove(VirtViewerSession *session);
 
 static void
 virt_viewer_session_spice_get_property(GObject *object, guint property_id,
@@ -110,12 +112,10 @@ virt_viewer_session_spice_dispose(GObject *obj)
     }
     if (spice->priv->audio)
         g_object_unref(spice->priv->audio);
-    if (spice->priv->main_channel)
-        g_object_unref(spice->priv->main_channel);
     if (spice->priv->main_window)
         g_object_unref(spice->priv->main_window);
 
-    G_OBJECT_CLASS(virt_viewer_session_spice_parent_class)->finalize(obj);
+    G_OBJECT_CLASS(virt_viewer_session_spice_parent_class)->dispose(obj);
 }
 
 
@@ -136,6 +136,8 @@ virt_viewer_session_spice_class_init(VirtViewerSessionSpiceClass *klass)
     dclass->channel_open_fd = virt_viewer_session_spice_channel_open_fd;
     dclass->has_usb = virt_viewer_session_spice_has_usb;
     dclass->usb_device_selection = virt_viewer_session_spice_usb_device_selection;
+    dclass->smartcard_insert = virt_viewer_session_spice_smartcard_insert;
+    dclass->smartcard_remove = virt_viewer_session_spice_smartcard_remove;
 
     g_type_class_add_private(klass, sizeof(VirtViewerSessionSpicePrivate));
 
@@ -300,7 +302,10 @@ virt_viewer_session_spice_main_channel_event(SpiceChannel *channel G_GNUC_UNUSED
         break;
     case SPICE_CHANNEL_CLOSED:
         DEBUG_LOG("main channel: closed");
-        g_signal_emit_by_name(session, "session-disconnected");
+        /* Ensure the other channels get closed too */
+        virt_viewer_session_clear_displays(session);
+        if (self->priv->session)
+            spice_session_disconnect(self->priv->session);
         break;
     case SPICE_CHANNEL_ERROR_CONNECT:
         DEBUG_LOG("main channel: failed to connect");
@@ -315,8 +320,15 @@ virt_viewer_session_spice_main_channel_event(SpiceChannel *channel G_GNUC_UNUSED
         if (ret < 0) {
             g_signal_emit_by_name(session, "session-cancelled");
         } else {
+            gboolean openfd;
+
             g_object_set(self->priv->session, "password", password, NULL);
-            spice_session_connect(self->priv->session);
+            g_object_get(self->priv->session, "client-sockets", &openfd, NULL);
+
+            if (openfd)
+                spice_session_open_fd(self->priv->session, -1);
+            else
+                spice_session_connect(self->priv->session);
         }
         break;
     default:
@@ -339,6 +351,13 @@ virt_viewer_session_spice_has_usb(VirtViewerSession *session)
                                        SPICE_CHANNEL_USBREDIR);
 }
 
+static void remove_cb(GtkContainer   *container G_GNUC_UNUSED,
+                      GtkWidget      *widget G_GNUC_UNUSED,
+                      void           *user_data)
+{
+    gtk_window_resize(GTK_WINDOW(user_data), 1, 1);
+}
+
 static void
 virt_viewer_session_spice_usb_device_selection(VirtViewerSession *session,
                                                GtkWindow *parent)
@@ -348,19 +367,25 @@ virt_viewer_session_spice_usb_device_selection(VirtViewerSession *session,
     GtkWidget *dialog, *area, *usb_device_widget;
 
     /* Create the widgets */
-    dialog = gtk_dialog_new_with_buttons(
-                                         _("Select USB devices for redirection"), parent,
+    dialog = gtk_dialog_new_with_buttons(_("Select USB devices for redirection"), parent,
                                          GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
                                          GTK_STOCK_OK, GTK_RESPONSE_ACCEPT,
                                          NULL);
     gtk_dialog_set_default_response(GTK_DIALOG(dialog), GTK_RESPONSE_ACCEPT);
+    gtk_container_set_border_width(GTK_CONTAINER(dialog), 12);
+    gtk_box_set_spacing(GTK_BOX(gtk_bin_get_child(GTK_BIN(dialog))), 12);
+
     area = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
 
     usb_device_widget = spice_usb_device_widget_new(priv->session,
                                                     "%s %s");
     g_signal_connect(usb_device_widget, "connect-failed",
                      G_CALLBACK(usb_connect_failed), self);
-    gtk_box_pack_start(GTK_BOX(area), usb_device_widget, TRUE, TRUE, 5);
+    gtk_box_pack_start(GTK_BOX(area), usb_device_widget, TRUE, TRUE, 0);
+
+    /* This shrinks the dialog when USB devices are unplugged */
+    g_signal_connect(usb_device_widget, "remove",
+                     G_CALLBACK(remove_cb), dialog);
 
     /* show and run */
     gtk_widget_show_all(dialog);
@@ -384,16 +409,13 @@ virt_viewer_session_spice_channel_new(SpiceSession *s,
     g_object_get(channel, "channel-id", &id, NULL);
 
     if (SPICE_IS_MAIN_CHANNEL(channel)) {
-        if (self->priv->main_channel != NULL) {
-            /* FIXME: use telepathy-glib g_signal_connect_object to automatically disconnect.. */
+        if (self->priv->main_channel != NULL)
             g_signal_handlers_disconnect_by_func(self->priv->main_channel,
                                                  virt_viewer_session_spice_main_channel_event, self);
-            g_object_unref(self->priv->main_channel);
-        }
 
         g_signal_connect(channel, "channel-event",
                          G_CALLBACK(virt_viewer_session_spice_main_channel_event), self);
-        self->priv->main_channel = g_object_ref(channel);
+        self->priv->main_channel = SPICE_MAIN_CHANNEL(channel);
     }
 
     if (SPICE_IS_DISPLAY_CHANNEL(channel)) {
@@ -418,10 +440,11 @@ virt_viewer_session_spice_channel_new(SpiceSession *s,
 
     if (SPICE_IS_PLAYBACK_CHANNEL(channel)) {
         DEBUG_LOG("new audio channel");
-        if (self->priv->audio != NULL)
-            return;
-        self->priv->audio = spice_audio_new(s, NULL, NULL);
+        if (self->priv->audio == NULL)
+            self->priv->audio = spice_audio_new(s, NULL, NULL);
     }
+
+    self->priv->channel_count++;
 }
 
 static void
@@ -437,10 +460,8 @@ virt_viewer_session_spice_channel_destroy(G_GNUC_UNUSED SpiceSession *s,
     g_object_get(channel, "channel-id", &id, NULL);
     if (SPICE_IS_MAIN_CHANNEL(channel)) {
         DEBUG_LOG("zap main channel");
-        if (channel == SPICE_CHANNEL(self->priv->main_channel)) {
-            g_object_unref(self->priv->main_channel);
+        if (channel == SPICE_CHANNEL(self->priv->main_channel))
             self->priv->main_channel = NULL;
-        }
     }
 
     if (SPICE_IS_DISPLAY_CHANNEL(channel)) {
@@ -452,6 +473,10 @@ virt_viewer_session_spice_channel_destroy(G_GNUC_UNUSED SpiceSession *s,
         g_object_unref(self->priv->audio);
         self->priv->audio = NULL;
     }
+
+    self->priv->channel_count--;
+    if (self->priv->channel_count == 0)
+        g_signal_emit_by_name(self, "session-disconnected");
 }
 
 VirtViewerSession *
@@ -473,6 +498,18 @@ virt_viewer_session_spice_get_main_channel(VirtViewerSessionSpice *self)
     g_return_val_if_fail(VIRT_VIEWER_IS_SESSION_SPICE(self), NULL);
 
     return self->priv->main_channel;
+}
+
+static void
+virt_viewer_session_spice_smartcard_insert(VirtViewerSession *session G_GNUC_UNUSED)
+{
+    spice_smartcard_manager_insert_card(spice_smartcard_manager_get());
+}
+
+static void
+virt_viewer_session_spice_smartcard_remove(VirtViewerSession *session G_GNUC_UNUSED)
+{
+    spice_smartcard_manager_remove_card(spice_smartcard_manager_get());
 }
 
 /*
