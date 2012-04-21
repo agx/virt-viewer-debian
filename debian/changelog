@@ -1,3 +1,10 @@
+virt-viewer (0.5.2-1) unstable; urgency=low
+
+  * [e7ae231] Imported Upstream version 0.5.2
+  * [26e78cf] Bump Standards-Version to 3.9.3
+
+ -- Laurent Léonard <laurent@open-minds.org>  Sun, 22 Apr 2012 00:33:01 +0200
+
 virt-viewer (0.5.1-1) unstable; urgency=low
 
   * [78f733f] Imported Upstream version 0.5.1
