@@ -1,7 +1,8 @@
 
-AC_INIT(virt-viewer, 0.5.2)
+AC_INIT(virt-viewer, 0.5.3)
 AC_CONFIG_SRCDIR(src/virt-viewer-main.c)
 AC_CONFIG_MACRO_DIR([m4])
+AC_CONFIG_AUX_DIR([build-aux])
 AM_CONFIG_HEADER(config.h)
 dnl Make automake keep quiet about wildcards & other GNUmake-isms
 AM_INIT_AUTOMAKE([-Wno-portability])
@@ -11,7 +12,7 @@ AC_CANONICAL_HOST
 m4_ifndef([AM_SILENT_RULES], [m4_define([AM_SILENT_RULES],[])])
 AM_SILENT_RULES([yes])
 
-GMODULE2_REQUIRED=2.12.0
+GLIB2_REQUIRED=2.12.0
 LIBXML2_REQUIRED="2.6.0"
 LIBVIRT_REQUIRED="0.9.7"
 GTK2_REQUIRED="2.18.0"
@@ -21,9 +22,31 @@ GTK_VNC2_REQUIRED="0.4.0"
 SPICE_GTK_REQUIRED="0.11"
 SPICE_PROTOCOL_REQUIRED="0.10.1"
 
+AC_MSG_CHECKING([for native Win32])
+case "$host_os" in
+     *mingw*|*cygwin*)
+        os_win32=yes
+        ;;
+     *)
+        os_win32=no
+        ;;
+esac
+AC_MSG_RESULT([$os_win32])
+AM_CONDITIONAL([OS_WIN32],[test "$os_win32" = "yes"])
+
 AC_PROG_CC
 AM_PROG_CC_C_O
 AC_PROG_LIBTOOL
+
+AC_CHECK_PROGS(ICOTOOL, [icotool], [icotool])
+
+AS_IF([test "x$os_win32" = "xyes"], [
+     AC_CHECK_TOOL(WINDRES, [windres])
+
+     if test -z "$WINDRES" ; then
+       AC_MSG_ERROR("windres is required to compile virt-viewer on this platform")
+     fi
+])
 
 AC_CONFIG_LIBOBJ_DIR([src])
 
@@ -50,7 +73,7 @@ AM_GLIB_GNU_GETTEXT
 IT_PROG_INTLTOOL([0.35.0])
 
 
-PKG_CHECK_MODULES(GMODULE2, gmodule-export-2.0 >= $GMODULE2_REQUIRED)
+PKG_CHECK_MODULES(GLIB2, glib-2.0 >= $GLIB2_REQUIRED gthread-2.0 gmodule-export-2.0)
 PKG_CHECK_MODULES(LIBXML2, libxml-2.0 >= $LIBXML2_REQUIRED)
 
 AC_ARG_WITH([libvirt],
@@ -182,6 +205,7 @@ AC_OUTPUT([
     plugin/Makefile
     po/Makefile.in
     src/Makefile
+    src/virt-viewer.rc
     virt-viewer.spec
 ])
 
@@ -196,7 +220,7 @@ AC_MSG_NOTICE([      Gtk: $with_gtk])
 AC_MSG_NOTICE([])
 AC_MSG_NOTICE([ Libraries:])
 AC_MSG_NOTICE([])
-AC_MSG_NOTICE([    GMODULE2: $GMODULE2_CFLAGS $GMODULE2_LIBS])
+AC_MSG_NOTICE([       GLIB2: $GLIB2_CFLAGS $GLIB2_LIBS])
 AC_MSG_NOTICE([])
 AC_MSG_NOTICE([         GTK: $GTK_CFLAGS $GTK_LIBS])
 AC_MSG_NOTICE([])

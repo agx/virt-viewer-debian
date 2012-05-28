@@ -47,7 +47,7 @@ struct _VirtViewerSessionSpicePrivate {
     SpiceSession *session;
     SpiceGtkSession *gtk_session;
     SpiceMainChannel *main_channel;
-    SpiceAudio *audio;
+    const SpiceAudio *audio;
     int channel_count;
 };
 
@@ -74,6 +74,7 @@ static void virt_viewer_session_spice_channel_destroy(SpiceSession *s,
                                                       VirtViewerSession *session);
 static void virt_viewer_session_spice_smartcard_insert(VirtViewerSession *session);
 static void virt_viewer_session_spice_smartcard_remove(VirtViewerSession *session);
+static gboolean virt_viewer_session_spice_fullscreen_auto_conf(VirtViewerSessionSpice *self);
 
 static void
 virt_viewer_session_spice_get_property(GObject *object, guint property_id,
@@ -109,9 +110,11 @@ virt_viewer_session_spice_dispose(GObject *obj)
     if (spice->priv->session) {
         spice_session_disconnect(spice->priv->session);
         g_object_unref(spice->priv->session);
+        spice->priv->session = NULL;
     }
-    if (spice->priv->audio)
-        g_object_unref(spice->priv->audio);
+
+    spice->priv->audio = NULL;
+
     if (spice->priv->main_window)
         g_object_unref(spice->priv->main_window);
 
@@ -188,9 +191,12 @@ create_spice_session(VirtViewerSessionSpice *self)
                      G_CALLBACK(virt_viewer_session_spice_channel_destroy), self);
 
     manager = spice_usb_device_manager_get(self->priv->session, NULL);
-    if (manager)
+    if (manager) {
         g_signal_connect(manager, "auto-connect-failed",
                          G_CALLBACK(usb_connect_failed), self);
+        g_signal_connect(manager, "device-error",
+                         G_CALLBACK(usb_connect_failed), self);
+    }
 
     g_object_bind_property(self, "auto-usbredir",
                            self->priv->gtk_session, "auto-usbredir",
@@ -211,9 +217,6 @@ virt_viewer_session_spice_close(VirtViewerSession *session)
         g_object_unref(self->priv->session);
         self->priv->session = NULL;
         self->priv->gtk_session = NULL;
-
-        if (self->priv->audio)
-            g_object_unref(self->priv->audio);
         self->priv->audio = NULL;
     }
 
@@ -307,9 +310,8 @@ virt_viewer_session_spice_main_channel_event(SpiceChannel *channel G_GNUC_UNUSED
         if (self->priv->session)
             spice_session_disconnect(self->priv->session);
         break;
-    case SPICE_CHANNEL_ERROR_CONNECT:
-        DEBUG_LOG("main channel: failed to connect");
-        g_signal_emit_by_name(session, "session-disconnected");
+    case SPICE_CHANNEL_SWITCHING:
+        DEBUG_LOG("main channel: switching host");
         break;
     case SPICE_CHANNEL_ERROR_AUTH:
         DEBUG_LOG("main channel: auth failure (wrong password?)");
@@ -331,9 +333,17 @@ virt_viewer_session_spice_main_channel_event(SpiceChannel *channel G_GNUC_UNUSED
                 spice_session_connect(self->priv->session);
         }
         break;
-    default:
-        g_message("unhandled spice main channel event: %d", event);
+    case SPICE_CHANNEL_ERROR_CONNECT:
+        DEBUG_LOG("main channel: failed to connect");
         g_signal_emit_by_name(session, "session-disconnected");
+        break;
+    case SPICE_CHANNEL_ERROR_IO:
+    case SPICE_CHANNEL_ERROR_LINK:
+    case SPICE_CHANNEL_ERROR_TLS:
+        g_signal_emit_by_name(session, "session-disconnected");
+        break;
+    default:
+        g_warning("unhandled spice main channel event: %d", event);
         break;
     }
 
@@ -369,7 +379,7 @@ virt_viewer_session_spice_usb_device_selection(VirtViewerSession *session,
     /* Create the widgets */
     dialog = gtk_dialog_new_with_buttons(_("Select USB devices for redirection"), parent,
                                          GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
-                                         GTK_STOCK_OK, GTK_RESPONSE_ACCEPT,
+                                         GTK_STOCK_CLOSE, GTK_RESPONSE_ACCEPT,
                                          NULL);
     gtk_dialog_set_default_response(GTK_DIALOG(dialog), GTK_RESPONSE_ACCEPT);
     gtk_container_set_border_width(GTK_CONTAINER(dialog), 12);
@@ -394,6 +404,15 @@ virt_viewer_session_spice_usb_device_selection(VirtViewerSession *session,
 }
 
 static void
+agent_connected_changed(SpiceChannel *cmain,
+                        GParamSpec *pspec G_GNUC_UNUSED,
+                        VirtViewerSessionSpice *self)
+{
+    if (virt_viewer_session_spice_fullscreen_auto_conf(self))
+        g_signal_handlers_disconnect_by_func(cmain, agent_connected_changed, self);
+}
+
+static void
 virt_viewer_session_spice_channel_new(SpiceSession *s,
                                       SpiceChannel *channel,
                                       VirtViewerSession *session)
@@ -408,6 +427,8 @@ virt_viewer_session_spice_channel_new(SpiceSession *s,
 
     g_object_get(channel, "channel-id", &id, NULL);
 
+    DEBUG_LOG("New spice channel %p %s %d", channel, g_type_name(G_OBJECT_TYPE(channel)), id);
+
     if (SPICE_IS_MAIN_CHANNEL(channel)) {
         if (self->priv->main_channel != NULL)
             g_signal_handlers_disconnect_by_func(self->priv->main_channel,
@@ -416,6 +437,9 @@ virt_viewer_session_spice_channel_new(SpiceSession *s,
         g_signal_connect(channel, "channel-event",
                          G_CALLBACK(virt_viewer_session_spice_main_channel_event), self);
         self->priv->main_channel = SPICE_MAIN_CHANNEL(channel);
+
+        g_signal_connect(channel, "notify::agent-connected", G_CALLBACK(agent_connected_changed),  self);
+        agent_connected_changed(channel, NULL, self);
     }
 
     if (SPICE_IS_DISPLAY_CHANNEL(channel)) {
@@ -423,7 +447,7 @@ virt_viewer_session_spice_channel_new(SpiceSession *s,
 
         g_signal_emit_by_name(session, "session-connected");
 
-        DEBUG_LOG("new session channel (#%d)", id);
+        DEBUG_LOG("new display channel (#%d)", id);
         display = virt_viewer_display_spice_new(self,
                                                 channel,
                                                 spice_display_new(s, id));
@@ -441,10 +465,52 @@ virt_viewer_session_spice_channel_new(SpiceSession *s,
     if (SPICE_IS_PLAYBACK_CHANNEL(channel)) {
         DEBUG_LOG("new audio channel");
         if (self->priv->audio == NULL)
-            self->priv->audio = spice_audio_new(s, NULL, NULL);
+            self->priv->audio = spice_audio_get(s, NULL);
     }
 
     self->priv->channel_count++;
+}
+
+static gboolean
+virt_viewer_session_spice_fullscreen_auto_conf(VirtViewerSessionSpice *self)
+{
+    GdkScreen *screen = gdk_screen_get_default();
+    SpiceMainChannel* cmain = virt_viewer_session_spice_get_main_channel(self);
+    VirtViewerApp *app = NULL;
+    GdkRectangle dest;
+    gboolean auto_conf, agent_connected;
+    gint i;
+
+    app = virt_viewer_session_get_app(VIRT_VIEWER_SESSION(self));
+    g_return_val_if_fail(VIRT_VIEWER_IS_APP(app), TRUE);
+
+    DEBUG_LOG("Checking full screen auto-conf");
+    g_object_get(app, "fullscreen-auto-conf", &auto_conf, NULL);
+    if (!auto_conf)
+        return TRUE;
+
+    if (cmain == NULL)
+        return FALSE;
+
+    g_object_get(cmain, "agent-connected", &agent_connected, NULL);
+    if (!agent_connected) {
+        DEBUG_LOG("Agent not connected, skipping autoconf");
+        return FALSE;
+    }
+
+    DEBUG_LOG("Performing full screen auto-conf, %d host monitors",
+              gdk_screen_get_n_monitors(screen));
+    spice_main_set_display_enabled(cmain, -1, FALSE);
+    for (i = 0; i < gdk_screen_get_n_monitors(screen); i++) {
+        gdk_screen_get_monitor_geometry(screen, i, &dest);
+        DEBUG_LOG("Set SPICE display %d to (%d,%d)-(%dx%d)",
+                  i, dest.x, dest.y, dest.width, dest.height);
+        spice_main_set_display(cmain, i, dest.x, dest.y, dest.width, dest.height);
+        spice_main_set_display_enabled(cmain, i, TRUE);
+    }
+
+    spice_main_send_monitor_config(cmain);
+    return TRUE;
 }
 
 static void
@@ -458,6 +524,8 @@ virt_viewer_session_spice_channel_destroy(G_GNUC_UNUSED SpiceSession *s,
     g_return_if_fail(self != NULL);
 
     g_object_get(channel, "channel-id", &id, NULL);
+    DEBUG_LOG("Destroy SPICE channel %s %d", g_type_name(G_OBJECT_TYPE(channel)), id);
+
     if (SPICE_IS_MAIN_CHANNEL(channel)) {
         DEBUG_LOG("zap main channel");
         if (channel == SPICE_CHANNEL(self->priv->main_channel))
@@ -470,7 +538,6 @@ virt_viewer_session_spice_channel_destroy(G_GNUC_UNUSED SpiceSession *s,
 
     if (SPICE_IS_PLAYBACK_CHANNEL(channel) && self->priv->audio) {
         DEBUG_LOG("zap audio channel");
-        g_object_unref(self->priv->audio);
         self->priv->audio = NULL;
     }
 
@@ -479,15 +546,25 @@ virt_viewer_session_spice_channel_destroy(G_GNUC_UNUSED SpiceSession *s,
         g_signal_emit_by_name(self, "session-disconnected");
 }
 
+static void
+fullscreen_changed(GObject *gobject G_GNUC_UNUSED,
+                   GParamSpec *pspec G_GNUC_UNUSED,
+                   VirtViewerSessionSpice *self)
+{
+    virt_viewer_session_spice_fullscreen_auto_conf(self);
+}
+
 VirtViewerSession *
-virt_viewer_session_spice_new(GtkWindow *main_window)
+virt_viewer_session_spice_new(VirtViewerApp *app, GtkWindow *main_window)
 {
     VirtViewerSessionSpice *self;
 
-    self = g_object_new(VIRT_VIEWER_TYPE_SESSION_SPICE, NULL);
+    self = g_object_new(VIRT_VIEWER_TYPE_SESSION_SPICE, "app", app, NULL);
 
     create_spice_session(self);
     self->priv->main_window = g_object_ref(main_window);
+
+    g_signal_connect(app, "notify::fullscreen", G_CALLBACK(fullscreen_changed),  self);
 
     return VIRT_VIEWER_SESSION(self);
 }

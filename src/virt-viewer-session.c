@@ -35,8 +35,9 @@
 struct _VirtViewerSessionPrivate
 {
     GList *displays;
-
+    VirtViewerApp *app;
     gboolean auto_usbredir;
+    gchar *uri;
 };
 
 G_DEFINE_ABSTRACT_TYPE(VirtViewerSession, virt_viewer_session, G_TYPE_OBJECT)
@@ -44,6 +45,7 @@ G_DEFINE_ABSTRACT_TYPE(VirtViewerSession, virt_viewer_session, G_TYPE_OBJECT)
 enum {
     PROP_0,
 
+    PROP_APP,
     PROP_AUTO_USBREDIR,
 };
 
@@ -58,6 +60,8 @@ virt_viewer_session_finalize(GObject *obj)
         tmp = tmp->next;
     }
     g_list_free(session->priv->displays);
+
+    g_free(session->priv->uri);
 
     G_OBJECT_CLASS(virt_viewer_session_parent_class)->finalize(obj);
 }
@@ -74,6 +78,11 @@ virt_viewer_session_set_property(GObject *object,
     case PROP_AUTO_USBREDIR:
         virt_viewer_session_set_auto_usbredir(self, g_value_get_boolean(value));
         break;
+
+    case PROP_APP:
+        self->priv->app = g_value_get_object(value);
+        break;
+
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
         break;
@@ -92,6 +101,11 @@ virt_viewer_session_get_property(GObject *object,
     case PROP_AUTO_USBREDIR:
         g_value_set_boolean(value, virt_viewer_session_get_auto_usbredir(self));
         break;
+
+    case PROP_APP:
+        g_value_set_object(value, self->priv->app);
+        break;
+
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
         break;
@@ -113,6 +127,16 @@ virt_viewer_session_class_init(VirtViewerSessionClass *class)
                                                          "USB redirection",
                                                          "USB redirection",
                                                          TRUE,
+                                                         G_PARAM_READWRITE |
+                                                         G_PARAM_CONSTRUCT |
+                                                         G_PARAM_STATIC_STRINGS));
+
+    g_object_class_install_property(object_class,
+                                    PROP_APP,
+                                    g_param_spec_object("app",
+                                                         "VirtViewerApp",
+                                                         "VirtViewerApp",
+                                                         VIRT_VIEWER_TYPE_APP,
                                                          G_PARAM_READWRITE |
                                                          G_PARAM_CONSTRUCT |
                                                          G_PARAM_STATIC_STRINGS));
@@ -280,8 +304,10 @@ void virt_viewer_session_clear_displays(VirtViewerSession *session)
     GList *tmp = session->priv->displays;
 
     while (tmp) {
-        g_signal_emit_by_name(session, "session-display-removed", tmp->data);
-        g_object_unref(tmp->data);
+        VirtViewerDisplay *display = VIRT_VIEWER_DISPLAY(tmp->data);
+        g_signal_emit_by_name(session, "session-display-removed", display);
+        virt_viewer_display_close(display);
+        g_object_unref(display);
         tmp = tmp->next;
     }
     g_list_free(session->priv->displays);
@@ -322,6 +348,8 @@ gboolean virt_viewer_session_open_uri(VirtViewerSession *session, const gchar *u
 
     klass = VIRT_VIEWER_SESSION_GET_CLASS(session);
     g_return_val_if_fail(klass->open_uri != NULL, FALSE);
+
+    session->priv->uri = g_strdup(uri);
 
     return klass->open_uri(session, uri);
 }
@@ -407,6 +435,21 @@ void virt_viewer_session_smartcard_remove(VirtViewerSession *self)
 
     klass->smartcard_remove(self);
 }
+
+VirtViewerApp* virt_viewer_session_get_app(VirtViewerSession *self)
+{
+    g_return_val_if_fail(VIRT_VIEWER_IS_SESSION(self), NULL);
+
+    return self->priv->app;
+}
+
+gchar* virt_viewer_session_get_uri(VirtViewerSession *self)
+{
+    g_return_val_if_fail(VIRT_VIEWER_IS_SESSION(self), FALSE);
+
+    return g_strdup(self->priv->uri);
+}
+
 
 /*
  * Local variables:

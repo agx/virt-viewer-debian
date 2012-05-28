@@ -1,4 +1,6 @@
 NULL =
+LDADD =
+MAINTAINERCLEANFILES =
 bin_PROGRAMS =
 
 builderxmldir = $(pkgdatadir)/ui
@@ -52,15 +54,17 @@ virt_viewer_SOURCES =					\
 	virt-viewer.h virt-viewer.c			\
 	virt-viewer-main.c				\
 	$(NULL)
-virt_viewer_LDFLAGS = 				\
-	$(GMODULE2_LIBS)			\
+virt_viewer_LDFLAGS =				\
+	-lm					\
+	$(GLIB2_LIBS)				\
 	$(GTK_LIBS)				\
 	$(LIBXML2_LIBS)				\
 	$(LIBVIRT_LIBS)				\
 	$(NULL)
 virt_viewer_CFLAGS = 				\
 	-DLOCALE_DIR=\""$(datadir)/locale"\"	\
-	$(GMODULE2_CFLAGS) 			\
+	-DG_LOG_DOMAIN=\"virt-viewer\"          \
+	$(GLIB2_CFLAGS) 			\
 	$(GTK_CFLAGS)				\
 	$(LIBXML2_CFLAGS)			\
 	$(LIBVIRT_CFLAGS)			\
@@ -84,14 +88,16 @@ remote_viewer_SOURCES =				\
 	remote-viewer.h remote-viewer.c		\
 	remote-viewer-main.c			\
 	$(NULL)
-remote_viewer_LDFLAGS = 			\
-	$(GMODULE2_LIBS)			\
+remote_viewer_LDFLAGS =				\
+	-lm					\
+	$(GLIB2_LIBS)				\
 	$(GTK_LIBS)				\
 	$(LIBXML2_LIBS)				\
 	$(NULL)
 remote_viewer_CFLAGS =				\
 	-DLOCALE_DIR=\""$(datadir)/locale"\"	\
-	$(GMODULE2_CFLAGS) 			\
+	-DG_LOG_DOMAIN=\"remote-viewer\"        \
+	$(GLIB2_CFLAGS) 			\
 	$(GTK_CFLAGS)				\
 	$(LIBXML2_CFLAGS)			\
 	$(WARN_CFLAGS)				\
@@ -105,3 +111,32 @@ if HAVE_SPICE_GTK
 remote_viewer_LDFLAGS += $(SPICE_GTK_LIBS) $(SPICE_CONTROLLER_LIBS)
 remote_viewer_CFLAGS += $(SPICE_GTK_CFLAGS) $(SPICE_CONTROLLER_CFLAGS)
 endif
+if OS_WIN32
+remote_viewer_LDFLAGS += -Wl,--subsystem,windows
+endif
+
+desktopdir = $(datadir)/applications
+desktop_DATA = remote-viewer.desktop
+
+EXTRA_DIST += $(desktop_DATA)
+
+VIRT_VIEWER_RES = virt-viewer.rc virt-viewer.manifest
+ICONDIR = $(top_srcdir)/icons
+MANIFESTDIR = $(srcdir)
+EXTRA_DIST += $(VIRT_VIEWER_RES)
+
+if OS_WIN32
+bin_PROGRAMS += windows-cmdline-wrapper
+windows_cmdline_wrapper_SOURCES = windows-cmdline-wrapper.c
+windows_cmdline_wrapper_LDFLAGS = -lpsapi
+
+virt-viewer_rc.$(OBJEXT): $(VIRT_VIEWER_RES) $(ICONDIR)/virt-viewer.ico
+	$(AM_V_GEN)$(WINDRES)				\
+		-DICONDIR='\"$(ICONDIR)\"'		\
+		-DMANIFESTDIR='\"$(MANIFESTDIR)\"'	\
+		-i $< -o $@
+LDADD += virt-viewer_rc.$(OBJEXT)
+MAINTAINERCLEANFILES += virt-viewer_rc.$(OBJEXT)
+endif
+
+-include $(top_srcdir)/git.mk
