@@ -46,6 +46,7 @@ static void virt_viewer_display_spice_send_keys(VirtViewerDisplay *display,
                                                 int nkeyvals);
 static GdkPixbuf *virt_viewer_display_spice_get_pixbuf(VirtViewerDisplay *display);
 static void virt_viewer_display_spice_release_cursor(VirtViewerDisplay *display);
+static void virt_viewer_display_spice_close(VirtViewerDisplay *display G_GNUC_UNUSED);
 
 static void
 virt_viewer_display_spice_finalize(GObject *obj)
@@ -69,6 +70,7 @@ virt_viewer_display_spice_class_init(VirtViewerDisplaySpiceClass *klass)
     dclass->send_keys = virt_viewer_display_spice_send_keys;
     dclass->get_pixbuf = virt_viewer_display_spice_get_pixbuf;
     dclass->release_cursor = virt_viewer_display_spice_release_cursor;
+    dclass->close = virt_viewer_display_spice_close;
 
     g_type_class_add_private(klass, sizeof(VirtViewerDisplaySpicePrivate));
 }
@@ -108,7 +110,7 @@ display_mark(SpiceChannel *channel G_GNUC_UNUSED,
              gint mark,
              VirtViewerDisplay *display)
 {
-    DEBUG_LOG("display mark %d", mark);
+    DEBUG_LOG("Toggle monitor visibility %p %d", channel, mark);
 
     virt_viewer_display_set_show_hint(display, mark);
 }
@@ -181,6 +183,19 @@ virt_viewer_display_spice_size_allocate(VirtViewerDisplaySpice *self,
                            0, 0, dw, dh);
 }
 
+static void
+enable_accel_changed(VirtViewerApp *app,
+                     GParamSpec *pspec G_GNUC_UNUSED,
+                     VirtViewerDisplaySpice *self)
+{
+    if (virt_viewer_app_get_enable_accel(app)) {
+        /* disable default grab sequence */
+        spice_display_set_grab_keys(self->priv->display,
+                                    spice_grab_sequence_new(0, NULL));
+    } else {
+        spice_display_set_grab_keys(self->priv->display, NULL);
+    }
+}
 
 GtkWidget *
 virt_viewer_display_spice_new(VirtViewerSessionSpice *session,
@@ -188,6 +203,7 @@ virt_viewer_display_spice_new(VirtViewerSessionSpice *session,
                               SpiceDisplay *display)
 {
     VirtViewerDisplaySpice *self;
+    VirtViewerApp *app;
     gint channelid;
 
     g_return_val_if_fail(SPICE_IS_DISPLAY_CHANNEL(channel), NULL);
@@ -227,6 +243,10 @@ virt_viewer_display_spice_new(VirtViewerSessionSpice *session,
                      G_CALLBACK(virt_viewer_display_spice_size_allocate), self);
 
 
+    app = virt_viewer_session_get_app(VIRT_VIEWER_SESSION(session));
+    g_signal_connect(app, "notify::enable-accel", G_CALLBACK(enable_accel_changed), self);
+    enable_accel_changed(app, NULL, self);
+
     return GTK_WIDGET(self);
 }
 
@@ -236,6 +256,12 @@ virt_viewer_display_spice_release_cursor(VirtViewerDisplay *display)
     VirtViewerDisplaySpice *self = VIRT_VIEWER_DISPLAY_SPICE(display);
 
     spice_display_mouse_ungrab(self->priv->display);
+}
+
+
+static void
+virt_viewer_display_spice_close(VirtViewerDisplay *display G_GNUC_UNUSED)
+{
 }
 
 

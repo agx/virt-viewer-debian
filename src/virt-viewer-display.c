@@ -25,6 +25,7 @@
 #include <config.h>
 
 #include <locale.h>
+#include <math.h>
 
 #include "virt-viewer-session.h"
 #include "virt-viewer-display.h"
@@ -342,19 +343,15 @@ virt_viewer_display_size_request(GtkWidget *widget,
     requisition->height = border_width * 2;
 
     if (priv->dirty) {
-        if (priv->zoom)
+        if (priv->zoom) {
             requisition->width += priv->desktopWidth * priv->zoom_level / 100;
-        else
+            requisition->height += priv->desktopHeight * priv->zoom_level / 100;
+        } else {
             requisition->width += priv->desktopWidth;
+            requisition->height += priv->desktopHeight;
+        }
     } else {
         requisition->width += 50;
-    }
-    if (priv->dirty) {
-        if (priv->zoom)
-            requisition->height += priv->desktopHeight * priv->zoom_level / 100;
-        else
-            requisition->height += priv->desktopHeight;
-    } else {
         requisition->height += 50;
     }
 
@@ -417,11 +414,11 @@ virt_viewer_display_size_allocate(GtkWidget *widget,
         actualAspect = (double)width / (double)height;
 
         if (actualAspect > desktopAspect) {
-            child_allocation.width = height * desktopAspect;
+            child_allocation.width = round(height * desktopAspect);
             child_allocation.height = height;
         } else {
             child_allocation.width = width;
-            child_allocation.height = width / desktopAspect;
+            child_allocation.height = round(width / desktopAspect);
         }
 
         child_allocation.x = 0.5 * (width - child_allocation.width) + allocation->x + border_width;
@@ -577,6 +574,19 @@ void virt_viewer_display_release_cursor(VirtViewerDisplay *self)
     g_return_if_fail(klass->release_cursor != NULL);
 
     klass->release_cursor(self);
+}
+
+
+void virt_viewer_display_close(VirtViewerDisplay *self)
+{
+    VirtViewerDisplayClass *klass;
+
+    g_return_if_fail(VIRT_VIEWER_IS_DISPLAY(self));
+
+    klass = VIRT_VIEWER_DISPLAY_GET_CLASS(self);
+    g_return_if_fail(klass->close != NULL);
+
+    klass->close(self);
 }
 
 /*

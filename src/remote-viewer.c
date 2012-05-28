@@ -37,6 +37,10 @@
 #include "virt-viewer-app.h"
 #include "remote-viewer.h"
 
+#ifndef G_VALUE_INIT /* see bug https://bugzilla.gnome.org/show_bug.cgi?id=654793 */
+#define G_VALUE_INIT  { 0, { { 0 } } }
+#endif
+
 struct _RemoteViewerPrivate {
 #ifdef HAVE_SPICE_GTK
     SpiceCtrlController *controller;
@@ -62,6 +66,7 @@ static gboolean remote_viewer_start(VirtViewerApp *self);
 #if HAVE_SPICE_GTK
 static int remote_viewer_activate(VirtViewerApp *self);
 static void remote_viewer_window_added(VirtViewerApp *self, VirtViewerWindow *win);
+static void spice_foreign_menu_updated(RemoteViewer *self);
 #endif
 
 #if HAVE_SPICE_GTK
@@ -185,6 +190,24 @@ remote_viewer_new(const gchar *uri, gboolean verbose)
 }
 
 #if HAVE_SPICE_GTK
+static void
+foreign_menu_title_changed(SpiceCtrlForeignMenu *menu G_GNUC_UNUSED,
+                           GParamSpec *pspec G_GNUC_UNUSED,
+                           RemoteViewer *self)
+{
+    gboolean has_focus;
+
+    g_object_get(G_OBJECT(self), "has-focus", &has_focus, NULL);
+    /* FIXME: use a proper "new client connected" event
+    ** a foreign menu client set the title when connecting,
+    ** inform of focus state at that time.
+    */
+    spice_ctrl_foreign_menu_app_activated_msg(self->priv->ctrl_foreign_menu, has_focus);
+
+    /* update menu title */
+    spice_foreign_menu_updated(self);
+}
+
 RemoteViewer *
 remote_viewer_new_with_controller(gboolean verbose)
 {
@@ -197,7 +220,11 @@ remote_viewer_new_with_controller(gboolean verbose)
                          "foreign-menu", menu,
                          "verbose", verbose,
                          NULL);
+    g_signal_connect(menu, "notify::title",
+                     G_CALLBACK(foreign_menu_title_changed),
+                     self);
     g_object_unref(ctrl);
+    g_object_unref(menu);
 
     return self;
 }
@@ -319,7 +346,9 @@ spice_menu_update(RemoteViewer *self, VirtViewerWindow *win)
             ctrlmenu_to_gtkmenu(self, menu, G_OBJECT(self->priv->controller)));
         gtk_widget_set_visible(menuitem, TRUE);
     }
-    g_object_unref(menu);
+
+    if (menu != NULL)
+        g_object_unref(menu);
 }
 
 static void
@@ -404,10 +433,6 @@ remote_viewer_get_spice_session(RemoteViewer *self)
 
     return session;
 }
-
-#ifndef G_VALUE_INIT /* see bug https://bugzilla.gnome.org/show_bug.cgi?id=654793 */
-#define G_VALUE_INIT  { 0, { { 0 } } }
-#endif
 
 static gchar *
 ctrl_key_to_gtk_key(const gchar *key)
@@ -558,7 +583,10 @@ spice_ctrl_notified(SpiceCtrlController *ctrl,
         g_str_equal(pspec->name, "port") ||
         g_str_equal(pspec->name, "password") ||
         g_str_equal(pspec->name, "ca-file") ||
-        g_str_equal(pspec->name, "enable-smartcard")) {
+        g_str_equal(pspec->name, "enable-smartcard") ||
+        g_str_equal(pspec->name, "color-depth") ||
+        g_str_equal(pspec->name, "disable-effects") ||
+        g_str_equal(pspec->name, "enable-usbredir")) {
         g_object_set_property(G_OBJECT(session), pspec->name, &value);
     } else if (g_str_equal(pspec->name, "sport")) {
         g_object_set_property(G_OBJECT(session), "tls-port", &value);
@@ -566,6 +594,20 @@ spice_ctrl_notified(SpiceCtrlController *ctrl,
         g_object_set_property(G_OBJECT(session), "ciphers", &value);
     } else if (g_str_equal(pspec->name, "host-subject")) {
         g_object_set_property(G_OBJECT(session), "cert-subject", &value);
+    } else if (g_str_equal(pspec->name, "enable-usb-autoshare")) {
+        VirtViewerSession *vsession = NULL;
+
+        g_object_get(self, "session", &vsession, NULL);
+        g_object_set_property(G_OBJECT(vsession), "auto-usbredir", &value);
+        g_object_unref(G_OBJECT(vsession));
+    } else if (g_str_equal(pspec->name, "usb-filter")) {
+        SpiceUsbDeviceManager *manager;
+        manager = spice_usb_device_manager_get(session, NULL);
+        if (manager != NULL) {
+            g_object_set_property(G_OBJECT(manager),
+                                  "auto-connect-filter",
+                                  &value);
+        }
     } else if (g_str_equal(pspec->name, "title")) {
         g_object_set_property(G_OBJECT(app), "title", &value);
     } else if (g_str_equal(pspec->name, "display-flags")) {
@@ -641,16 +683,17 @@ spice_ctrl_listen_async_cb(GObject *object,
                            gpointer user_data)
 {
     GError *error = NULL;
+    VirtViewerApp *app = VIRT_VIEWER_APP(user_data);
 
     if (SPICE_CTRL_IS_CONTROLLER(object))
         spice_ctrl_controller_listen_finish(SPICE_CTRL_CONTROLLER(object), res, &error);
-    else if (SPICE_CTRL_IS_FOREIGN_MENU(object))
+    else if (SPICE_CTRL_IS_FOREIGN_MENU(object)) {
         spice_ctrl_foreign_menu_listen_finish(SPICE_CTRL_FOREIGN_MENU(object), res, &error);
-    else
+    } else
         g_warn_if_reached();
 
     if (error != NULL) {
-        virt_viewer_app_simple_message_dialog(VIRT_VIEWER_APP(user_data),
+        virt_viewer_app_simple_message_dialog(app,
                                               _("Controller connection failed: %s"),
                                               error->message);
         g_clear_error(&error);
@@ -701,7 +744,6 @@ remote_viewer_start(VirtViewerApp *app)
 
 #if HAVE_SPICE_GTK
     g_signal_connect(app, "notify", G_CALLBACK(app_notified), self);
-    g_object_notify(G_OBJECT(app), "has-focus");
 
     if (priv->controller) {
         if (virt_viewer_app_create_session(app, "spice") < 0) {
@@ -728,7 +770,7 @@ remote_viewer_start(VirtViewerApp *app)
         DEBUG_LOG("Opening display to %s", guri);
         g_object_set(app, "title", guri, NULL);
 
-        if (virt_viewer_util_extract_host(guri, &type, NULL, NULL, NULL, NULL) < 0) {
+        if (virt_viewer_util_extract_host(guri, &type, NULL, NULL, NULL, NULL) < 0 || type == NULL) {
             virt_viewer_app_simple_message_dialog(app, _("Cannot determine the connection type from URI"));
             goto cleanup;
         }

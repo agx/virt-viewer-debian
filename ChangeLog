@@ -1,3 +1,355 @@
+2012-05-15  Daniel P. Berrange  <berrange@redhat.com>
+
+	Avoid use of deprecated GTK3 pointer APIs
+	The gtk_widget_get_pointer() API is deprecated in GTK3 since it
+	is not aware of multiple pointers. Replace its usage in autoDrawer.c
+	with GdkDeviceManager and friends
+
+	Adapt to avoid use of deprecated GTK3 style & size APIs
+	The GtkStyle API has been deprecated in favour of GtkStyleContext.
+	Update ovBox.c to use the latter if building with GtK3. Also replace
+	use of the gtk_widget_size_request API with gtk_widget_get_preferred_size.
+
+2012-05-15  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	Release v0.5.3
+
+	nsis: fix .nsis file paths
+	- look up for icons under the DESTDIR directory
+	- don't ship gstaudiofx, unneeded
+	- add missing libtasn
+
+2012-05-14  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	dist: ship .ico in tarball
+	Some distros (a 4-letters) don't have icotool.
+	Let's ship the .ico in the tarball.
+
+	The build will fail if icoutil is not installed when
+	building from git or when the .ico is absent. The error
+	should be explicit.
+
+	nsis: IE policy to launch silentely remote-viewer
+	Add IE ElevationPolicy for the remote-viewer client.
+
+	http://msdn.microsoft.com/en-us/library/bb250462%28v=vs.85%29.aspx
+
+	nsis: fix removal of start menu directory
+
+2012-05-08  Daniel P. Berrange  <berrange@redhat.com>
+
+	Avoid race condition when disposing of app
+	When disposing of the VirtViewerApp, we free the hash table
+	containing the windows. This causes each window to be freed,
+	which in turn causes the visibility callback to be invoked.
+	This can then get NULL pointers from the self->priv->windows
+	usage.
+
+	Blank out priv->windows before unrefing the hashs and add
+	a check to ensure priv->windows is non-NULL.
+
+2012-05-04  Daniel P. Berrange  <berrange@redhat.com>
+
+	Ensure windows are destroyed when display closes
+	When running virt-viewer with the --reconnect argument, when
+	the session closes, the VirtViewerWindow instances were being
+	freed, but not the GtkWindow itself. So the orphaned window
+	stayed around doing nothing. The GtkBuilder instance was also
+	leaked.
+
+	Fix these two leaks & also add some debugging to help future
+	troubleshooting
+
+2012-05-02  Daniel P. Berrange  <berrange@redhat.com>
+
+	Change 'OK' button to 'Close' button in USB device selection
+	The USB device selection applies immediately, so the dialog
+	should be using 'Close' instead of 'OK' for its primary button
+
+2012-04-27  Christophe Fergeau  <cfergeau@redhat.com>
+
+	g_getenv returns a const string
+	When switching from getenv to g_getenv, 'doms' declaration
+	wasn't changed from char * to const char *, which causes
+	a gcc warning.
+
+2012-04-26  Daniel P. Berrange  <berrange@redhat.com>
+
+	Replace getenv/setenv with g_getenv/g_setenv for Win32 portability
+
+2012-04-25  Daniel P. Berrange  <berrange@redhat.com>
+
+	Add debugging when performing fullscreen auto-configuration
+
+	Refresh translations from transifex
+
+	Really fix debug output on glib >= 2.31
+
+	Fix debug output on glib >= 2.31
+
+2012-04-23  Daniel P. Berrange  <berrange@redhat.com>
+
+	Set the remote-viewer binary application name
+	Currently the window titles for remote-view have 'remote-viewer'
+	appended them. This is based off the argv[0] name. We should be
+	setting the GLib application name though, so we can get a localized
+	'Remote Viewer' string in the titlebar
+
+	Add support for raw IPv6 addresses in VNC & libvirt URIs
+	Support   vnc://[x:y:z:]:5901/  for raw IPv6 addresses in URIs,
+	and qemu+ssh://root@[x:y:x:]:22/ for raw IPv6 addresses in
+	libvirt URIs
+
+2012-04-19  Daniel P. Berrange  <berrange@redhat.com>
+
+	Fix scaling of window to avoid integer truncation
+	Use round() instead of integer truncation when scaling the window,
+	to avoid floating point precision problems on i386
+
+2012-04-18  Daniel P. Berrange  <berrange@redhat.com>
+
+	Add a desktop file for launching remote-viewer
+	Enable automagic handling of spice:// URLs in firefox by
+	registering a desktop handler for remote-viewer with the
+	SPICE URI scheme
+
+2012-04-17  Daniel P. Berrange  <berrange@redhat.com>
+
+	Give remote-viewer priority over spicec for spice-xpi-client
+
+	Add manpage docs for the --attach option
+
+	Fix manpage to s/--fullscreen/--full-screen/
+
+2012-04-17  Christophe Fergeau  <cfergeau@redhat.com>
+
+	Fix automatic usb redir through controller
+	remote-viewer is currently trying to use
+	SpiceUsbDeviceManager::auto-connect to control whether USB devices
+	should be automatically connected or not. However, this property
+	is more or less an internal spice-gtk property which is toggled
+	by SpiceGtkSession when the SPICE widget gets/loses focus.
+
+	SpiceGtkSession has an "auto-usbredir" property which can be used
+	by applications to enable/disable automatic usb redirection through
+	SPICE. Since this property is helpfully bound to
+	VirtViewerSession::auto-usbredir, use this when the controller
+	is told to enable/disable USB redirection.
+
+	Without this change, automatic USB redirection will always get reenabled
+	as soon as there's a focus change since SpiceGtkSession::auto-usbredir
+	defaults to be enabled in spice-gtk.
+
+2012-04-05  Daniel P. Berrange  <berrange@redhat.com>
+
+	Ensure windres & icotool are present on Win32 builds
+	Builds are failing with an obscure error message
+
+	make[3]: Entering directory `/var/lib/builder/source-root/virt-viewer/build/icons'
+	  GEN    virt-viewer.ico
+	/bin/sh: -c: command not found
+	make[3]: *** [virt-viewer.ico] Error 127
+
+	This is because configure.ac does not enforce that icotool
+	is present on Win32.
+
+	* configure.ac: Mandate windres & icotool on Win32
+
+	Require F17 for spice in RPM builds
+
+	Exclude windows-cmdline-wrapper.c from some syntax check rules
+
+	Add Yonit to authors file
+
+	Fix some syntax violations in git.mk
+
+2012-04-05  Zeeshan Ali (Khattak)  <zeeshanak@gnome.org>
+
+	Minor simplification/optimization of VirtViewerDisplay
+
+2012-04-04  Daniel P. Berrange  <berrange@redhat.com>
+
+	Fix typo in variable names for Win32 command helper
+
+	Fix close of VNC displays
+	When clicking the close button on a virt-viewer window with
+	a VNC session open, while the VNC session terminates, the
+	window does not go away.
+
+	The problem is that the virt_viewer_session_vnc_disconnected
+	method never gets invoked. The close button triggers a call
+	to virt_viewer_session_clear_displays which unrefs the
+	VirtViewerDisplayVnc instance. This in turn triggers a call
+	to gtk_container_destroy, which destroys all widgets it
+	contains, ie the VncDisplay * object.
+
+	With the VncDisplay object in its dispose phase, no signals
+	will ever be emitted, thus the 'vnc-disconnected' signal
+	never gets seen.
+
+	The design issue is that VirtViewerDisplayVnc is assuming
+	it owns the VncDisplay, whereas in fact the real owner is
+	the VirtViewerSessionVnc object.
+
+	The solution is to introduce a new virt_viewer_display_close
+	method which can be used to de-parent the widget before
+	VirtViewerDisplay is unref'd.
+
+	The VirtViewerSessionVnc object also needs to hold a full ref
+	on the VncDisplay object, not merely a floating reference
+
+	* virt-viewer-display-spice.c, virt-viewer-display.c,
+	  virt-viewer-display.h: Add virt_viewer_display_close
+	* virt-viewer-display-vnc.c: Deparent VNC widget in
+	  virt_viewer_display_close impl
+	* virt-viewer-session-vnc.c: Improve logging
+	* virt-viewer-session.c: Call virt_viewer_display_close
+	  before unrefing display
+	* virt-viewer-window.c: Improve logging
+
+2012-04-04  Christophe Fergeau  <cfergeau@redhat.com>
+
+	Propagate USB redirection controller messages
+
+2012-04-03  Yonit Halperin  <yhalperi@redhat.com>
+
+	Add support for the SPICE properties disable-effects & color-depth
+
+2012-04-03  Christophe Fergeau  <cfergeau@redhat.com>
+
+	build-sys: fix Windows specific LDFLAGS on non-mingw
+
+2012-04-02  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	nsis: fix a few missing icons
+
+	nsis: add the remote-viewer cmdline wrapper
+
+	remote-viewer: make it a GUI/windows application with hybrid console
+	If the application can attach to its parent console, redirect
+	input/output. So that will work nicely with the command line wrapper.
+
+	Add a Windows command line wrapper
+	Add a small command line wrapper, to be able to call GUI/windows application from the console
+
+2012-04-01  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	Disable mnemonics via gtk-enable-mnemonics settings
+	This has 2 advantages, and I can't figure any drawback:
+	- it fixes the issue of mnemonic hints being draw when pressing Alt
+	  key (character underlined), even when they were disabled.
+	- it simplifies the code :)
+
+	Disable menu items that would fail when there is no display
+
+	build-sys: simplify autogen.sh
+	It should support NOCONFIGURE=1 ./autogen.sh && mingw32-configure
+
+2012-03-30  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	build-sys: use git.mk to generate gitignore
+	This makefile is just fantastic, it forces you into good practices,
+	support various build targets (my windows builddir ignore the right
+	files etc..)
+
+	The more I use it, the more I like it.
+
+	win32: add a few Windows sepecific data
+	Add application icon and manifest
+
+	win32: clean-up the NSIS installer, allow user install
+
+	Fix recent --spice-controller regression, add error message
+	The current code will attempt to dereference args if
+	--spice-controller, even if args is NULL.
+
+	Let's not accept any extra argument/uri on the command line if using
+	the controller. Beside, the conditionnal block looks better outside of
+	the if condition.
+
+2012-03-29  Hans de Goede  <hdegoede@redhat.com>
+
+	usbredir: listen for device-error signal
+
+2012-03-29  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	remote-viewer: press Enter to connect in dialog
+
+	Remove unused variable i
+
+	remote-viewer: add a simple connection dialog
+	If the user doesn't provide URI, let's show a simple dialog to enter it.
+
+	Also save & list recently used URLs in that dialog.
+
+	Fix g_thread_init deprecation warning
+	Although the doc says it is only deprecated since >2.32, it's actually
+	>2.31 according to glib git log.
+
+2012-03-21  Marc-Andre Lureau  <marcandre.lureau@redhat.com>
+
+	Do not warn if the display is shown and not ready
+	Lower warning message to debug level. There are various racy ways it
+	ends up calling show_display although the display is not yet
+	ready. This is not such a big problem, although it would be nice to
+	handle this case better
+
+	Notify focus state when the foreign menu title is set
+	The current code only inform of focus state when the listener is ready.
+	spice-gtk controller code lacks signal when a client connects, but a
+	client will set the title when connected and send a notify signal.
+	Use this event to notify of application focus state.
+
+	Do not try to unref NULL menu
+
+	Don't leak foreign menu
+	The RemoveViewer object will have its own ref.
+
+2012-03-21  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	spice: handle switch-host event
+	Do not disconnect session when switching host (non-seamless migration
+	method).
+
+	Also, handle a bit better main channel events and do not disconnect on
+	unknown events, however raise unhandled event message to warning
+	level.
+
+	spice: remove usage of deprecated audio api
+
+	Display correct key bindings to release cursor
+	If the accels are enabled (with Spice controller custom bindings),
+	show the configured keybinding in the title bar.
+
+	spice: implement --fullscreen=auto-conf
+	- auto-conf is an optionnal argument to --fullscreen:
+	it will set the guest display configuration to match the client
+	display configuration, by sending the client monitors size and
+	position to capable guests.
+
+2012-03-18  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	Fix indentation
+
+2012-03-16  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	Do not crash so easily when given invalid uri
+	'remote-viewer foobar' shouldn't crash
+
+2012-03-13  Daniel P. Berrange  <berrange@redhat.com>
+
+	Updated translations
+
+2012-03-09  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	Make sure we call g_thread_init()
+	GThread is needed by spice-gtk
+
+	Notify of focus state when a client connects
+	The current code notifies the controller when the remote-viewer
+	application starts, but not when the client is connected. We should do
+	the later instead
+
 2012-03-09  Daniel P. Berrange  <berrange@redhat.com>
 
 	Update NEWS for 0.5.2 release
