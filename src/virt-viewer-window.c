@@ -112,7 +112,8 @@ static void
 virt_viewer_window_get_property (GObject *object, guint property_id,
                                  GValue *value, GParamSpec *pspec)
 {
-    VirtViewerWindowPrivate *priv = VIRT_VIEWER_WINDOW(object)->priv;
+    VirtViewerWindow *self = VIRT_VIEWER_WINDOW(object);
+    VirtViewerWindowPrivate *priv = self->priv;
 
     switch (property_id) {
     case PROP_SUBTITLE:
@@ -124,7 +125,7 @@ virt_viewer_window_get_property (GObject *object, guint property_id,
         break;
 
     case PROP_DISPLAY:
-        g_value_set_object(value, priv->display);
+        g_value_set_object(value, virt_viewer_window_get_display(self));
         break;
 
     case PROP_CONTAINER:
@@ -172,6 +173,8 @@ static void
 virt_viewer_window_dispose (GObject *object)
 {
     VirtViewerWindowPrivate *priv = VIRT_VIEWER_WINDOW(object)->priv;
+    GSList *it;
+
     G_OBJECT_CLASS (virt_viewer_window_parent_class)->dispose (object);
 
     if (priv->display) {
@@ -190,8 +193,16 @@ virt_viewer_window_dispose (GObject *object)
         priv->builder = NULL;
     }
 
+    for (it = priv->accel_list ; it != NULL ; it = it->next) {
+        g_object_unref(G_OBJECT(it->data));
+    }
+    g_slist_free(priv->accel_list);
+    priv->accel_list = NULL;
+
     g_free(priv->subtitle);
     priv->subtitle = NULL;
+
+    g_value_unset(&priv->accel_setting);
 }
 
 static void
@@ -422,6 +433,11 @@ virt_viewer_window_resize(VirtViewerWindow *self)
                                     gdk_screen_get_monitor_at_window
                                     (screen, gtk_widget_get_window(priv->window)),
                                     &fullscreen);
+
+    g_return_if_fail(fullscreen.height > 128);
+    g_return_if_fail(fullscreen.width > 128);
+    g_return_if_fail(desktopWidth > 0);
+    g_return_if_fail(desktopHeight > 0);
 
     desktopAspect = (double)desktopWidth / (double)desktopHeight;
     screenAspect = (double)(fullscreen.width - 128) / (double)(fullscreen.height - 128);
@@ -992,9 +1008,12 @@ display_show_hint(VirtViewerDisplay *display,
                   GParamSpec *pspec G_GNUC_UNUSED,
                   VirtViewerWindow *self)
 {
-    gboolean hint;
+    guint hint;
 
     g_object_get(display, "show-hint", &hint, NULL);
+
+    hint = (hint & VIRT_VIEWER_DISPLAY_SHOW_HINT_READY);
+
     gtk_widget_set_sensitive(GTK_WIDGET(gtk_builder_get_object(self->priv->builder, "menu-send")), hint);
     gtk_widget_set_sensitive(GTK_WIDGET(gtk_builder_get_object(self->priv->builder, "menu-file-screenshot")), hint);
     gtk_widget_set_sensitive(self->priv->toolbar_send_key, hint);
@@ -1021,21 +1040,25 @@ virt_viewer_window_set_display(VirtViewerWindow *self, VirtViewerDisplay *displa
         virt_viewer_display_set_zoom_level(VIRT_VIEWER_DISPLAY(priv->display), priv->zoomlevel);
         virt_viewer_display_set_auto_resize(VIRT_VIEWER_DISPLAY(priv->display), priv->auto_resize);
 
-        gtk_notebook_append_page(GTK_NOTEBOOK(priv->notebook), GTK_WIDGET(display), NULL);
         gtk_widget_show_all(GTK_WIDGET(display));
+        gtk_notebook_append_page(GTK_NOTEBOOK(priv->notebook), GTK_WIDGET(display), NULL);
+        /* switch back to non-display if not ready */
+        if (!(virt_viewer_display_get_show_hint(display) &
+              VIRT_VIEWER_DISPLAY_SHOW_HINT_READY))
+            gtk_notebook_set_current_page(GTK_NOTEBOOK(priv->notebook), 0);
 
-        g_signal_connect(display, "display-pointer-grab",
-                         G_CALLBACK(virt_viewer_window_pointer_grab), self);
-        g_signal_connect(display, "display-pointer-ungrab",
-                         G_CALLBACK(virt_viewer_window_pointer_ungrab), self);
-        g_signal_connect(display, "display-keyboard-grab",
-                         G_CALLBACK(virt_viewer_window_keyboard_grab), self);
-        g_signal_connect(display, "display-keyboard-ungrab",
-                         G_CALLBACK(virt_viewer_window_keyboard_ungrab), self);
-        g_signal_connect(display, "display-desktop-resize",
-                         G_CALLBACK(virt_viewer_window_desktop_resize), self);
-        g_signal_connect(display, "notify::show-hint",
-                         G_CALLBACK(display_show_hint), self);
+        virt_viewer_signal_connect_object(display, "display-pointer-grab",
+                                          G_CALLBACK(virt_viewer_window_pointer_grab), self, 0);
+        virt_viewer_signal_connect_object(display, "display-pointer-ungrab",
+                                          G_CALLBACK(virt_viewer_window_pointer_ungrab), self, 0);
+        virt_viewer_signal_connect_object(display, "display-keyboard-grab",
+                                          G_CALLBACK(virt_viewer_window_keyboard_grab), self, 0);
+        virt_viewer_signal_connect_object(display, "display-keyboard-ungrab",
+                                          G_CALLBACK(virt_viewer_window_keyboard_ungrab), self, 0);
+        virt_viewer_signal_connect_object(display, "display-desktop-resize",
+                                          G_CALLBACK(virt_viewer_window_desktop_resize), self, 0);
+        virt_viewer_signal_connect_object(display, "notify::show-hint",
+                                          G_CALLBACK(display_show_hint), self, 0);
     }
 }
 
@@ -1043,6 +1066,9 @@ void
 virt_viewer_window_show(VirtViewerWindow *self)
 {
     gtk_widget_show(self->priv->window);
+
+    if (self->priv->display)
+        virt_viewer_display_set_enabled(self->priv->display, TRUE);
 
     if (self->priv->desktop_resize_pending) {
         virt_viewer_window_resize(self);
@@ -1054,6 +1080,15 @@ void
 virt_viewer_window_hide(VirtViewerWindow *self)
 {
     gtk_widget_hide(self->priv->window);
+
+    if (self->priv->display) {
+        VirtViewerDisplay *display = self->priv->display;
+        guint nth;
+
+        g_object_get(display, "nth-display", &nth, NULL);
+        if (nth != 0)
+            virt_viewer_display_set_enabled(display, FALSE);
+    }
 }
 
 void
@@ -1085,6 +1120,14 @@ virt_viewer_window_get_builder(VirtViewerWindow *self)
     g_return_val_if_fail(VIRT_VIEWER_IS_WINDOW(self), NULL);
 
     return self->priv->builder;
+}
+
+VirtViewerDisplay*
+virt_viewer_window_get_display(VirtViewerWindow *self)
+{
+    g_return_val_if_fail(VIRT_VIEWER_WINDOW(self), FALSE);
+
+    return self->priv->display;
 }
 
 /*

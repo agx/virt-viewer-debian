@@ -1,3 +1,265 @@
+2012-09-17  Daniel P. Berrange  <berrange@redhat.com>
+
+	Update for 0.5.4 releae
+
+2012-09-14  Daniel P. Berrange  <berrange@redhat.com>
+
+	Use a more specific regex to fix enum include paths
+	Simply doing a search replace on $(srcdir) doesn't work very
+	well in non-VPATH builds. Use a more specific regex that won't
+	generate false matches
+
+	Look in builddir for icons & strip build dir prefix from enum file includs
+
+	Don't include generated icons in tar.gz and clean them up
+
+	Convert to use Mingw64 toolchain for Windows biulds
+
+2012-08-13  Christophe Fergeau  <cfergeau@redhat.com>
+
+	Document -f=auto-conf in remote-viewer --help
+	virt-viewer does not support -f=auto-conf so this does not change the
+	option there.
+	Fixes rhbz#718001
+
+2012-08-10  Christophe Fergeau  <cfergeau@redhat.com>
+
+	Use real binary name in help message
+	Now that we have 2 distinct binaries, remote-viewer and virt-viewer,
+	'PACKAGE' can no longer be used in error messages as the name of the
+	binary. This causes a small inconsistency when running
+	'remote-viewer --foobar' as the error message would be:
+	'Unknown option --foobar
+	Run 'virt-viewer --help' to see a full list of available command line options'
+
+	This commit makes sure we use argv[0] for this message.
+	Fixes rhbz#814150
+
+2012-07-23  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	Show status page by default if display not ready
+	Switch back to status page if display is not ready.
+
+	Make status widget visible immediately
+	GtkNotebook will use the currently visible widget as default page.
+	If we don't show status widget before we append the display, the
+	current page will be on display. Quoting Gtk+ documentation:
+
+	"Note that due to historical reasons, GtkNotebook refuses to switch to
+	a page unless the child widget is visible. Therefore, it is
+	recommended to show child widgets before adding them to a notebook."
+
+	vnc: when session is disconnected, make the display as non-ready
+
+	Simplify display flag handling
+
+	Add VirtViewerSession::session-display-updated
+	Rebuild menu when agent is connected. Only when the agent is running
+	may a display be enabled/disabled.
+
+	Make the display submenu insensitive if display can't be selected
+
+	spice: factor out main channel lookup code
+
+	Add VirtViewerDisplay::selectable property
+	This property will be set when the display can be selected to be
+	"enabled" and shown (this can involve creating/connecting an
+	additional guest monitor, and may need guest agent cooperation for
+	example).
+
+	Add virt_viewer_window_get_display()
+	Getter used in following changes.
+
+	Hook up handling of Monitors
+	Rely on spice-gtk display channel monitors property to manage
+	displays. The same display channel may now provide several monitors,
+	the SpiceDisplay widget must be told which monitor to display
+
+	Bump glib > 2.22, add compat file
+	We use API from 2.22, and some from further version. Add
+	virt-glib-compat.h fallback file for those.
+
+	Use SpiceDisplay:ready property instead of channel mark
+	The display can now check several conditions before the display can be
+	shown, use that instead of display mark, which was not high-level
+	enough.
+
+	Number display starting from 1
+
+	Prevent from adding the same display several time in the session
+	In virt_viewer_session_spice_display_monitors(), we (re)add the
+	display unconditionnaly every time we receive a new MonitorConfig.
+
+	Add a DISABLED display hint
+	This flag will help to track whether the display has been
+	removed/closed and whether it really has a valid display.
+
+	Ready in contrast, is used to "hide" temporarily the display (when
+	starting or redrawing the display, to avoid artifacts)
+
+	Use virt_viewer_connect_object() for display
+	When display is released, detach signal automatically.
+
+	Fix various crash related to not cleaning up signal handlers properly,
+	due to no longer 1-1 only relation between display widget and channel.
+
+	Rebuild display menu when a window is added or removed
+
+	Mark a menu string as translatable
+
+	Run-time check values before doing bad computation
+
+	Turn display:show-hint into flags type
+
+	Destroy dialog immediately after run
+	If the parent is already destroyed, it looks like the dialog is
+	destroyed too. This avoids a crash when calling app_quit().
+
+	build: generate enums type boilerplate
+
+	spice: disconnect signal handlers when either object is destroyed
+	Use virt_viewer_signal_connect_object(), a copy of telepathy
+	utility function tp_g_signal_connect_object(). This function
+	will take care of removing signal handler if any of emitter or
+	attached object are destroyed.
+
+	The following patches will have this condition met, since there is no
+	longer 1-1 relation between channel and display. The channels can
+	continue to be around when some of the display are removed.
+
+	spice: improve fullscreen=auto-conf
+	Do keep client monitor position, do not align monitors automatically.
+	The align property is only available since v0.12.101.
+
+2012-07-03  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	build: allow building with newer glibc-headers and -O0
+	    Fix copied from libvirt, commit by Eric Blake.
+
+	    glibc 2.15 (on Fedora 17) coupled with explicit disabling of
+	    optimization during development dies a painful death:
+
+	    /usr/include/features.h:314:4: error: #warning _FORTIFY_SOURCE requires compiling with optimization (-O) [-Werror=cpp]
+
+	    Work around this by only conditionally defining _FORTIFY_SOURCE,
+	    in the case where glibc can actually use it.  The trick is using
+	    AH_VERBATIM instead of AC_DEFINE.
+
+2012-06-15  Christophe Fergeau  <cfergeau@redhat.com>
+
+	Revert "Fix virt_viewer_app_activate return value"
+	This reverts commit 3ce6df7c309068f36e2602692da809a153ed5688. This
+	commit broke virt-viewer which expects this function to return -1
+	or 0 on error, and a positive value on success in
+	virt_viewer_initial_connect.
+
+2012-06-13  Christophe Fergeau  <cfergeau@redhat.com>
+
+	Fix virt_viewer_app_activate return value
+	VirtViewerApp::activate is expected to return -1 on errors.
+	It calls the VirtViewerSession::open_* methods, which return FALSE
+	on error. However, VirtViewerApp::activate directly returns these
+	boolean instead of testing the returned value and properly returning
+	-1 on errors. This caused errors in these open methodes to be ignored.
+
+	Fix various memory leaks
+	==25063== 59 bytes in 1 blocks are definitely lost in loss record 5,163 of 9,502
+	==25063==    at 0x4A0884D: malloc (vg_replace_malloc.c:263)
+	==25063==    by 0x3DE384D2BE: g_malloc (gmem.c:159)
+	==25063==    by 0x3DE3862D0B: g_strdup (gstrfuncs.c:356)
+	==25063==    by 0x41F40A: connected (remote-viewer-main.c:186)
+	==25063==    by 0x3DE400F663: g_closure_invoke (gclosure.c:777)
+	==25063==    by 0x3DE40206D7: signal_emit_unlocked_R (gsignal.c:3547)
+	==25063==    by 0x3DE402866C: g_signal_emit_valist (gsignal.c:3296)
+	==25063==    by 0x3DE4028CCF: g_signal_emit_by_name (gsignal.c:3389)
+	==25063==    by 0x41AA53: reemit_signal_VOID (virt-viewer-session-ovirt.c:211)
+	==25063==    by 0x3DE400F942: _g_closure_invoke_va (gclosure.c:840)
+	==25063==    by 0x3DE4027D87: g_signal_emit_valist (gsignal.c:3207)
+	==25063==    by 0x3DE4028CCF: g_signal_emit_by_name (gsignal.c:3389)
+
+	==25063== 14 bytes in 1 blocks are definitely lost in loss record 623 of 9,502
+	==25063==    at 0x4A0884D: malloc (vg_replace_malloc.c:263)
+	==25063==    by 0x34561092F7: __vasprintf_chk (vasprintf_chk.c:82)
+	==25063==    by 0x3DE3882F1A: g_vasprintf (stdio2.h:199)
+	==25063==    by 0x3DE3862EDC: g_strdup_vprintf (gstrfuncs.c:509)
+	==25063==    by 0x3DE3862F7B: g_strdup_printf (gstrfuncs.c:535)
+	==25063==    by 0x40CBAE: virt_viewer_app_update_pretty_address (virt-viewer-app.c:1538)
+	==25063==    by 0x40FB55: virt_viewer_app_free_connect_info (virt-viewer-app.c:1707)
+	==25063==    by 0x40FBE9: virt_viewer_app_dispose (virt-viewer-app.c:1291)
+	==25063==    by 0x3DE40144F7: g_object_unref (gobject.c:2981)
+	==25063==    by 0x40C31A: main (remote-viewer-main.c:336)
+
+	==25063== 10 bytes in 1 blocks are definitely lost in loss record 491 of 9,502
+	==25063==    at 0x4A0884D: malloc (vg_replace_malloc.c:263)
+	==25063==    by 0x34561092F7: __vasprintf_chk (vasprintf_chk.c:82)
+	==25063==    by 0x3DE3882F1A: g_vasprintf (stdio2.h:199)
+	==25063==    by 0x3DE3862EDC: g_strdup_vprintf (gstrfuncs.c:509)
+	==25063==    by 0x3DE3862F7B: g_strdup_printf (gstrfuncs.c:535)
+	==25063==    by 0x40DE36: window_update_menu_displays_cb (virt-viewer-app.c:1640)
+	==25063==    by 0x3DE383833F: g_hash_table_foreach (ghash.c:1524)
+	==25063==    by 0x3DE400F663: g_closure_invoke (gclosure.c:777)
+	==25063==    by 0x3DE40206D7: signal_emit_unlocked_R (gsignal.c:3547)
+	==25063==    by 0x3DE402866C: g_signal_emit_valist (gsignal.c:3296)
+	==25063==    by 0x3DE40287C1: g_signal_emit (gsignal.c:3352)
+	==25063==    by 0x5772F95: gtk_widget_show (gtkwidget.c:3225)
+
+	==25063== 8,431 (72 direct, 8,359 indirect) bytes in 1 blocks are definitely lost in loss record 9,468 of 9,502
+	==25063==    at 0x4A0884D: malloc (vg_replace_malloc.c:263)
+	==25063==    by 0x3DE384D2BE: g_malloc (gmem.c:159)
+	==25063==    by 0x3DE38616B1: g_slice_alloc (gslice.c:1003)
+	==25063==    by 0x3DE3861C05: g_slice_alloc0 (gslice.c:1029)
+	==25063==    by 0x3DE402F96F: g_type_create_instance (gtype.c:1872)
+	==25063==    by 0x3DE40147A7: g_object_constructor (gobject.c:1849)
+	==25063==    by 0x3DE4016260: g_object_newv (gobject.c:1632)
+	==25063==    by 0x3DE40168AB: g_object_new (gobject.c:1542)
+	==25063==    by 0x40C4BD: virt_viewer_util_load_ui (virt-viewer-util.c:41)
+	==25063==    by 0x40C7EB: virt_viewer_auth_collect_credentials (virt-viewer-auth.c:43)
+	==25063==    by 0x41B391: authenticate_cb (virt-viewer-session-ovirt.c:430)
+	==25063==    by 0x3458C05E8F: ffi_call_unix64 (unix64.S:75)
+
+	==25063== 32 (16 direct, 16 indirect) bytes in 1 blocks are definitely lost in loss record 3,962 of 9,502
+	==25063==    at 0x4A0884D: malloc (vg_replace_malloc.c:263)
+	==25063==    by 0x3DE384D2BE: g_malloc (gmem.c:159)
+	==25063==    by 0x3DE38616B1: g_slice_alloc (gslice.c:1003)
+	==25063==    by 0x3DE38629F2: g_slist_append (gslist.c:222)
+	==25063==    by 0x41483C: virt_viewer_window_init (virt-viewer-window.c:323)
+	==25063==    by 0x3DE402FA05: g_type_create_instance (gtype.c:1892)
+	==25063==    by 0x3DE40147A7: g_object_constructor (gobject.c:1849)
+	==25063==    by 0x3DE4015D70: g_object_newv (gobject.c:1713)
+	==25063==    by 0x3DE401655F: g_object_new_valist (gobject.c:1830)
+	==25063==    by 0x3DE4016893: g_object_new (gobject.c:1545)
+	==25063==    by 0x40DA34: virt_viewer_app_window_new (virt-viewer-app.c:590)
+	==25063==    by 0x40E300: virt_viewer_app_constructor (virt-viewer-app.c:1336)
+
+	==30355== 4 bytes in 1 blocks are definitely lost in loss record 53 of 9,267
+	==30355==    at 0x4A0884D: malloc (vg_replace_malloc.c:263)
+	==30355==    by 0x3DE384D2BE: g_malloc (gmem.c:159)
+	==30355==    by 0x3DE3862D0B: g_strdup (gstrfuncs.c:356)
+	==30355==    by 0x3DE40360FC: value_copy_string (gvaluetypes.c:276)
+	==30355==    by 0x3DE40340CA: g_value_transform (gvalue.c:535)
+	==30355==    by 0x3FDAE621DD: gdk_screen_get_setting (gdkevents-x11.c:3022)
+	==30355==    by 0x3FDB3C7415: gtk_settings_get_property (gtksettings.c:1152)
+	==30355==    by 0x3DE4017A74: g_object_get_property (gobject.c:1289)
+	==30355==    by 0x414991: virt_viewer_window_disable_modifiers (virt-viewer-window.c:616)
+	==30355==    by 0x415922: virt_viewer_window_keyboard_grab (virt-viewer-window.c:931)
+	==30355==    by 0x3DE400F942: _g_closure_invoke_va (gclosure.c:840)
+	==30355==    by 0x3DE4027D87: g_signal_emit_valist (gsignal.c:3207)
+
+	Don't leak SPICE ticket
+
+2012-05-17  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	spice: use weak references to display channel
+	Fix switch-host migration with Spice.
+
+	spice-gtk doesn't like channels staying around when they should be
+	destroyed/finalized, ie removed from session.
+
+	spice-gtk should probably learned to handle better the case of non
+	cooperating clients, and be able to dissociate a channel from a
+	session without waiting for it to be disposed, but for now, the
+	relation is quite tight.
+
 2012-05-15  Daniel P. Berrange  <berrange@redhat.com>
 
 	Avoid use of deprecated GTK3 pointer APIs

@@ -233,6 +233,16 @@ virt_viewer_session_class_init(VirtViewerSessionClass *class)
                  1,
                  VIRT_VIEWER_TYPE_DISPLAY);
 
+    g_signal_new("session-display-updated",
+                 G_OBJECT_CLASS_TYPE(object_class),
+                 G_SIGNAL_RUN_LAST | G_SIGNAL_NO_HOOKS,
+                 G_STRUCT_OFFSET(VirtViewerSessionClass, session_display_updated),
+                 NULL,
+                 NULL,
+                 g_cclosure_marshal_VOID__VOID,
+                 G_TYPE_NONE,
+                 0);
+
     g_signal_new("session-cut-text",
                  G_OBJECT_CLASS_TYPE(object_class),
                  G_SIGNAL_RUN_LAST | G_SIGNAL_NO_HOOKS,
@@ -282,6 +292,9 @@ virt_viewer_session_new(void)
 void virt_viewer_session_add_display(VirtViewerSession *session,
                                      VirtViewerDisplay *display)
 {
+    if (g_list_find(session->priv->displays, display))
+        return;
+
     session->priv->displays = g_list_append(session->priv->displays, display);
     g_object_ref(display);
     g_signal_emit_by_name(session, "session-display-added", display);

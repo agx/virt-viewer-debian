@@ -24,7 +24,7 @@
 %endif
 
 Name: virt-viewer
-Version: 0.5.3
+Version: 0.5.4
 Release: 1%{?dist}%{?extra_release}
 Summary: Virtual Machine Viewer
 Group: Applications/System
@@ -38,6 +38,7 @@ Requires(postun): %{_sbindir}/update-alternatives
 Requires(post): desktop-file-utils
 Requires(postun): desktop-file-utils
 
+BuildRequires: glib2-devel >= 2.22
 %if %{with_gtk3}
 BuildRequires: gtk3-devel >= 3.0.0
 %else
@@ -52,9 +53,9 @@ BuildRequires: gtk-vnc-devel >= 0.3.8
 %endif
 %if %{with_spice}
 %if %{with_gtk3}
-BuildRequires: spice-gtk3-devel >= 0.11
+BuildRequires: spice-gtk3-devel >= 0.12.101
 %else
-BuildRequires: spice-gtk-devel >= 0.11
+BuildRequires: spice-gtk-devel >= 0.12.101
 %endif
 BuildRequires: spice-protocol >= 0.10.1
 %endif

@@ -1,5 +1,5 @@
 
-AC_INIT(virt-viewer, 0.5.3)
+AC_INIT(virt-viewer, 0.5.4)
 AC_CONFIG_SRCDIR(src/virt-viewer-main.c)
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([build-aux])
@@ -12,14 +12,14 @@ AC_CANONICAL_HOST
 m4_ifndef([AM_SILENT_RULES], [m4_define([AM_SILENT_RULES],[])])
 AM_SILENT_RULES([yes])
 
-GLIB2_REQUIRED=2.12.0
+GLIB2_REQUIRED=2.22.0
 LIBXML2_REQUIRED="2.6.0"
 LIBVIRT_REQUIRED="0.9.7"
 GTK2_REQUIRED="2.18.0"
 GTK3_REQUIRED="3.0"
 GTK_VNC1_REQUIRED="0.3.8"
 GTK_VNC2_REQUIRED="0.4.0"
-SPICE_GTK_REQUIRED="0.11"
+SPICE_GTK_REQUIRED="0.12.101"
 SPICE_PROTOCOL_REQUIRED="0.10.1"
 
 AC_MSG_CHECKING([for native Win32])
@@ -72,6 +72,9 @@ AC_DEFINE_UNQUOTED([GETTEXT_PACKAGE],"$GETTEXT_PACKAGE", [GETTEXT package name])
 AM_GLIB_GNU_GETTEXT
 IT_PROG_INTLTOOL([0.35.0])
 
+PKG_PROG_PKG_CONFIG
+GLIB_MKENUMS=`$PKG_CONFIG --variable=glib_mkenums glib-2.0`
+AC_SUBST(GLIB_MKENUMS)
 
 PKG_CHECK_MODULES(GLIB2, glib-2.0 >= $GLIB2_REQUIRED gthread-2.0 gmodule-export-2.0)
 PKG_CHECK_MODULES(LIBXML2, libxml-2.0 >= $LIBXML2_REQUIRED)
@@ -201,7 +204,7 @@ AC_OUTPUT([
     icons/48x48/Makefile
     icons/256x256/Makefile
     man/Makefile
-    mingw32-virt-viewer.spec
+    mingw-virt-viewer.spec
     plugin/Makefile
     po/Makefile.in
     src/Makefile

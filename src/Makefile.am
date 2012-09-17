@@ -10,11 +10,31 @@ builderxml_DATA =				\
 	virt-viewer-auth.xml			\
 	$(NULL)
 
-EXTRA_DIST = $(builderxml_DATA) \
-	gbinding.c \
-	gbinding.h
+EXTRA_DIST =					\
+	$(builderxml_DATA)			\
+	virt-viewer-enums.c.etemplate		\
+	virt-viewer-enums.h.etemplate		\
+	gbinding.c				\
+	gbinding.h				\
+	$(NULL)
+
+ENUMS_FILES =					\
+	virt-viewer-display.h			\
+	$(NULL)
+
+BUILT_SOURCES =					\
+	virt-viewer-enums.h			\
+	virt-viewer-enums.c			\
+	$(NULL)
+
+$(BUILT_SOURCES): %: %.etemplate $(ENUMS_FILES)
+	$(AM_V_GEN)$(GLIB_MKENUMS) --template $^ | \
+            sed -e 's/VIRT_TYPE_VIEWER/VIRT_VIEWER_TYPE/' \
+                -e 's,#include "$(srcdir)/,#include ",' > $@
 
 COMMON_SOURCES =					\
+	$(BUILT_SOURCES)				\
+	virt-glib-compat.h				\
 	virt-gtk-compat.h				\
 	virt-viewer-util.h virt-viewer-util.c		\
 	virt-viewer-auth.h virt-viewer-auth.c		\
@@ -121,7 +141,7 @@ desktop_DATA = remote-viewer.desktop
 EXTRA_DIST += $(desktop_DATA)
 
 VIRT_VIEWER_RES = virt-viewer.rc virt-viewer.manifest
-ICONDIR = $(top_srcdir)/icons
+ICONDIR = $(top_builddir)/icons
 MANIFESTDIR = $(srcdir)
 EXTRA_DIST += $(VIRT_VIEWER_RES)
 

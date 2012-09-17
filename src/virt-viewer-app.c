@@ -283,6 +283,7 @@ virt_viewer_app_window_set_visible(VirtViewerApp *self,
                                         GTK_BUTTONS_OK_CANCEL,
                                         _("This is the last visible display. Do you want to quit?"));
             gint result = gtk_dialog_run (GTK_DIALOG (dialog));
+            gtk_widget_destroy(dialog);
             switch (result) {
             case GTK_RESPONSE_OK:
                 virt_viewer_app_quit(self);
@@ -290,7 +291,6 @@ virt_viewer_app_window_set_visible(VirtViewerApp *self,
             default:
                 break;
             }
-            gtk_widget_destroy(dialog);
             return FALSE;
         } else {
             virt_viewer_app_quit(self);
@@ -520,6 +520,7 @@ virt_viewer_app_remove_nth_window(VirtViewerApp *self, gint nth)
     DEBUG_LOG("Remove window %d %p", nth, win);
     removed = g_hash_table_steal(self->priv->windows, &nth);
     g_warn_if_fail(removed);
+    virt_viewer_app_update_menu_displays(self);
 
     if (removed)
         g_signal_emit(self, signals[SIGNAL_WINDOW_REMOVED], 0, win);
@@ -540,6 +541,7 @@ virt_viewer_app_set_nth_window(VirtViewerApp *self, gint nth, VirtViewerWindow *
     DEBUG_LOG("Insert window %d %p", nth, win);
     g_hash_table_insert(self->priv->windows, key, win);
     virt_viewer_app_set_window_subtitle(self, win, nth);
+    virt_viewer_app_update_menu_displays(self);
 
     g_signal_emit(self, signals[SIGNAL_WINDOW_ADDED], 0, win);
 }
@@ -609,7 +611,8 @@ display_show_hint(VirtViewerDisplay *display,
 {
     VirtViewerApp *self;
     VirtViewerNotebook *nb = virt_viewer_window_get_notebook(win);
-    gint nth, hint;
+    gint nth;
+    guint hint;
 
     g_object_get(win,
                  "app", &self,
@@ -619,15 +622,17 @@ display_show_hint(VirtViewerDisplay *display,
                  "show-hint", &hint,
                  NULL);
 
-    if (hint == VIRT_VIEWER_DISPLAY_SHOW_HINT_HIDE) {
+    if (hint & VIRT_VIEWER_DISPLAY_SHOW_HINT_DISABLED) {
+        virt_viewer_window_hide(win);
+    } else if (hint & VIRT_VIEWER_DISPLAY_SHOW_HINT_READY) {
+        virt_viewer_notebook_show_display(nb);
+        virt_viewer_window_show(win);
+        gtk_window_present(virt_viewer_window_get_window(win));
+    } else {
         if (win != self->priv->main_window &&
             g_getenv("VIRT_VIEWER_HIDE"))
             virt_viewer_window_hide(win);
         virt_viewer_notebook_show_status(nb, _("Waiting for display %d..."), nth + 1);
-    } else {
-        virt_viewer_notebook_show_display(nb);
-        virt_viewer_window_show(win);
-        gtk_window_present(virt_viewer_window_get_window(win));
     }
 
     g_object_unref(self);
@@ -656,8 +661,9 @@ virt_viewer_app_display_added(VirtViewerSession *session G_GNUC_UNUSED,
     }
 
     virt_viewer_window_set_display(window, display);
-    g_signal_connect(display, "notify::show-hint",
-                     G_CALLBACK(display_show_hint), window);
+    virt_viewer_app_update_menu_displays(self);
+    virt_viewer_signal_connect_object(display, "notify::show-hint",
+                                      G_CALLBACK(display_show_hint), window, 0);
     g_object_notify(G_OBJECT(display), "show-hint"); /* call display_show_hint */
 }
 
@@ -677,6 +683,13 @@ virt_viewer_app_display_removed(VirtViewerSession *session G_GNUC_UNUSED,
 
     if (nth != 0)
         virt_viewer_app_remove_nth_window(self, nth);
+}
+
+static void
+virt_viewer_app_display_updated(VirtViewerSession *session G_GNUC_UNUSED,
+                                VirtViewerApp *self)
+{
+    virt_viewer_app_update_menu_displays(self);
 }
 
 int
@@ -729,6 +742,8 @@ virt_viewer_app_create_session(VirtViewerApp *self, const gchar *type)
                      G_CALLBACK(virt_viewer_app_display_added), self);
     g_signal_connect(priv->session, "session-display-removed",
                      G_CALLBACK(virt_viewer_app_display_removed), self);
+    g_signal_connect(priv->session, "session-display-updated",
+                     G_CALLBACK(virt_viewer_app_display_updated), self);
 
     g_signal_connect(priv->session, "session-cut-text",
                      G_CALLBACK(virt_viewer_app_server_cut_text), self);
@@ -1273,6 +1288,15 @@ virt_viewer_app_dispose (GObject *object)
         priv->session = NULL;
     }
     g_free(priv->title);
+    priv->title = NULL;
+    g_free(priv->guest_name);
+    priv->guest_name = NULL;
+    g_free(priv->pretty_address);
+    priv->pretty_address = NULL;
+    g_free(priv->guri);
+    priv->guri = NULL;
+    g_free(priv->title);
+    priv->title = NULL;
 
     virt_viewer_app_free_connect_info(self);
 
@@ -1620,12 +1644,31 @@ window_update_menu_displays_cb(gpointer key G_GNUC_UNUSED,
     while (tmp) {
         int *nth = tmp->data;
         VirtViewerWindow *vwin = VIRT_VIEWER_WINDOW(g_hash_table_lookup(self->priv->windows, nth));
+        VirtViewerDisplay *display = virt_viewer_window_get_display(vwin);
         GtkWidget *item;
-        gboolean visible;
+        gboolean visible, sensitive = FALSE;
+        gchar *label;
 
-        item = gtk_check_menu_item_new_with_label(g_strdup_printf("Display %d", *nth));
+        label = g_strdup_printf(_("Display %d"), *nth + 1);
+        item = gtk_check_menu_item_new_with_label(label);
+        g_free(label);
+
         visible = gtk_widget_get_visible(GTK_WIDGET(virt_viewer_window_get_window(vwin)));
         gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(item), visible);
+
+        if (display) {
+            guint hint = virt_viewer_display_get_show_hint(display);
+
+            if (hint & VIRT_VIEWER_DISPLAY_SHOW_HINT_READY)
+                sensitive = TRUE;
+
+            if ((hint & VIRT_VIEWER_DISPLAY_SHOW_HINT_DISABLED) &&
+                virt_viewer_display_get_selectable(display))
+                sensitive = TRUE;
+        }
+
+        gtk_widget_set_sensitive(item, sensitive);
+
         g_signal_connect(G_OBJECT(item),
                          "toggled", G_CALLBACK(menu_display_visible_toggled_cb), vwin);
         gtk_menu_shell_append(submenu, item);
