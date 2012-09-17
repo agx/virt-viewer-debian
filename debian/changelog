@@ -1,3 +1,10 @@
+virt-viewer (0.5.4-1) unstable; urgency=low
+
+  * [e3fbded] Imported Upstream version 0.5.4
+  * [43b4d1e] Remove LDFLAGS override
+
+ -- Laurent Léonard <laurent@open-minds.org>  Mon, 17 Sep 2012 23:09:48 +0200
+
 virt-viewer (0.5.3-1) unstable; urgency=low
 
   * [7ef218a] Imported Upstream version 0.5.3
