@@ -3,6 +3,12 @@
 /* always defined to indicate that i18n is enabled */
 #undef ENABLE_NLS
 
+/* Enable compile-time and run-time bounds-checking, and some warnings. */
+                 #if defined __OPTIMIZE__ && __OPTIMIZE__
+                 # define _FORTIFY_SOURCE 2
+                 #endif
+                
+
 /* GETTEXT package name */
 #undef GETTEXT_PACKAGE
 

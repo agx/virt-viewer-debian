@@ -41,7 +41,7 @@ struct _VirtViewerDisplayPrivate
     guint zoom_level;
     gboolean zoom;
     gint nth_display;
-    gint show_hint;
+    guint show_hint;
     VirtViewerSession *session;
     gboolean auto_resize;
 };
@@ -80,6 +80,7 @@ enum {
     PROP_ZOOM_LEVEL,
     PROP_SHOW_HINT,
     PROP_SESSION,
+    PROP_SELECTABLE,
 };
 
 static void
@@ -151,13 +152,12 @@ virt_viewer_display_class_init(VirtViewerDisplayClass *class)
 
     g_object_class_install_property(object_class,
                                     PROP_SHOW_HINT,
-                                    g_param_spec_int("show-hint",
-                                                     "Show hint",
-                                                     "Show state hint",
-                                                     0,
-                                                     G_MAXINT32,
-                                                     0,
-                                                     G_PARAM_READABLE));
+                                    g_param_spec_flags("show-hint",
+                                                       "Show hint",
+                                                       "Show state hint",
+                                                       VIRT_VIEWER_TYPE_DISPLAY_SHOW_HINT_FLAGS,
+                                                       0,
+                                                       G_PARAM_READABLE));
 
     g_object_class_install_property(object_class,
                                     PROP_SESSION,
@@ -168,6 +168,13 @@ virt_viewer_display_class_init(VirtViewerDisplayClass *class)
                                                         G_PARAM_READWRITE |
                                                         G_PARAM_CONSTRUCT_ONLY));
 
+    g_object_class_install_property(object_class,
+                                    PROP_SELECTABLE,
+                                    g_param_spec_boolean("selectable",
+                                                         "Selectable",
+                                                         "Selectable",
+                                                         FALSE,
+                                                         G_PARAM_READABLE));
 
     g_signal_new("display-pointer-grab",
                  G_OBJECT_CLASS_TYPE(object_class),
@@ -298,10 +305,13 @@ virt_viewer_display_get_property(GObject *object,
         g_value_set_int(value, priv->nth_display);
         break;
     case PROP_SHOW_HINT:
-        g_value_set_int(value, priv->show_hint);
+        g_value_set_flags(value, priv->show_hint);
         break;
     case PROP_SESSION:
         g_value_set_object(value, virt_viewer_display_get_session(display));
+        break;
+    case PROP_SELECTABLE:
+        g_value_set_boolean(value, virt_viewer_display_get_selectable(display));
         break;
 
     default:
@@ -404,6 +414,10 @@ virt_viewer_display_size_allocate(GtkWidget *widget,
     DEBUG_LOG("Allocated %dx%d", allocation->width, allocation->height);
     gtk_widget_set_allocation(widget, allocation);
 
+    if (priv->desktopWidth == 0 ||
+        priv->desktopHeight == 0)
+        goto end;
+
     desktopAspect = (double)priv->desktopWidth / (double)priv->desktopHeight;
 
     if (child && gtk_widget_get_visible(child)) {
@@ -428,7 +442,7 @@ virt_viewer_display_size_allocate(GtkWidget *widget,
         gtk_widget_size_allocate(child, &child_allocation);
     }
 
-
+end:
     /* This unsets the size request, so that the user can
      * manually resize the window smaller again
      */
@@ -530,17 +544,39 @@ GdkPixbuf* virt_viewer_display_get_pixbuf(VirtViewerDisplay *display)
     return VIRT_VIEWER_DISPLAY_GET_CLASS(display)->get_pixbuf(display);
 }
 
-void virt_viewer_display_set_show_hint(VirtViewerDisplay *self, gint hint)
+guint virt_viewer_display_get_show_hint(VirtViewerDisplay *self)
+{
+    g_return_val_if_fail(VIRT_VIEWER_IS_DISPLAY(self), 0);
+
+    return self->priv->show_hint;
+}
+
+void virt_viewer_display_set_show_hint(VirtViewerDisplay *self, guint mask, gboolean enable)
 {
     VirtViewerDisplayPrivate *priv;
+    guint hint;
     g_return_if_fail(VIRT_VIEWER_IS_DISPLAY(self));
 
     priv = self->priv;
+    hint = priv->show_hint;
+
+    if (enable)
+        hint |= mask;
+    else
+        hint &= ~mask;
+
     if (priv->show_hint == hint)
         return;
 
     priv->show_hint = hint;
     g_object_notify(G_OBJECT(self), "show-hint");
+}
+
+void virt_viewer_display_set_enabled(VirtViewerDisplay *self, gboolean enabled)
+{
+    g_return_if_fail(VIRT_VIEWER_IS_DISPLAY(self));
+
+    virt_viewer_display_set_show_hint(self, VIRT_VIEWER_DISPLAY_SHOW_HINT_DISABLED, !enabled);
 }
 
 VirtViewerSession* virt_viewer_display_get_session(VirtViewerDisplay *self)
@@ -576,6 +612,18 @@ void virt_viewer_display_release_cursor(VirtViewerDisplay *self)
     klass->release_cursor(self);
 }
 
+gboolean virt_viewer_display_get_selectable(VirtViewerDisplay *self)
+{
+    VirtViewerDisplayClass *klass;
+
+    g_return_val_if_fail(VIRT_VIEWER_IS_DISPLAY(self), FALSE);
+
+    klass = VIRT_VIEWER_DISPLAY_GET_CLASS(self);
+    if (klass->selectable)
+        return klass->selectable(self);
+
+    return TRUE;
+}
 
 void virt_viewer_display_close(VirtViewerDisplay *self)
 {

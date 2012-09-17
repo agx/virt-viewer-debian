@@ -25,6 +25,7 @@
 #define _VIRT_VIEWER_DISPLAY_H
 
 #include <gtk/gtk.h>
+#include "virt-viewer-enums.h"
 
 G_BEGIN_DECLS
 
@@ -54,10 +55,10 @@ typedef struct _VirtViewerDisplayPrivate VirtViewerDisplayPrivate;
 
 typedef struct _VirtViewerDisplayChannel VirtViewerDisplayChannel;
 
-enum {
-    VIRT_VIEWER_DISPLAY_SHOW_HINT_HIDE = 0,
-    VIRT_VIEWER_DISPLAY_SHOW_HINT_READY,
-};
+typedef enum {
+    VIRT_VIEWER_DISPLAY_SHOW_HINT_READY            = 1 << 0,
+    VIRT_VIEWER_DISPLAY_SHOW_HINT_DISABLED         = 1 << 1,
+} VirtViewerDisplayShowHintFlags;
 
 /* perhaps this become an interface, and be pushed in gtkvnc and spice? */
 struct _VirtViewerDisplay {
@@ -76,6 +77,7 @@ struct _VirtViewerDisplayClass {
     void (*release_cursor)(VirtViewerDisplay *display);
 
     void (*close)(VirtViewerDisplay *display);
+    gboolean (*selectable)(VirtViewerDisplay *display);
 
     /* signals */
     void (*display_pointer_grab)(VirtViewerDisplay *display);
@@ -108,13 +110,16 @@ gboolean virt_viewer_display_get_zoom(VirtViewerDisplay *display);
 void virt_viewer_display_send_keys(VirtViewerDisplay *display,
                                    const guint *keyvals, int nkeyvals);
 GdkPixbuf* virt_viewer_display_get_pixbuf(VirtViewerDisplay *display);
-void virt_viewer_display_set_show_hint(VirtViewerDisplay *display, gint hint);
+void virt_viewer_display_set_show_hint(VirtViewerDisplay *display, guint mask, gboolean enable);
+guint virt_viewer_display_get_show_hint(VirtViewerDisplay *display);
 VirtViewerSession* virt_viewer_display_get_session(VirtViewerDisplay *display);
 void virt_viewer_display_set_auto_resize(VirtViewerDisplay *display, gboolean auto_resize);
 gboolean virt_viewer_display_get_auto_resize(VirtViewerDisplay *display);
 void virt_viewer_display_release_cursor(VirtViewerDisplay *display);
 
 void virt_viewer_display_close(VirtViewerDisplay *display);
+void virt_viewer_display_set_enabled(VirtViewerDisplay *display, gboolean enabled);
+gboolean virt_viewer_display_get_selectable(VirtViewerDisplay *display);
 
 G_END_DECLS
 
