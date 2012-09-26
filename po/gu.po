@@ -1,65 +1,334 @@
-# translation of virt-viewer.tip.virt-viewer.po to Gujarati
+# SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # 
-# Sweta Kothari <swkothar@redhat.com>, 2010.
+# Translators:
+# Sweta Kothari <swkothar@redhat.com>, 2010, 2012.
 msgid ""
 msgstr ""
-"Project-Id-Version: virt-viewer.tip.virt-viewer\n"
+"Project-Id-Version: virt-viewer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-07-21 21:23+0000\n"
-"PO-Revision-Date: 2010-01-21 14:19+0530\n"
-"Last-Translator: Sweta Kothari <swkothar@redhat.com>\n"
-"Language-Team: Gujarati\n"
+"POT-Creation-Date: 2012-04-25 15:50+0100\n"
+"PO-Revision-Date: 2012-04-25 14:50+0000\n"
+"Last-Translator: Daniel Berrange <dan-transifex@berrange.com>\n"
+"Language-Team: Gujarati <trans-gu@lists.fedoraproject.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n!=1);\n"
-"X-Generator: KBabel 1.11.4\n"
+"Language: gu\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
 
-#: ../src/main.c:34
+#: ../src/gbinding.c:637
+msgid "Source"
+msgstr "સ્ત્રોત"
+
+#: ../src/gbinding.c:638
+msgid "The source of the binding"
+msgstr "બાઇન્ડીંગનુ સ્ત્રોત"
+
+#: ../src/gbinding.c:652
+msgid "Target"
+msgstr "લક્ષ્ય"
+
+#: ../src/gbinding.c:653
+msgid "The target of the binding"
+msgstr "બાઇન્ડીંગનુ લક્ષ્ય"
+
+#: ../src/gbinding.c:668
+msgid "Source Property"
+msgstr "સ્ત્રોત ગુણધર્મ"
+
+#: ../src/gbinding.c:669
+msgid "The property on the source to bind"
+msgstr "બાઇન્ડ કરવા માટે સ્ત્રોત પર ગુણધર્મ"
+
+#: ../src/gbinding.c:684
+msgid "Target Property"
+msgstr "લક્ષ્ય ગુણધર્મ"
+
+#: ../src/gbinding.c:685
+msgid "The property on the target to bind"
+msgstr "બાઇન્ડ કરવા માટે લક્ષ્ય પર ગુણધર્મ"
+
+#: ../src/gbinding.c:699
+msgid "Flags"
+msgstr "ફ્લેગ"
+
+#: ../src/gbinding.c:700
+msgid "The binding flags"
+msgstr "બાઇન્ડિંગ ફ્લેગ"
+
+#: ../src/remote-viewer-main.c:47
+#, c-format
+msgid "remote-viewer version %s\n"
+msgstr "remote-viewer આવૃત્તિ %s\n"
+
+#: ../src/remote-viewer-main.c:69
+#, c-format
+msgid "Invalid full-screen argument: %s"
+msgstr ""
+
+#. Create the widgets
+#: ../src/remote-viewer-main.c:104
+msgid "Connection details"
+msgstr ""
+
+#: ../src/remote-viewer-main.c:119
+msgid "URL:"
+msgstr ""
+
+#: ../src/remote-viewer-main.c:127
+msgid "Recent connections:"
+msgstr ""
+
+#: ../src/remote-viewer-main.c:206 ../src/virt-viewer-main.c:60
+msgid "Run '"
+msgstr "ચલાવો '"
+
+#: ../src/remote-viewer-main.c:209 ../src/virt-viewer-main.c:63
+msgid "Display version information"
+msgstr "આવૃત્તિ જાણકારીને બતાવો"
+
+#: ../src/remote-viewer-main.c:211 ../src/virt-viewer-main.c:65
+msgid "Display verbose information"
+msgstr "વર્બોસ જાણકારીને બતાવો"
+
+#: ../src/remote-viewer-main.c:213 ../src/virt-viewer-main.c:67
+msgid "Direct connection with no automatic tunnels"
+msgstr "સ્વયંસંચાલિત ટનલ સાથે સીધુ જોડાણ નથી"
+
+#: ../src/remote-viewer-main.c:215 ../src/virt-viewer-main.c:77
+msgid "Zoom level of window, in percentage"
+msgstr "નાનામોટાપણાનું સ્તર, ટકામાં"
+
+#: ../src/remote-viewer-main.c:217 ../src/virt-viewer-main.c:79
+msgid "Display debugging information"
+msgstr "ડિબગીંગ જાણકારીને બતાવો"
+
+#: ../src/remote-viewer-main.c:219
+msgid "Open in full screen mode (=<auto-conf>)"
+msgstr ""
+
+#: ../src/remote-viewer-main.c:222
+msgid "Open connection using Spice controller communication"
+msgstr "Spice નિયંત્રક વાર્તાલાપની મદદથી જોડાણને ખોલો"
+
+#: ../src/remote-viewer-main.c:249
+msgid "Remote Viewer"
+msgstr ""
+
+#. Setup command line options
+#: ../src/remote-viewer-main.c:252
+msgid "- Remote viewer client"
+msgstr "- દૂરસ્થ દર્શક ક્લાયન્ટ"
+
+#: ../src/remote-viewer-main.c:275
+#, c-format
+msgid "Error: extra arguments given while using Spice controller\n"
+msgstr ""
+
+#: ../src/remote-viewer-main.c:284
+#, c-format
+msgid "Error: can't handle multiple URIs\n"
+msgstr ""
+
+#: ../src/remote-viewer-main.c:291 ../src/virt-viewer-main.c:125
+#, c-format
+msgid "Zoom level must be within 10-200\n"
+msgstr "નાનુંમોટુ કરવાનું સ્તર 10-200 માં હોવુ જ જોઇએ\n"
+
+#: ../src/remote-viewer.c:237 ../src/remote-viewer.c:784
+msgid "Failed to initiate connection"
+msgstr "જોડાણને પ્રારંભ કરવાનુ નિષ્ફળ"
+
+#: ../src/remote-viewer.c:250
+msgid "Display disabled by controller"
+msgstr "નિયંત્રક દ્દારા નિષ્ક્રિય થયેલ બતાવો"
+
+#: ../src/remote-viewer.c:697
+#, c-format
+msgid "Controller connection failed: %s"
+msgstr "નિયંત્રક જોડાણ નિષ્ફળ: %s"
+
+#: ../src/remote-viewer.c:750
+msgid "Couldn't create a Spice session"
+msgstr "Spice સત્રને બનાવી શક્યા નહિં"
+
+#: ../src/remote-viewer.c:764
+msgid "Setting up Spice session..."
+msgstr "Spice સત્રને સુયોજિત કરી રહ્યા છે..."
+
+#: ../src/remote-viewer.c:774
+msgid "Cannot determine the connection type from URI"
+msgstr "URI માંથી જોડાણ પ્રકારને નક્કી કરી શકાતુ નથી"
+
+#: ../src/remote-viewer.c:779
+#, c-format
+msgid "Couldn't create a session for this type: %s"
+msgstr "આ પ્રકાર માટે સત્રને બનાવી શક્યા નહિં: %s"
+
+#. * Local variables:
+#. *  c-indent-level: 4
+#. *  c-basic-offset: 4
+#. *  indent-tabs-mode: nil
+#. * End:
+#. 
+#: ../src/virt-viewer-about.xml.h:1
+msgid "A remote desktop client built with GTK-VNC, SPICE-GTK and libvirt"
+msgstr "GTK-VNC, SPICE-GTK અને libvirt સાથે દૂરસ્થ ડેસ્કટોપ ક્લાયન્ટને બનાવેલ છે"
+
+#: ../src/virt-viewer-about.xml.h:2
+msgid "About Glade"
+msgstr "ગલૅડ વિશે"
+
+#: ../src/virt-viewer-about.xml.h:3
+msgid ""
+"Copyright (C) 2007-2012 Daniel P. Berrange\n"
+"Copyright (C) 2007-2012 Red Hat, Inc."
+msgstr "Copyright (C) 2007-2012 Daniel P. Berrange\nCopyright (C) 2007-2012 Red Hat, Inc."
+
+#: ../src/virt-viewer-about.xml.h:5
+msgid "The Fedora Translation Team"
+msgstr "Fedora અનુવાદ ટીમ"
+
+#: ../src/virt-viewer-about.xml.h:6
+msgid ""
+"This program is free software; you can redistribute it and/or modify\n"
+"it under the terms of the GNU General Public License as published by\n"
+"the Free Software Foundation; either version 2 of the License, or\n"
+"(at your option) any later version.\n"
+"\n"
+"This program is distributed in the hope that it will be useful,\n"
+"but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+"MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
+"GNU General Public License for more details.\n"
+"\n"
+"You should have received a copy of the GNU General Public License\n"
+"along with this program; if not, write to the Free Software\n"
+"Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA\n"
+msgstr "This program is free software; you can redistribute it and/or modify\nit under the terms of the GNU General Public License as published by\nthe Free Software Foundation; either version 2 of the License, or\n(at your option) any later version.\n\nThis program is distributed in the hope that it will be useful,\nbut WITHOUT ANY WARRANTY; without even the implied warranty of\nMERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\nGNU General Public License for more details.\n\nYou should have received a copy of the GNU General Public License\nalong with this program; if not, write to the Free Software\nFoundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA\n"
+
+#: ../src/virt-viewer-about.xml.h:20
+msgid "virt-manager.org"
+msgstr "virt-manager.org"
+
+#: ../src/virt-viewer-app.c:284
+msgid "This is the last visible display. Do you want to quit?"
+msgstr "આ છેલ્લુ દૃશ્યમાન દર્શાવ છે. શું તમે બહાર નીકળવા માંગો છો?"
+
+#: ../src/virt-viewer-app.c:624
+#, c-format
+msgid "Waiting for display %d..."
+msgstr "%d ને દર્શાવવા માટે રાહ જોઇ રહ્યા છે..."
+
+#: ../src/virt-viewer-app.c:707
+#, c-format
+msgid "Unknown graphic type for the guest %s"
+msgstr "મહેમાન %s માટે અજ્ઞાત ગ્રાફિક પ્રકાર"
+
+#: ../src/virt-viewer-app.c:782
+msgid "Connect to ssh failed."
+msgstr "ssh સાથે જોડાવાનું નિષ્ફળ."
+
+#: ../src/virt-viewer-app.c:784
+msgid "Can't connect to channel, SSH only supported."
+msgstr "ચેનલમાં જોડાઇ શકતા નથી, SSH ફક્ત આધારભૂત છે."
+
+#: ../src/virt-viewer-app.c:796
+msgid "Connect to channel unsupported."
+msgstr "ચેનલમાં જોડાવાનુ બિનઆધારભૂત છે."
+
+#: ../src/virt-viewer-app.c:876
+msgid "Connecting to graphic server"
+msgstr "ગ્રાફિક સર્વરમાં જોડાઇ રહ્યા છે"
+
+#: ../src/virt-viewer-app.c:1006
+msgid "Guest domain has shutdown"
+msgstr "મહેમાન ડોમેઇન બંધ થઇ ગયો"
+
+#: ../src/virt-viewer-app.c:1056
+msgid "Connected to graphic server"
+msgstr "ગ્રાફિક સર્વરમાં જોડાયેલ છે"
+
+#: ../src/virt-viewer-app.c:1082
+#, c-format
+msgid "Unable to connect to the graphic server %s"
+msgstr "ગ્રાફિક સર્વર %s માં જોડાવામાં અસમર્થ"
+
+#: ../src/virt-viewer-app.c:1111
+#, c-format
+msgid ""
+"Unable to authenticate with remote desktop server at %s: %s\n"
+"Retry connection again?"
+msgstr "%s પર દૂરસ્થ ડેસ્કટોપ સાથે સત્તાધિકરણ કરવાનું અસમર્થ: %s\nફરીથી જોડાણનો પુન:પ્રયત્ન કરો?"
+
+#: ../src/virt-viewer-app.c:1131
+#, c-format
+msgid "Unable to authenticate with remote desktop server: %s"
+msgstr "દૂરસ્થ ડેસ્કટોપ સર્વર સાથે સત્તાધિકરણ કરવાનું અસમર્થ: %s"
+
+#: ../src/virt-viewer-app.c:1139
+#, c-format
+msgid "USB redirection error: %s"
+msgstr "USB પુનર્નિર્દેશન ભૂલ: %s"
+
+#. * Local variables:
+#. *  c-indent-level: 4
+#. *  c-basic-offset: 4
+#. *  indent-tabs-mode: nil
+#. * End:
+#. 
+#: ../src/virt-viewer-auth.xml.h:1
+msgid "Authentication required"
+msgstr "સત્તાધિકરણ જરૂરી છે"
+
+#: ../src/virt-viewer-auth.xml.h:2
+msgid "Password:"
+msgstr "પાસવર્ડ:"
+
+#: ../src/virt-viewer-auth.xml.h:3
+msgid "Username:"
+msgstr "વપરાશકર્તાનામ:"
+
+#: ../src/virt-viewer-auth.xml.h:4
+msgid "label"
+msgstr "લેબલ"
+
+#: ../src/virt-viewer-main.c:38
 #, c-format
 msgid "%s version %s\n"
 msgstr "%s આવૃત્તિ %s\n"
 
-#: ../src/main.c:53
-msgid "Run '"
-msgstr "ચલાવો '"
+#: ../src/virt-viewer-main.c:69
+msgid "Attach to the local display using libvirt"
+msgstr "libvirt ની મદદથી સ્થાનિક દર્શાવ સાથે જોડાવો"
 
-#: ../src/main.c:56
-msgid "display version information"
-msgstr "આવૃત્તિ જાણકારીને દર્શાવો"
+#: ../src/virt-viewer-main.c:71
+msgid "Connect to hypervisor"
+msgstr "હાઇપરવિઝરમાં જોડાવો"
 
-#: ../src/main.c:58
-msgid "display verbose information"
-msgstr "વર્બોઝ જાણકારી ને દર્શાવો"
+#: ../src/virt-viewer-main.c:73
+msgid "Wait for domain to start"
+msgstr "શરૂ કરવા ડોમેઇન માટે રાહ જુઓ"
 
-#: ../src/main.c:60
-msgid "direct connection with no automatic tunnels"
-msgstr "સીધુ જોડાણ સ્વયંચાલિત ટનલો સાથે નથી"
+#: ../src/virt-viewer-main.c:75
+msgid "Reconnect to domain upon restart"
+msgstr "પુનઃશરૂ કરવા પર ડોમેઇન પુનઃજોડાણ"
 
-#: ../src/main.c:62
-msgid "connect to hypervisor"
-msgstr "હાઇપરવિઝર સાથે જોડાવો"
+#: ../src/virt-viewer-main.c:81
+msgid "Open in full screen mode"
+msgstr "સંપૂર્ણ સ્ક્રીન સ્થિતિમાં ખોલો"
 
-#: ../src/main.c:64
-msgid "wait for domain to start"
-msgstr "શરૂ કરવા માટે ડોમેઇન માટે થોભો"
-
-#: ../src/main.c:66
-msgid "reconnect to domain upon restart"
-msgstr "પુન:શરૂ કરવા પર ડોમેઇન સાથે પુન:જોડાવો"
-
-#: ../src/main.c:70
-msgid "display debugging information"
-msgstr "ડિબગીંગ જાણકારીને દર્શાવો"
+#: ../src/virt-viewer-main.c:96
+msgid "Virt Viewer"
+msgstr "Virt Viewer"
 
 #. Setup command line options
-#: ../src/main.c:82
+#: ../src/virt-viewer-main.c:99
 msgid "- Virtual machine graphical console"
 msgstr "- વર્ચ્યુઅલ મશીન ગ્રાફિકલ કન્સોલ"
 
-#: ../src/main.c:98
+#: ../src/virt-viewer-main.c:120
 #, c-format
 msgid ""
 "\n"
@@ -67,252 +336,223 @@ msgid ""
 "\n"
 "%s\n"
 "\n"
+msgstr "\nવપરાશ: %s [OPTIONS] DOMAIN-NAME|ID|UUID\n\n%s\n\n"
+
+#. Create the widgets
+#: ../src/virt-viewer-session-spice.c:380
+msgid "Select USB devices for redirection"
+msgstr "પુનર્નિર્દેશન માટે USB ઉપકરણોને પસંદ કરો"
+
+#: ../src/virt-viewer-session-vnc.c:141
+#, c-format
+msgid "Unsupported authentication type %d"
+msgstr "બિનઆધારભૂત સત્તાધિકરણ પ્રકાર %d"
+
+#: ../src/virt-viewer-window.c:832
+msgid "Disconnect"
+msgstr "જોડાણ તોડી નાંખો"
+
+#: ../src/virt-viewer-window.c:839 ../src/virt-viewer-window.c:840
+#: ../src/virt-viewer.xml.h:22
+msgid "USB device selection"
+msgstr "USB ઉપકરણ પસંદગી"
+
+#: ../src/virt-viewer-window.c:848
+msgid "Send key combination"
 msgstr ""
-"\n"
-"વપરાશ: %s [OPTIONS] DOMAIN-NAME|ID|UUID\n"
-"\n"
-"%s\n"
-"\n"
 
-#: ../src/viewer.c:909
-#, c-format
-msgid "Cannot determine the VNC port for the guest %s"
-msgstr "મહેમાન %s માટે VNC પોર્ટને નક્કી કરી શકાતુ નથી"
+#: ../src/virt-viewer-window.c:857 ../src/virt-viewer-window.c:858
+msgid "Leave fullscreen"
+msgstr "પૂર્ણસ્ક્રીન છોડો"
 
-#: ../src/viewer.c:915
-#, c-format
-msgid "Cannot determine the VNC host for the guest %s"
-msgstr "મહેમાન %s માટે VNC યજમાનને નક્કી કરી શકાતુ નથી"
-
-#: ../src/viewer.c:1015
-#, c-format
-msgid "Unable to connect to the VNC server %s"
-msgstr "VNC સર્વર %s સાથે જોડાવાનું અસમર્થ"
-
-#: ../src/viewer.c:1032
-#, c-format
-msgid ""
-"Unable to authenticate with VNC server at %s: %s\n"
-"Retry connection again?"
+#: ../src/virt-viewer-window.c:937
+msgid "Ctrl+Alt"
 msgstr ""
-"%s પર VNC સર્વર સાથે સત્તાધિકરણ કરવાનું અસમર્થ: %s\n"
-"ફરીથી જોડાણનો પુન:પ્રયત્ન કરો?"
 
-#: ../src/viewer.c:1050
+#: ../src/virt-viewer-window.c:940
 #, c-format
-msgid ""
-"Unable to authenticate with VNC server at %s\n"
-"Unsupported authentication type %d"
+msgid "(Press %s to release pointer)"
 msgstr ""
-"%s પર VNC સર્વર સાથે સત્તાધિકરણ કરવાનુ અસમર્થ\n"
-"બિનઆધારભૂત સત્તાધિકરણ પ્રકાર %d"
 
-#: ../src/viewer.c:1142
+#. translators:
+#. * This is "<ungrab (or empty)><space (or empty)><subtitle (or empty)> -
+#. <appname>"
+#. * Such as: "(Press Ctrl+Alt to release pointer) BigCorpTycoon MOTD - Virt
+#. Viewer"
+#. 
+#: ../src/virt-viewer-window.c:951
+#, c-format
+msgid "%s%s%s - %s"
+msgstr "%s%s%s - %s"
+
+#. translators: <space>
+#: ../src/virt-viewer-window.c:955
+msgid " "
+msgstr " "
+
+#: ../src/virt-viewer.c:144
+msgid "Waiting for guest domain to re-start"
+msgstr "પુન:શરૂ કરવા માટે મહેમાન ડોમેઇન માટે રાહ જોઇ રહ્યા છે"
+
+#: ../src/virt-viewer.c:308
+#, c-format
+msgid "Cannot determine the graphic type for the guest %s"
+msgstr "મહેમાન %s માટે ગ્રાફિક પ્રકારને નક્કી કરી શકાતુ નથી"
+
+#: ../src/virt-viewer.c:321
+#, c-format
+msgid "Cannot determine the graphic address for the guest %s"
+msgstr "મહેમાન %s માટે ગ્રાફિક સરનામાંને નક્કી કરી શકાતુ નથી"
+
+#: ../src/virt-viewer.c:344
+#, c-format
+msgid "Cannot determine the host for the guest %s"
+msgstr "મહેમાન %s માટે યજમાનને નક્કી કરી શકાતુ નથી"
+
+#: ../src/virt-viewer.c:474
+msgid "Finding guest domain"
+msgstr "મહેમાન ડોમેઇનને શોધી રહ્યા છે"
+
+#: ../src/virt-viewer.c:478
+msgid "Waiting for guest domain to be created"
+msgstr "બનાવવા માટે મહેમાન ડોમેઇન માટે રાહ જોઇ રહ્યા છે"
+
+#: ../src/virt-viewer.c:483
 #, c-format
 msgid "Cannot find guest domain %s"
 msgstr "મહેમાન ડોમેઇન %s ને શોધી શકાતુ નથી"
 
-#: ../src/viewer.c:1246
+#: ../src/virt-viewer.c:490
+msgid "Checking guest domain status"
+msgstr "મહેમાન ડોમેઇન પરિસ્થિતિને ચકાસી રહ્યા છે"
+
+#: ../src/virt-viewer.c:497
+msgid "Waiting for guest domain to start"
+msgstr "શરૂ કરવા માટે મહેમાન ડોમેઇન માટે રાહ જોઇ રહ્યા છે"
+
+#: ../src/virt-viewer.c:504
+msgid "Waiting for guest domain to start server"
+msgstr "સર્વરને શરૂ કરવા માટે મહેમાન ડોમેઇન માટે રાહ જોઇ રહ્યા છે"
+
+#: ../src/virt-viewer.c:624
 #, c-format
 msgid "Unable to connect to libvirt with URI %s"
 msgstr "URI %s સાથે libvirt ને જોડવાનું અસમર્થ"
 
-#: ../src/viewer.c:1247
+#: ../src/virt-viewer.c:625
 msgid "[none]"
 msgstr "[કંઇ નહિં]"
 
 #. * Local variables:
-#. *  c-indent-level: 8
-#. *  c-basic-offset: 8
-#. *  tab-width: 8
+#. *  c-indent-level: 4
+#. *  c-basic-offset: 4
+#. *  indent-tabs-mode: nil
 #. * End:
 #. 
-#: ../src/about.glade.h:1
-msgid "A remote desktop client built with GTK-VNC and libvirt"
-msgstr "દૂરસ્થ ડેસ્કટોપ ક્લાઇન્ટ GTK-VNC અને libvirt સાથે બિલ્ટ છે"
-
-#: ../src/about.glade.h:2
-msgid "About Glade"
-msgstr "Glade વિશે"
-
-#: ../src/about.glade.h:3
-msgid ""
-"Copyright 2007-2008 Daniel P. Berrange\n"
-"Copyright 2007-2008 Red Hat, Inc."
-msgstr ""
-"Copyright 2007-2008 Daniel P. Berrange\n"
-"Copyright 2007-2008 Red Hat, Inc."
-
-#: ../src/about.glade.h:5
-msgid "The Fedora Translation Team"
-msgstr "Fedora અનુવાદ જૂથ"
-
-#: ../src/about.glade.h:6
-msgid ""
-"This program is free software; you can redistribute it and/or modify\n"
-"it under the terms of the GNU General Public License as published by\n"
-"the Free Software Foundation; either version 2 of the License, or\n"
-"(at your option) any later version.\n"
-"\n"
-"This program is distributed in the hope that it will be useful,\n"
-"but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
-"MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
-"GNU General Public License for more details.\n"
-"\n"
-"You should have received a copy of the GNU General Public License\n"
-"along with this program; if not, write to the Free Software\n"
-"Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA\n"
-msgstr ""
-"This program is free software; you can redistribute it and/or modify\n"
-"it under the terms of the GNU General Public License as published by\n"
-"the Free Software Foundation; either version 2 of the License, or\n"
-"(at your option) any later version.\n"
-"\n"
-"This program is distributed in the hope that it will be useful,\n"
-"but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
-"MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
-"GNU General Public License for more details.\n"
-"\n"
-"You should have received a copy of the GNU General Public License\n"
-"along with this program; if not, write to the Free Software\n"
-"Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA\n"
-
-#: ../src/about.glade.h:20
-msgid "virt-manager.org"
-msgstr "virt-manager.org"
-
-#: ../src/auth.glade.h:1
-msgid "Authentication required"
-msgstr "સત્તાધિકરણ જરૂરી"
-
-#: ../src/auth.glade.h:2
-msgid "Password:"
-msgstr "પાસવર્ડ:"
-
-#: ../src/auth.glade.h:3
-msgid "Username:"
-msgstr "વપરાશકર્તાનામ:"
-
-#: ../src/auth.glade.h:4
-msgid "gtk-cancel"
-msgstr "gtk-cancel"
-
-#: ../src/auth.glade.h:5
-msgid "gtk-ok"
-msgstr "gtk-ok"
-
-#: ../src/auth.glade.h:6
-msgid "label"
-msgstr "લેબલ"
-
-#: ../src/viewer.glade.h:1
+#: ../src/virt-viewer.xml.h:1
 msgid "Automatically resize"
 msgstr "આપમેળે માપ બદલો"
 
-#: ../src/viewer.glade.h:2
+#: ../src/virt-viewer.xml.h:2
 msgid "Ctrl+Alt+F11"
 msgstr "Ctrl+Alt+F11"
 
-#: ../src/viewer.glade.h:3
+#: ../src/virt-viewer.xml.h:3
 msgid "Ctrl+Alt+F12"
 msgstr "Ctrl+Alt+F12"
 
-#: ../src/viewer.glade.h:4
+#: ../src/virt-viewer.xml.h:4
 msgid "Ctrl+Alt+F1_0"
-msgstr "Ctrl+Alt+F10 (_0)"
+msgstr "Ctrl+Alt+F1_0"
 
-#: ../src/viewer.glade.h:5
+#: ../src/virt-viewer.xml.h:5
 msgid "Ctrl+Alt+F_1"
-msgstr "Ctrl+Alt+F1 (_1)"
+msgstr "Ctrl+Alt+F_1"
 
-#: ../src/viewer.glade.h:6
+#: ../src/virt-viewer.xml.h:6
 msgid "Ctrl+Alt+F_2"
-msgstr "Ctrl+Alt+F2 (_2)"
+msgstr "Ctrl+Alt+F_2"
 
-#: ../src/viewer.glade.h:7
+#: ../src/virt-viewer.xml.h:7
 msgid "Ctrl+Alt+F_3"
-msgstr "Ctrl+Alt+F3 (_3)"
+msgstr "Ctrl+Alt+F_3"
 
-#: ../src/viewer.glade.h:8
+#: ../src/virt-viewer.xml.h:8
 msgid "Ctrl+Alt+F_4"
-msgstr "Ctrl+Alt+F4 (_4)"
+msgstr "Ctrl+Alt+F_4"
 
-#: ../src/viewer.glade.h:9
+#: ../src/virt-viewer.xml.h:9
 msgid "Ctrl+Alt+F_5"
-msgstr "Ctrl+Alt+F5 (_5)"
+msgstr "Ctrl+Alt+F_5"
 
-#: ../src/viewer.glade.h:10
+#: ../src/virt-viewer.xml.h:10
 msgid "Ctrl+Alt+F_6"
-msgstr "Ctrl+Alt+F6 (_6)"
+msgstr "Ctrl+Alt+F_6"
 
-#: ../src/viewer.glade.h:11
+#: ../src/virt-viewer.xml.h:11
 msgid "Ctrl+Alt+F_7"
-msgstr "Ctrl+Alt+F7 (_7)"
+msgstr "Ctrl+Alt+F_7"
 
-#: ../src/viewer.glade.h:12
+#: ../src/virt-viewer.xml.h:12
 msgid "Ctrl+Alt+F_8"
-msgstr "Ctrl+Alt+F8 (_8)"
+msgstr "Ctrl+Alt+F_8"
 
-#: ../src/viewer.glade.h:13
+#: ../src/virt-viewer.xml.h:13
 msgid "Ctrl+Alt+F_9"
-msgstr "Ctrl+Alt+F9 (_9)"
+msgstr "Ctrl+Alt+F_9"
 
-#: ../src/viewer.glade.h:14
+#: ../src/virt-viewer.xml.h:14
 msgid "Ctrl+Alt+_Backspace"
-msgstr "Ctrl+Alt+Backspace (_B)"
+msgstr "Ctrl+Alt+_Backspace"
 
-#: ../src/viewer.glade.h:15
+#: ../src/virt-viewer.xml.h:15
 msgid "Ctrl+Alt+_Del"
-msgstr "Ctrl+Alt+Del (_D)"
+msgstr "Ctrl+Alt+_Del"
 
-#: ../src/viewer.glade.h:16
+#: ../src/virt-viewer.xml.h:16
+msgid "Displays"
+msgstr "દર્શાવે છે"
+
+#: ../src/virt-viewer.xml.h:17
 msgid "Full screen"
-msgstr "સંપૂર્ણ સ્ક્રીન"
+msgstr "પૂર્ણ સ્ક્રીન"
 
-#: ../src/viewer.glade.h:17
+#: ../src/virt-viewer.xml.h:18
+msgid "Release cursor"
+msgstr "પ્રકાશન કર્સર"
+
+#: ../src/virt-viewer.xml.h:19
 msgid "Screenshot"
 msgstr "સ્ક્રીનશોટ"
 
-#: ../src/viewer.glade.h:18
+#: ../src/virt-viewer.xml.h:20
+msgid "Smartcard insertion"
+msgstr "સ્માર્ટકાર્ડ નિવેશ"
+
+#: ../src/virt-viewer.xml.h:21
+msgid "Smartcard removal"
+msgstr "સ્માર્ટકાર્ડ નિરાકરણ"
+
+#: ../src/virt-viewer.xml.h:23
 msgid "_File"
 msgstr "ફાઇલ (_F)"
 
-#: ../src/viewer.glade.h:19
+#: ../src/virt-viewer.xml.h:24
 msgid "_Help"
 msgstr "મદદ (_H)"
 
-#: ../src/viewer.glade.h:20
+#: ../src/virt-viewer.xml.h:25
 msgid "_PrintScreen"
-msgstr "સ્ક્રીનને છાપો (_P)"
+msgstr "PrintScreen (_P)"
 
-#: ../src/viewer.glade.h:21
+#: ../src/virt-viewer.xml.h:26
 msgid "_Send key"
-msgstr "કીને મોકલો (_S)"
+msgstr "કી મોકલો (_S)"
 
-#: ../src/viewer.glade.h:22
+#: ../src/virt-viewer.xml.h:27
 msgid "_View"
 msgstr "દૃશ્ય (_V)"
 
-#: ../src/viewer.glade.h:24
-msgid "gtk-about"
-msgstr "gtk-about"
-
-#: ../src/viewer.glade.h:25
-msgid "gtk-quit"
-msgstr "gtk-quit"
-
-#: ../src/viewer.glade.h:26
-msgid "page 1"
-msgstr "પાનું ૧"
-
-#: ../src/viewer.glade.h:27
-msgid "page 2"
-msgstr "પાનું ૨"
-
-#: ../src/viewer.glade.h:23
+#: ../src/virt-viewer.xml.h:28
 msgid "_Zoom"
-msgstr "નાનુંમોટું (_Z)"
-
-#: ../src/main.c:68
-msgid "Zoom level of window, in percentage"
-msgstr "નાનામોટાપણાનું સ્તર, ટકામાં"
+msgstr "નાનુંમોટુ કરો (_Z)"

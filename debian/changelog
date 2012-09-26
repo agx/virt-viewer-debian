@@ -1,3 +1,45 @@
+virt-viewer (0.5.4-1) unstable; urgency=low
+
+  * [e3fbded] Imported Upstream version 0.5.4
+  * [43b4d1e] Remove LDFLAGS override
+
+ -- Laurent Léonard <laurent@open-minds.org>  Mon, 17 Sep 2012 23:09:48 +0200
+
+virt-viewer (0.5.3-1) unstable; urgency=low
+
+  * [7ef218a] Imported Upstream version 0.5.3
+
+ -- Laurent Léonard <laurent@open-minds.org>  Mon, 28 May 2012 19:47:27 +0200
+
+virt-viewer (0.5.2-1) unstable; urgency=low
+
+  * [e7ae231] Imported Upstream version 0.5.2
+  * [26e78cf] Bump Standards-Version to 3.9.3
+
+ -- Laurent Léonard <laurent@open-minds.org>  Sun, 22 Apr 2012 00:33:01 +0200
+
+virt-viewer (0.5.1-1) unstable; urgency=low
+
+  * [78f733f] Imported Upstream version 0.5.1
+
+ -- Laurent Léonard <laurent@open-minds.org>  Fri, 17 Feb 2012 18:10:34 +0100
+
+virt-viewer (0.5.0-1) unstable; urgency=low
+
+  * [e2a8e17] Imported Upstream version 0.5.0
+
+ -- Laurent Léonard <laurent@open-minds.org>  Thu, 16 Feb 2012 10:46:00 +0100
+
+virt-viewer (0.4.2-1) unstable; urgency=low
+
+  * [032178c] Imported Upstream version 0.4.2
+  * [c290303] Drop patches
+    - 0001-Really-fix-using-alternate-ssh-ports.patch - applied upstream
+    - 0002-ff-callbacks-must-be-invoked-from-a-clean-stack.patch - applied
+      upstream
+
+ -- Laurent Léonard <laurent@open-minds.org>  Thu, 10 Nov 2011 09:01:35 +0100
+
 virt-viewer (0.4.1-4) experimental; urgency=low
 
   * [0029b1c] Enable spice support

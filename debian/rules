@@ -1,6 +1,5 @@
 #!/usr/bin/make -f
 
-DEB_CONFIGURE_SCRIPT_ENV += LDFLAGS=-Wl,--as-needed
 DEB_CONFIGURE_EXTRA_FLAGS := --with-gtk=3.0 --with-spice-gtk
 
 include /usr/share/cdbs/1/rules/debhelper.mk

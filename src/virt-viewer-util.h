@@ -1,8 +1,8 @@
 /*
  * Virt Viewer: A virtual machine console viewer
  *
- * Copyright (C) 2007-2009 Red Hat,
- * Copyright (C) 2009 Daniel P. Berrange
+ * Copyright (C) 2007-2012 Red Hat, Inc.
+ * Copyright (C) 2009-2012 Daniel P. Berrange
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,4 +40,18 @@ int virt_viewer_util_extract_host(const char *uristr,
                                   char **user,
                                   int *port);
 
+gulong virt_viewer_signal_connect_object(gpointer instance,
+                                         const gchar *detailed_signal,
+                                         GCallback c_handler,
+                                         gpointer gobject,
+                                         GConnectFlags connect_flags);
+
 #endif
+
+/*
+ * Local variables:
+ *  c-indent-level: 4
+ *  c-basic-offset: 4
+ *  indent-tabs-mode: nil
+ * End:
+ */

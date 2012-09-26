@@ -1,10 +1,12 @@
-src/auth.c
-src/events.c
-src/main.c
-src/util.c
-src/viewer.c
-src/display-spice.c
-src/display-vnc.c
-src/about.glade
-src/auth.glade
-src/viewer.glade
+src/gbinding.c
+src/remote-viewer-main.c
+src/remote-viewer.c
+[type: gettext/glade] src/virt-viewer-about.xml
+src/virt-viewer-app.c
+[type: gettext/glade] src/virt-viewer-auth.xml
+src/virt-viewer-main.c
+src/virt-viewer-session-spice.c
+src/virt-viewer-session-vnc.c
+src/virt-viewer-window.c
+src/virt-viewer.c
+[type: gettext/glade] src/virt-viewer.xml

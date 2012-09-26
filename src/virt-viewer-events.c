@@ -1,7 +1,7 @@
 /*
  * events.c: event loop integration
  *
- * Copyright (C) 2008-2009 Daniel P. Berrange
+ * Copyright (C) 2008-2012 Daniel P. Berrange
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -20,6 +20,7 @@
  * Author: Daniel P. Berrange <berrange@redhat.com>
  */
 
+#include <config.h>
 
 #include <stdio.h>
 #include <string.h>
@@ -48,8 +49,8 @@ static struct virt_viewer_events_handle **handles = NULL;
 
 static gboolean
 virt_viewer_events_dispatch_handle(GIOChannel *source G_GNUC_UNUSED,
-			     GIOCondition condition,
-			     gpointer opaque)
+                                   GIOCondition condition,
+                                   gpointer opaque)
 {
     struct virt_viewer_events_handle *data = opaque;
     int events = 0;
@@ -73,10 +74,10 @@ virt_viewer_events_dispatch_handle(GIOChannel *source G_GNUC_UNUSED,
 
 static
 int virt_viewer_events_add_handle(int fd,
-			    int events,
-			    virEventHandleCallback cb,
-			    void *opaque,
-			    virFreeCallback ff)
+                                  int events,
+                                  virEventHandleCallback cb,
+                                  void *opaque,
+                                  virFreeCallback ff)
 {
     struct virt_viewer_events_handle *data;
     GIOCondition cond = 0;
@@ -123,7 +124,7 @@ virt_viewer_events_find_handle(int watch)
 
 static void
 virt_viewer_events_update_handle(int watch,
-			   int events)
+                                 int events)
 {
     struct virt_viewer_events_handle *data = virt_viewer_events_find_handle(watch);
 
@@ -160,6 +161,23 @@ virt_viewer_events_update_handle(int watch,
     }
 }
 
+
+static gboolean
+virt_viewer_events_cleanup_handle(gpointer user_data)
+{
+    struct virt_viewer_events_handle *data = user_data;
+
+    DEBUG_LOG("Cleanup of handle %p", data);
+    g_return_val_if_fail(data != NULL, FALSE);
+
+    if (data->ff)
+        (data->ff)(data->opaque);
+
+    free(data);
+    return FALSE;
+}
+
+
 static int
 virt_viewer_events_remove_handle(int watch)
 {
@@ -172,13 +190,14 @@ virt_viewer_events_remove_handle(int watch)
 
     DEBUG_LOG("Remove handle %d %d", watch, data->fd);
 
+    if (!data->source)
+        return -1;
+
     g_source_remove(data->source);
     data->source = 0;
     data->events = 0;
-    if (data->ff)
-        (data->ff)(data->opaque);
-    free(data);
 
+    g_idle_add(virt_viewer_events_cleanup_handle, data);
     return 0;
 }
 
@@ -209,9 +228,9 @@ virt_viewer_events_dispatch_timeout(void *opaque)
 
 static int
 virt_viewer_events_add_timeout(int interval,
-			 virEventTimeoutCallback cb,
-			 void *opaque,
-			 virFreeCallback ff)
+                               virEventTimeoutCallback cb,
+                               void *opaque,
+                               virFreeCallback ff)
 {
     struct virt_viewer_events_timeout *data;
 
@@ -251,7 +270,7 @@ virt_viewer_events_find_timeout(int timer)
 
 static void
 virt_viewer_events_update_timeout(int timer,
-			    int interval)
+                                  int interval)
 {
     struct virt_viewer_events_timeout *data = virt_viewer_events_find_timeout(timer);
 
@@ -279,6 +298,23 @@ virt_viewer_events_update_timeout(int timer,
     }
 }
 
+
+static gboolean
+virt_viewer_events_cleanup_timeout(gpointer user_data)
+{
+    struct virt_viewer_events_timeout *data = user_data;
+
+    DEBUG_LOG("Cleanup of timeout %p", data);
+    g_return_val_if_fail(data != NULL, FALSE);
+
+    if (data->ff)
+        (data->ff)(data->opaque);
+
+    free(data);
+    return FALSE;
+}
+
+
 static int
 virt_viewer_events_remove_timeout(int timer)
 {
@@ -297,11 +333,7 @@ virt_viewer_events_remove_timeout(int timer)
     g_source_remove(data->source);
     data->source = 0;
 
-    if (data->ff)
-        (data->ff)(data->opaque);
-
-    free(data);
-
+    g_idle_add(virt_viewer_events_cleanup_timeout, data);
     return 0;
 }
 
@@ -315,3 +347,10 @@ void virt_viewer_events_register(void) {
                          virt_viewer_events_remove_timeout);
 }
 
+/*
+ * Local variables:
+ *  c-indent-level: 4
+ *  c-basic-offset: 4
+ *  indent-tabs-mode: nil
+ * End:
+ */

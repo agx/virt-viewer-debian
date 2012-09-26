@@ -28,6 +28,7 @@
  *      sliding smoothly, at constant speed, over another one.
  */
 
+#include <config.h>
 
 #include "drawer.h"
 
@@ -139,7 +140,7 @@ ViewDrawerClassInit(gpointer klass) // IN
 
    objectClass->finalize = ViewDrawerFinalize;
 
-   g_type_class_add_private(objectClass, sizeof(ViewDrawerPrivate));
+   g_type_class_add_private(klass, sizeof(ViewDrawerPrivate));
 }
 
 
@@ -175,7 +176,7 @@ ViewDrawer_GetType(void)
          sizeof (ViewDrawer),
          0, /* n_preallocs */
          (GInstanceInitFunc)ViewDrawerInit,
-	 NULL
+         NULL
       };
 
       type = g_type_register_static(VIEW_TYPE_OV_BOX, "ViewDrawer", &info, 0);

@@ -1,6 +1,97 @@
   Virt Viewer News
   ================
 
+0.5.4: Sep 17, 2012
+-------------------
+
+  - Fix host migration with Spice
+  - Fix misc memory leaks
+  - Fix build with newer glibc and -O0
+  - Improve automatic fullscreen Spice configuration
+  - Avoid crash when quiting application
+  - Rebuild display men whenever a window is added/removed
+  - Number displays starting from 1 instead of 0
+  - Add support for handling multiple monitors with Spice
+  - Menu display menu insensitive if no displays can be selected
+  - Use real binary name in remote-viewer help message
+  - Document -f=auto-conf in remote-viewer help
+
+0.5.3: May 14, 2012
+-------------------
+
+  - Add support for raw IPv6 addresses
+  - Add a remote-viewer.desktop file and register spice:// handling
+  - Add a simple connection dialog to remote-viewer
+  - Add remote-viewer --fullscreen=auto-conf option, to update guest
+    monitors configuration to match client
+  - Spice controller support for disable-effects, color-depth and
+    usbredir
+  - Spice controller interaction fixes
+  - Windows version and nsis installer improvements
+  - Import newer translations from transifex
+  - Misc reference leak / crash bugs fixed
+
+
+0.5.2: Mar 09, 2012
+-------------------
+
+  - Require libvirt >= 0.9.7, spice-gtk >= 0.11, spice-protocol >= 0.10.1
+  - Import newer translations from transifex
+  - remote-viewer learned Spice controller customizable key bindings,
+    smartcard property, and foreign menu
+  - Fix Spice crash on re-connection
+  - Fix connecting via ssh to a password-protected server
+  - Add a sendkey menu in fullscreen mode
+  - Add USB device selection in fullscreen mode
+  - Misc reference leak / crash bugs fixed
+
+0.5.1: Feb 17, 2012
+-------------------
+
+  - Import newer translations from transifex
+  - Fix build system to ensure we don't loose GNU_RELRO
+    security feature
+  - Don't link virt-viewer binary against spice controller
+  - Add back compat for GObject 2.22 which lacks GBinding
+
+0.5.0: Feb 14, 2012
+-------------------
+
+  - Add a remote-viewer binary for connecting to a SPICE/VNC
+    server based on URI, instead of querying libvirt
+  - Add ability to attach to a local VM via libvirt instead of
+    connecting over UNIX sockets
+  - Add support for SPICE controller
+  - Allow build without libvirt, for remote-viewer only
+  - Automatically resize guest desktop when resizing window with SPICE
+  - Add support for redirecting host USB devices to remote guest
+  - Grab focus when first showing the display
+  - Register as a spice-xpi-client-remote alternative
+  - Add pretty icon for virt-viewer app
+  - Set transient window hints on all popups
+  - Activate password 'Ok' button when pressing Enter
+  - Support secure connections with SPICE
+  - Don't hardcode 'localhost' for hostname
+
+0.4.2: Nov  9, 2011
+-------------------
+
+  - Fix exports of signal functions for GTK UI builder on Windows
+  - Avoid crash if xmlParseURI fails
+  - Fix inverted test for SSH port that broke tunnelling
+  - Don't hardcode port numbers for SSH if not requested by user
+  - Fix deadlock in event handling
+  - Fix initial zoom level for all windows
+  - Fix window title to include domain name
+  - Fix hostname used when XML gives a wildcard IP address
+  - Fix window title when waiting for domain to appear
+  - Fix key shortcust for F9-F12 menus
+  - Always ask libvirt for its canonical URI
+  - Allow build without GTK-VNC (ie spice only)
+  - Require GTK-VNC >= 0.4.3
+  - Require SPICE-GTK >= 0.6.0
+
+
 0.4.1: Aug  4, 2011
 -------------------
 
