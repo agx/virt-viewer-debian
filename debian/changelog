@@ -1,3 +1,11 @@
+virt-viewer (0.5.4-2) experimental; urgency=low
+
+  * Upload to experimental
+  * [0029b1c] Enable spice support (Closes: #667565)
+  * [b139b7c] Drop unneeded build-deps
+
+ -- Guido Günther <agx@sigxcpu.org>  Wed, 26 Sep 2012 08:59:19 +0200
+
 virt-viewer (0.5.4-1) unstable; urgency=low
 
   * [e3fbded] Imported Upstream version 0.5.4
