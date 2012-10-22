@@ -1,3 +1,9 @@
+virt-viewer (0.5.4-3) experimental; urgency=low
+
+  * [af14ec8] Fix ssh connection tunneling
+
+ -- Guido Günther <agx@sigxcpu.org>  Mon, 22 Oct 2012 22:40:32 +0200
+
 virt-viewer (0.5.4-2) experimental; urgency=low
 
   * Upload to experimental
