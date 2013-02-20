@@ -23,6 +23,15 @@
 
 #include <config.h>
 
+#include <glib.h>
+#include <glib/gi18n.h>
+#include <locale.h>
+
+#ifdef G_OS_WIN32
+#include <windows.h>
+#include <io.h>
+#endif
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -252,6 +261,152 @@ gulong virt_viewer_signal_connect_object(gpointer instance,
     return ctx->handler_id;
 }
 
+void virt_viewer_util_init(const char *appname)
+{
+#ifdef G_OS_WIN32
+    /*
+     * This named mutex will be kept around by Windows until the
+     * process terminates. This allows other instances to check if it
+     * already exists, indicating already running instances. It is
+     * used to warn the user that installer can't proceed in this
+     * case.
+     */
+    CreateMutexA(0, 0, "VirtViewerMutex");
+
+    if (AttachConsole(ATTACH_PARENT_PROCESS) != 0) {
+        freopen("CONIN$", "r", stdin);
+        freopen("CONOUT$", "w", stdout);
+        freopen("CONOUT$", "w", stderr);
+        dup2(fileno(stdin), STDIN_FILENO);
+        dup2(fileno(stdout), STDOUT_FILENO);
+        dup2(fileno(stderr), STDERR_FILENO);
+    }
+#endif
+
+#if !GLIB_CHECK_VERSION(2,31,0)
+    g_thread_init(NULL);
+#endif
+
+    setlocale(LC_ALL, "");
+    bindtextdomain(GETTEXT_PACKAGE, LOCALE_DIR);
+    bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
+    textdomain(GETTEXT_PACKAGE);
+
+    g_set_application_name(appname);
+}
+
+static gchar *
+ctrl_key_to_gtk_key(const gchar *key)
+{
+    int i;
+
+    static const struct {
+        const char *ctrl;
+        const char *gtk;
+    } keys[] = {
+        /* FIXME: right alt, right ctrl, right shift, cmds */
+        { "alt", "<Alt>" },
+        { "ralt", "<Alt>" },
+        { "rightalt", "<Alt>" },
+        { "right-alt", "<Alt>" },
+        { "lalt", "<Alt>" },
+        { "leftalt", "<Alt>" },
+        { "left-alt", "<Alt>" },
+
+        { "ctrl", "<Ctrl>" },
+        { "rctrl", "<Ctrl>" },
+        { "rightctrl", "<Ctrl>" },
+        { "right-ctrl", "<Ctrl>" },
+        { "lctrl", "<Ctrl>" },
+        { "leftctrl", "<Ctrl>" },
+        { "left-ctrl", "<Ctrl>" },
+
+        { "shift", "<Shift>" },
+        { "rshift", "<Shift>" },
+        { "rightshift", "<Shift>" },
+        { "right-shift", "<Shift>" },
+        { "lshift", "<Shift>" },
+        { "leftshift", "<Shift>" },
+        { "left-shift", "<Shift>" },
+
+        { "cmd", "<Ctrl>" },
+        { "rcmd", "<Ctrl>" },
+        { "rightcmd", "<Ctrl>" },
+        { "right-cmd", "<Ctrl>" },
+        { "lcmd", "<Ctrl>" },
+        { "leftcmd", "<Ctrl>" },
+        { "left-cmd", "<Ctrl>" },
+
+        { "win", "<Super>" },
+        { "rwin", "<Super>" },
+        { "rightwin", "<Super>" },
+        { "right-win", "<Super>" },
+        { "lwin", "<Super>" },
+        { "leftwin", "<Super>" },
+        { "left-win", "<Super>" },
+
+        { "esc", "Escape" },
+        /* { "escape", "Escape" }, */
+
+        { "ins", "Insert" },
+        /* { "insert", "Insert" }, */
+
+        { "del", "Delete" },
+        /* { "delete", "Delete" }, */
+
+        { "pgup", "Page_Up" },
+        { "pageup", "Page_Up" },
+        { "pgdn", "Page_Down" },
+        { "pagedown", "Page_Down" },
+
+        /* { "home", "home" }, */
+        /* { "end", "end" }, */
+        /* { "space", "space" }, */
+
+        { "enter", "Return" },
+
+        /* { "tab", "tab" }, */
+        /* { "f1", "F1" }, */
+        /* { "f2", "F2" }, */
+        /* { "f3", "F3" }, */
+        /* { "f4", "F4" }, */
+        /* { "f5", "F5" }, */
+        /* { "f6", "F6" }, */
+        /* { "f7", "F7" }, */
+        /* { "f8", "F8" }, */
+        /* { "f9", "F9" }, */
+        /* { "f10", "F10" }, */
+        /* { "f11", "F11" }, */
+        /* { "f12", "F12" } */
+    };
+
+    for (i = 0; i < G_N_ELEMENTS(keys); ++i) {
+        if (g_ascii_strcasecmp(keys[i].ctrl, key) == 0)
+            return g_strdup(keys[i].gtk);
+    }
+
+    return g_ascii_strup(key, -1);
+}
+
+gchar*
+spice_hotkey_to_gtk_accelerator(const gchar *key)
+{
+    gchar *accel, **k, **keyv;
+
+    keyv = g_strsplit(key, "+", -1);
+    g_return_val_if_fail(keyv != NULL, NULL);
+
+    for (k = keyv; *k != NULL; k++) {
+        gchar *tmp = *k;
+        *k = ctrl_key_to_gtk_key(tmp);
+        g_free(tmp);
+    }
+
+    accel = g_strjoinv(NULL, keyv);
+    g_strfreev(keyv);
+
+    return accel;
+}
 
 /*
  * Local variables:

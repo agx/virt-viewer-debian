@@ -1,5 +1,10 @@
 # -*- rpm-spec -*-
 
+# Default to skipping autoreconf.  Distros can change just this one line
+# (or provide a command-line override) if they backport any patches that
+# touch configure.ac or Makefile.am.
+%{!?enable_autotools:%define enable_autotools 1}
+
 # Plugin isn't ready for real world use yet - it needs
 # a security audit at very least
 %define _with_plugin %{?with_plugin:1}%{!?with_plugin:0}
@@ -24,7 +29,7 @@
 %endif
 
 Name: virt-viewer
-Version: 0.5.4
+Version: 0.5.5
 Release: 1%{?dist}%{?extra_release}
 Summary: Virtual Machine Viewer
 Group: Applications/System
@@ -37,6 +42,13 @@ Requires(post):   %{_sbindir}/update-alternatives
 Requires(postun): %{_sbindir}/update-alternatives
 Requires(post): desktop-file-utils
 Requires(postun): desktop-file-utils
+
+%if 0%{?enable_autotools}
+BuildRequires: autoconf
+BuildRequires: automake
+BuildRequires: gettext-devel
+BuildRequires: libtool
+%endif
 
 BuildRequires: glib2-devel >= 2.22
 %if %{with_gtk3}
@@ -53,9 +65,9 @@ BuildRequires: gtk-vnc-devel >= 0.3.8
 %endif
 %if %{with_spice}
 %if %{with_gtk3}
-BuildRequires: spice-gtk3-devel >= 0.12.101
+BuildRequires: spice-gtk3-devel >= 0.16.26
 %else
-BuildRequires: spice-gtk-devel >= 0.12.101
+BuildRequires: spice-gtk-devel >= 0.16.26
 %endif
 BuildRequires: spice-protocol >= 0.10.1
 %endif
@@ -94,6 +106,10 @@ browsers.
 
 %build
 
+%if 0%{?enable_autotools}
+autoreconf -if
+%endif
+
 %if %{_with_plugin}
 %define plugin_arg --enable-plugin
 %else
@@ -112,7 +128,7 @@ browsers.
 %define gtk_arg --with-gtk=2.0
 %endif
 
-%configure %{spice_arg} %{plugin_arg} %{gtk_arg}
+%configure %{spice_arg} %{plugin_arg} %{gtk_arg} --with-buildid=-%{release}
 %__make %{?_smp_mflags}
 
 
@@ -160,6 +176,7 @@ update-desktop-database -q %{_datadir}/applications
 %{_datadir}/%{name}/ui/virt-viewer-about.xml
 %{_datadir}/icons/hicolor/*/apps/*
 %{_datadir}/applications/remote-viewer.desktop
+%{_datadir}/mime/packages/virt-viewer-mime.xml
 %ghost %{_libexecdir}/spice-xpi-client
 %{_libexecdir}/spice-xpi-client-remote-viewer
 %{_mandir}/man1/virt-viewer.1*
