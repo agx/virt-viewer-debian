@@ -1,3 +1,9 @@
+virt-viewer (0.5.5-1) unstable; urgency=low
+
+  * [5bf850a] Imported Upstream version 0.5.5 (Closes: #684725)
+
+ -- Laurent Léonard <laurent@open-minds.org>  Wed, 20 Feb 2013 23:20:54 +0100
+
 virt-viewer (0.5.4-1) unstable; urgency=low
 
   * [e3fbded] Imported Upstream version 0.5.4
