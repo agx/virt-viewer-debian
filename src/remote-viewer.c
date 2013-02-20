@@ -35,6 +35,8 @@
 #include "virt-viewer-session-spice.h"
 #endif
 #include "virt-viewer-app.h"
+#include "virt-viewer-file.h"
+#include "virt-viewer-session.h"
 #include "remote-viewer.h"
 
 #ifndef G_VALUE_INIT /* see bug https://bugzilla.gnome.org/show_bug.cgi?id=654793 */
@@ -181,11 +183,12 @@ remote_viewer_init(RemoteViewer *self)
 }
 
 RemoteViewer *
-remote_viewer_new(const gchar *uri, gboolean verbose)
+remote_viewer_new(const gchar *uri, const gchar *title, gboolean verbose)
 {
     return g_object_new(REMOTE_VIEWER_TYPE,
                         "guri", uri,
                         "verbose", verbose,
+                        "title", title,
                         NULL);
 }
 
@@ -434,119 +437,6 @@ remote_viewer_get_spice_session(RemoteViewer *self)
     return session;
 }
 
-static gchar *
-ctrl_key_to_gtk_key(const gchar *key)
-{
-    int i;
-
-    static const struct {
-        const char *ctrl;
-        const char *gtk;
-    } keys[] = {
-        /* FIXME: right alt, right ctrl, right shift, cmds */
-        { "alt", "<Alt>" },
-        { "ralt", "<Alt>" },
-        { "rightalt", "<Alt>" },
-        { "right-alt", "<Alt>" },
-        { "lalt", "<Alt>" },
-        { "leftalt", "<Alt>" },
-        { "left-alt", "<Alt>" },
-
-        { "ctrl", "<Ctrl>" },
-        { "rctrl", "<Ctrl>" },
-        { "rightctrl", "<Ctrl>" },
-        { "right-ctrl", "<Ctrl>" },
-        { "lctrl", "<Ctrl>" },
-        { "leftctrl", "<Ctrl>" },
-        { "left-ctrl", "<Ctrl>" },
-
-        { "shift", "<Shift>" },
-        { "rshift", "<Shift>" },
-        { "rightshift", "<Shift>" },
-        { "right-shift", "<Shift>" },
-        { "lshift", "<Shift>" },
-        { "leftshift", "<Shift>" },
-        { "left-shift", "<Shift>" },
-
-        { "cmd", "<Ctrl>" },
-        { "rcmd", "<Ctrl>" },
-        { "rightcmd", "<Ctrl>" },
-        { "right-cmd", "<Ctrl>" },
-        { "lcmd", "<Ctrl>" },
-        { "leftcmd", "<Ctrl>" },
-        { "left-cmd", "<Ctrl>" },
-
-        { "win", "<Super>" },
-        { "rwin", "<Super>" },
-        { "rightwin", "<Super>" },
-        { "right-win", "<Super>" },
-        { "lwin", "<Super>" },
-        { "leftwin", "<Super>" },
-        { "left-win", "<Super>" },
-
-        { "esc", "Escape" },
-        /* { "escape", "Escape" }, */
-
-        { "ins", "Insert" },
-        /* { "insert", "Insert" }, */
-
-        { "del", "Delete" },
-        /* { "delete", "Delete" }, */
-
-        { "pgup", "Page_Up" },
-        { "pageup", "Page_Up" },
-        { "pgdn", "Page_Down" },
-        { "pagedown", "Page_Down" },
-
-        /* { "home", "home" }, */
-        /* { "end", "end" }, */
-        /* { "space", "space" }, */
-
-        { "enter", "Return" },
-
-        /* { "tab", "tab" }, */
-        /* { "f1", "F1" }, */
-        /* { "f2", "F2" }, */
-        /* { "f3", "F3" }, */
-        /* { "f4", "F4" }, */
-        /* { "f5", "F5" }, */
-        /* { "f6", "F6" }, */
-        /* { "f7", "F7" }, */
-        /* { "f8", "F8" }, */
-        /* { "f9", "F9" }, */
-        /* { "f10", "F10" }, */
-        /* { "f11", "F11" }, */
-        /* { "f12", "F12" } */
-    };
-
-    for (i = 0; i < G_N_ELEMENTS(keys); ++i) {
-        if (g_ascii_strcasecmp(keys[i].ctrl, key) == 0)
-            return g_strdup(keys[i].gtk);
-    }
-
-    return g_ascii_strup(key, -1);
-}
-
-static gchar*
-ctrl_key_to_gtk_accelerator(const gchar *key)
-{
-    gchar *accel, **k, **keyv;
-
-    keyv = g_strsplit(key, "+", -1);
-    g_return_val_if_fail(keyv != NULL, NULL);
-
-    for (k = keyv; *k != NULL; k++) {
-        gchar *tmp = *k;
-        *k = ctrl_key_to_gtk_key(tmp);
-        g_free(tmp);
-    }
-
-    accel = g_strjoinv(NULL, keyv);
-    g_strfreev(keyv);
-
-    return accel;
-}
-
 static void
 app_notified(VirtViewerApp *app,
              GParamSpec *pspec,
@@ -586,7 +476,8 @@ spice_ctrl_notified(SpiceCtrlController *ctrl,
         g_str_equal(pspec->name, "enable-smartcard") ||
         g_str_equal(pspec->name, "color-depth") ||
         g_str_equal(pspec->name, "disable-effects") ||
-        g_str_equal(pspec->name, "enable-usbredir")) {
+        g_str_equal(pspec->name, "enable-usbredir") ||
+        g_str_equal(pspec->name, "proxy")) {
         g_object_set_property(G_OBJECT(session), pspec->name, &value);
     } else if (g_str_equal(pspec->name, "sport")) {
         g_object_set_property(G_OBJECT(session), "tls-port", &value);
@@ -609,7 +500,7 @@ spice_ctrl_notified(SpiceCtrlController *ctrl,
                                   &value);
         }
     } else if (g_str_equal(pspec->name, "title")) {
-        g_object_set_property(G_OBJECT(app), "title", &value);
+        virt_viewer_app_set_title(app, g_value_get_string(&value));
     } else if (g_str_equal(pspec->name, "display-flags")) {
         guint flags = g_value_get_uint(&value);
         gboolean fullscreen = flags & CONTROLLER_SET_FULL_SCREEN;
@@ -620,41 +511,7 @@ spice_ctrl_notified(SpiceCtrlController *ctrl,
     } else if (g_str_equal(pspec->name, "menu")) {
         spice_ctrl_menu_updated(self);
     } else if (g_str_equal(pspec->name, "hotkeys")) {
-        gchar **hotkey, **hotkeys = g_strsplit(g_value_get_string(&value), ",", -1);
-        if (!hotkeys || g_strv_length(hotkeys) == 0) {
-            g_object_set(app, "enable-accel", FALSE, NULL);
-            goto end;
-        }
-
-        for (hotkey = hotkeys; *hotkey != NULL; hotkey++) {
-            gchar *key = strstr(*hotkey, "=");
-            if (key == NULL) {
-                g_warn_if_reached();
-                continue;
-            }
-            *key = '\0';
-
-            gchar *accel = ctrl_key_to_gtk_accelerator(key + 1);
-            guint accel_key;
-            GdkModifierType accel_mods;
-            gtk_accelerator_parse(accel, &accel_key, &accel_mods);
-            g_free(accel);
-
-            if (g_str_equal(*hotkey, "toggle-fullscreen")) {
-                gtk_accel_map_change_entry("<virt-viewer>/view/fullscreen", accel_key, accel_mods, TRUE);
-            } else if (g_str_equal(*hotkey, "release-cursor")) {
-                gtk_accel_map_change_entry("<virt-viewer>/view/release-cursor", accel_key, accel_mods, TRUE);
-            } else if (g_str_equal(*hotkey, "smartcard-insert")) {
-                gtk_accel_map_change_entry("<virt-viewer>/file/smartcard-insert", accel_key, accel_mods, TRUE);
-            } else if (g_str_equal(*hotkey, "smartcard-remove")) {
-                gtk_accel_map_change_entry("<virt-viewer>/file/smartcard-remove", accel_key, accel_mods, TRUE);
-            } else {
-                g_warning("Unknown hotkey command %s", *hotkey);
-            }
-        }
-        g_strfreev(hotkeys);
-
-        g_object_set(app, "enable-accel", TRUE, NULL);
+        virt_viewer_app_set_hotkeys(app, g_value_get_string(&value));
     } else {
         gchar *content = g_strdup_value_contents(&value);
 
@@ -662,7 +519,6 @@ spice_ctrl_notified(SpiceCtrlController *ctrl,
         g_free(content);
     }
 
-end:
     g_object_unref(session);
     g_value_unset(&value);
 }
@@ -738,6 +594,8 @@ remote_viewer_start(VirtViewerApp *app)
     RemoteViewer *self = REMOTE_VIEWER(app);
     RemoteViewerPrivate *priv = self->priv;
 #endif
+    GFile *file = NULL;
+    VirtViewerFile *vvfile = NULL;
     gboolean ret = FALSE;
     gchar *guri = NULL;
     gchar *type = NULL;
@@ -768,9 +626,23 @@ remote_viewer_start(VirtViewerApp *app)
         g_return_val_if_fail(guri != NULL, FALSE);
 
         DEBUG_LOG("Opening display to %s", guri);
-        g_object_set(app, "title", guri, NULL);
+        if (virt_viewer_app_get_title(app) == NULL)
+            virt_viewer_app_set_title(app, guri);
 
-        if (virt_viewer_util_extract_host(guri, &type, NULL, NULL, NULL, NULL) < 0 || type == NULL) {
+        file = g_file_new_for_commandline_arg(guri);
+        if (g_file_query_exists(file, NULL)) {
+            GError *error = NULL;
+            gchar *path = g_file_get_path(file);
+            vvfile = virt_viewer_file_new(path, &error);
+            g_free(path);
+            if (error) {
+                virt_viewer_app_simple_message_dialog(app, _("Invalid file %s"), guri);
+                g_warning("%s", error->message);
+                g_clear_error(&error);
+                goto cleanup;
+            }
+            g_object_get(G_OBJECT(vvfile), "type", &type, NULL);
+        } else if (virt_viewer_util_extract_host(guri, &type, NULL, NULL, NULL, NULL) < 0 || type == NULL) {
             virt_viewer_app_simple_message_dialog(app, _("Cannot determine the connection type from URI"));
             goto cleanup;
         }
@@ -779,6 +651,8 @@ remote_viewer_start(VirtViewerApp *app)
             virt_viewer_app_simple_message_dialog(app, _("Couldn't create a session for this type: %s"), type);
             goto cleanup;
         }
+
+        virt_viewer_session_set_file(virt_viewer_app_get_session(app), vvfile);
 
         if (virt_viewer_app_initial_connect(app) < 0) {
             virt_viewer_app_simple_message_dialog(app, _("Failed to initiate connection"));
@@ -790,7 +664,9 @@ remote_viewer_start(VirtViewerApp *app)
 
     ret = VIRT_VIEWER_APP_CLASS(remote_viewer_parent_class)->start(app);
 
- cleanup:
+cleanup:
+    g_clear_object(&file);
+    g_clear_object(&vvfile);
     g_free(guri);
     g_free(type);
     return ret;

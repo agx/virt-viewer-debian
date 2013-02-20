@@ -1,10 +1,13 @@
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
+/* Build version details */
+#undef BUILDID
+
 /* always defined to indicate that i18n is enabled */
 #undef ENABLE_NLS
 
 /* Enable compile-time and run-time bounds-checking, and some warnings. */
-                 #if defined __OPTIMIZE__ && __OPTIMIZE__
+                 #if !defined _FORTIFY_SOURCE && defined __OPTIMIZE__ && __OPTIMIZE__
                  # define _FORTIFY_SOURCE 2
                  #endif
                 

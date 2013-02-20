@@ -1,3 +1,573 @@
+2013-02-13  Daniel P. Berrange  <berrange@redhat.com>
+
+	Update for 0.5.5 release
+
+	Update min spice-gtk requirement docs / RPM requires
+
+	Turn off deprecation warnings
+	GLib deprecated the GValueArray type without providing an ABI
+	compatible replacement. Thus we need to disable dreprecation
+	warnings
+
+	../../src/virt-viewer-auth.c: In function 'virt_viewer_auth_vnc_credentials':
+	../../src/virt-viewer-auth.c:112:9: error: 'g_value_array_get_nth' is deprecated (declared at /usr/include/glib-2.0/gobject/gvaluearray.h:65): Use 'g_array_index' instead [-Werror=deprecated-declarations]
+
+	Avoid Makefile @ check for data/Makefile.am
+
+	Adapt 'po file' syntax check to look at more files
+	The 'po file' check needs to consider various files in data/
+	as well as normal sources
+
+	Don't define the same make target/variables twice
+	The NSIS patches defined the .PHONY target twice and also
+	defined CLEANFILES twice
+
+	Auto-generate AUTHORS file from GIT logs
+	Rather than trying to manually keep track of authors,
+	just auto-generate the list from GIT logs
+
+2013-02-13  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	win: add virt-viewer.msi build rule
+	In order to build the MSI, you will need msitools:
+	http://ftp.gnome.org/pub/GNOME/sources/msitools/
+
+	The MANUFACTURER environment variable is mandatory and should be set
+	to the manufacturer/author of the MSI build.
+
+2013-02-12  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	spec: include mime file
+
+	build-sys: add --with-buildid to details build version
+	Add a configure argument to append build version details, similar to
+	what Daniel Berrange proposed in the "use finer package version in
+	mingw-virt-viewer" thread on the ML.
+
+2013-02-11  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	Register remote-viewer mime handling
+	Unfortunately, I don't see yet how we could avoid the browser dialog
+	asking which application to open. On Firefox, each user has a
+	mimeTypes.rdf, but we can't really modify it..
+
+	win32: process message queue in debug-helper
+	Process messages while waiting for pi.hProcess.
+
+	Avoid the spice-x from hanging in WaitForInputIdle(), although the
+	client itself might not be ready, not even started...
+
+	https://bugzilla.redhat.com/show_bug.cgi?id=903190
+
+2013-02-11  Hans de Goede  <hdegoede@redhat.com>
+
+	virtviewer-window: Make sure fullscreen window stays on the same monitor
+	Sometimes the guest may shortly disable and then re-enable a monitor while
+	in fullscreen mode, this happens for example when changing display resolution
+	through gnome-display-properties inside the guest. This causes the client
+	window-manager to remap the window, and this can cause it to end up
+	on a different monitor.
+
+	This patch fixes this by remembering the position the window is places at
+	when going fullcreen and moving it there again when its gets (re-)shown.
+
+2013-02-07  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	Fix "Do not ask me again" checkbox settings saving
+	Based on bug report by Hans:
+
+	The code block for saving was below this check:
+
+	    if (priv->session) {
+	        virt_viewer_session_close(VIRT_VIEWER_SESSION(priv->session));
+	        if (priv->connected) {
+	            priv->quiting = TRUE;
+	            return;
+	        }
+	    }
+
+	Which means it never executes when quiting virt-viewer while conneced, causing
+	the "Do not ask me again" checkbox settings to not be saved.
+
+2013-02-06  Hans de Goede  <hdegoede@redhat.com>
+
+	usbredir: Fix usbredir menu always being grayed out on monitor 2+
+
+	virt-viewer-display-spice: Pass proper x and y coordinates in windowed mode
+	This stops monitor order from the guest from being re-arranged in multi-
+	monitor setups when switching between fullscreen and windowed mode.
+
+	Note this relies on spice-gtk's auto monitor alignment code, which currently
+	does not properly handle setups where there is more then 1 row of monitors,
+	ie 2x1 - 5x1 will work fine, but 2x2 will not.
+
+	virt-viewer-display-spice: Use real monitor coordinates in fullscreen
+	Now that we pass the real monitor coordinates, tell spice-gtk to use them,
+	rather then to use the passed coordinates as input for its automatic monitor
+	alignment. This fixes ie monitors in a 2x2 grid, showing up as a 4x1
+	configuration in the guest.
+
+	virt-viewer-display-spice: Pass real monitor coordinates in fullscreen
+	Rather then always passing +0+0
+
+2013-02-04  Michal Privoznik  <mprivozn@redhat.com>
+
+	g_{message,warning}: Use printf style
+	The g_message() and g_warning functions expect printf style of
+	arguments. That is, whenever we want to print a string, it has
+	to be preceded with "%s" format.
+
+	configure: Update with autoupdate
+
+	Don't redefine _FORTIFY_SOURCE macro
+	If the _FORTIFY_SOURCE has been already defined, we unconditionally
+	redefine it, leaving us with warning/error thrown at compilation time.
+
+2013-02-04  Martin Kletzander  <mkletzan@redhat.com>
+
+	Make compilation work with automake 1.13
+	Just one thing needs to be changed for virt-viewer to build with
+	automake 1.13, AM_CONFIG_HEADER is deprecated and should be
+	AC_CONFIG_HEADERS.
+
+2013-01-31  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	remote-viewer: controller sets spice session proxy
+	Trivial change since spice-gtk now has proxy session property and
+	controller message, just forward it.
+
+	Add a "Do not ask me again" checkbox when closing app
+
+	Always ask user about closing session
+	Currently, virt-viewer doesn't ask for user confirmation when closing
+	a single monitor session. Always ask before closing, as requested by
+	user.
+
+	https://bugzilla.redhat.com/show_bug.cgi?id=803912
+
+2013-01-29  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	spice: add proxy configuration to connection file
+
+2013-01-24  Christophe Fergeau  <cfergeau@redhat.com>
+
+	Remove unused label
+	It's no longer used after aecd80ec7
+
+	Remove unused variable
+	'window' is no longer used after 412bcf6f.
+
+	Fix warning when compiling without spice-gtk support
+	When remote-viewer is compiled without spice-gtk support, spice-session.h
+	will not get included in remote-viewer.c, causing these warnings:
+
+	remote-viewer.c: In function 'remote_viewer_start':
+	remote-viewer.c:693:9: warning: implicit declaration of function
+	'virt_viewer_session_set_file' [-Wimplicit-function-declaration]
+	remote-viewer.c:693:9: warning: nested extern declaration of
+	'virt_viewer_session_set_file' [-Wnested-externs]
+
+	Add missing intltool BuildRequires
+	The configure script fails if intltool is not installed.
+
+	mingw: Add packages for virt-viewer NSIS installer
+	This makes it much easier to build an updated Windows installer binary
+	as this can now be done using mock/koji/... by using this .spec and
+	a virt-viewer tarball.
+
+	mingw: Build a gtk2 version of virt-viewer
+	The nsis file we ship is generating an installer for a GTK+2 build
+	of virt-viewer, so it's inconsistent for the mingw-virt-viewer
+	spec file to generate a GTK+3 build. Switch to building a GTK+2
+	version of virt-viewer in mingw-virt-viewer.spec
+
+	mingw: Package debug-helper.exe
+
+	mingw: Package debug files
+	When building on f18, the build fails because of unpackaged
+	debug files. Use the appropriate mingw macro to generate
+	the mingw debug packages.
+
+	The build failure is:
+
+	RPM build errors:
+	error: Installed (but unpackaged) file(s) found:
+	   /usr/i686-w64-mingw32/sys-root/mingw/bin/debug-helper.exe.debug
+	   /usr/i686-w64-mingw32/sys-root/mingw/bin/remote-viewer.exe.debug
+	   /usr/i686-w64-mingw32/sys-root/mingw/bin/virt-viewer.exe.debug
+	   /usr/i686-w64-mingw32/sys-root/mingw/bin/windows-cmdline-wrapper.exe.debug
+	   /usr/x86_64-w64-mingw32/sys-root/mingw/bin/debug-helper.exe.debug
+	   /usr/x86_64-w64-mingw32/sys-root/mingw/bin/remote-viewer.exe.debug
+	   /usr/x86_64-w64-mingw32/sys-root/mingw/bin/virt-viewer.exe.debug
+	   /usr/x86_64-w64-mingw32/sys-root/mingw/bin/windows-cmdline-wrapper.exe.debug
+	    Installed (but unpackaged) file(s) found:
+	   /usr/i686-w64-mingw32/sys-root/mingw/bin/debug-helper.exe.debug
+	   /usr/i686-w64-mingw32/sys-root/mingw/bin/remote-viewer.exe.debug
+	   /usr/i686-w64-mingw32/sys-root/mingw/bin/virt-viewer.exe.debug
+	   /usr/i686-w64-mingw32/sys-root/mingw/bin/windows-cmdline-wrapper.exe.debug
+	   /usr/x86_64-w64-mingw32/sys-root/mingw/bin/debug-helper.exe.debug
+	   /usr/x86_64-w64-mingw32/sys-root/mingw/bin/remote-viewer.exe.debug
+	   /usr/x86_64-w64-mingw32/sys-root/mingw/bin/virt-viewer.exe.debug
+	   /usr/x86_64-w64-mingw32/sys-root/mingw/bin/windows-cmdline-wrapper.exe.debug
+
+	mingw: Fix typo in mingw macro name (hedder -> header)
+
+	nsis: Adjust file list
+	Adjust file names for mingw-usbredir dlls and readline dlls
+
+2013-01-22  Hans de Goede  <hdegoede@redhat.com>
+
+	virt-viewer-display-spice: Get monitor under our window
+	When getting monitor info for going fullscreen, Get the monitor under
+	*our* window rather then under the root-window.
+
+	Noticed this not working properly when testing the monitor coordinates stuff,
+	but this should also help people seeing problems when using non equally sized
+	monitors.
+
+2013-01-18  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	vnc: add connection by file
+	Learn to connect to a VNC server with the connection details file, ex:
+
+	[virt-viewer]
+	type=vnc
+	host=localhost
+	port=2356
+	password=foobar
+
+	v2:
+	- add username/password support
+
+	https://bugzilla.redhat.com/show_bug.cgi?id=843410
+
+	file: add username support
+
+2012-12-21  Hans de Goede  <hdegoede@redhat.com>
+
+	Make hotkey configuration functionality available from the cmdline (v2)
+	Changes in v2:
+	-Add --hotkeys documentation to the man-pages
+
+	Add a virt_viewer_app_set_hotkeys() helper function
+
+2012-12-20  Christophe Fergeau  <cfergeau@redhat.com>
+
+	Improve check for overridden grab key combination
+	remote-viewer can either use the default grab/ungrab handled by
+	spice-gtk, or override it and use the standard gtk+ accelerator
+	mechanism. However, the code currently assumes that if any accelerator
+	is set in remote-viewer, then the grab key has been overridden.
+	This commit makes sure the grab key is actually overridden before assuming
+	so.
+
+	Don't leak SpiceGrabSequence in enable_accel_changed
+
+	Improve hotkeys controller behaviour
+	Disable default accelerators when setting bindings from the controller
+	in case the controller does not override them all. This ensures we don't
+	inherit from the bindings set in VirtViewerApp::constructor if the controller
+	doesn't set any bindings for a given action.
+
+2012-12-07  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	Use monitor geometry, not screen size
+	In a recent commit, 3bb6f5ec805ecfe78eba6d4d98e3ffcab195273a, I
+	introduced a regression: going fullscreen would no longer match client
+	and guest resolution correctly.
+
+	A GdkScreen is not necessarily the physical screen monitor size.
+	Lookup the physical monitor size using
+	gdk_screen_get_monitor_geometry().
+
+	Fixes:
+	https://bugzilla.redhat.com/show_bug.cgi?id=881020
+
+2012-12-05  Michal Privoznik  <mprivozn@redhat.com>
+
+	session-spice: Cast CA string to gunit8 pointer
+	SpiceSession has 'ca' property which is type of GByteArray*.
+	However, when we read the property from file, we read it as
+	string. For conversion g_byte_array_new_take() is used which
+	takes given pointer as guint8* so we need to do the cast.
+
+	Sanitize syntax-check
+	make syntax-check is producing some errors about empty line at EOF
+	and missing #include <config.h> in src/virt-viewer-file.c
+
+	* src/virt-viewer-file.c: add #include <config.h>
+	* data/virt-viewer-debug.nsis.in: remove empty line at EOF
+
+2012-12-05  Doug Goldstein  <cardoe@cardoe.com>
+
+	Make .desktop file comply with spec
+	The .desktop file did not comply with the Desktop Entry spec as checked
+	with desktop-file-validate. Boolean keys are defined as taking only
+	'true' or 'false', the entry Terminal had False. MimeType is a string
+	list and therefore must be terminated with a ;
+
+2012-11-27  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	remote-viewer: learn to connect from file
+	v2:
+	- move some variables to inner-block as requested by reviewer
+
+	spice: learn to connect from file
+
+	Add VirtViewerSession:file property
+	If VirtViewerSession:file is set, it should be used to define the
+	connection parameters. Also correct the mime type used in this case.
+
+	The mime type is needed to identify the kind of resources we are
+	adding to the recent list. The recent list can then be filtered and
+	various application handling that type may attempt to access that
+	resource.
+
+	Add VirtViewerFile
+	v2:
+	- use !! for boolean values setter
+	- switch from bytearray/base64 to plain string for CA (PEM)
+	- add file format comment
+
+	Move spice_hotkey_to_gtk_accelerator() to util
+	To be compatible with RHEVM, VirtViewerFile hotkey format will use the
+	Spice Controller format.
+
+	recent: get mime type from session
+	Do not use spice mime type for all kind of sessions, but depending on
+	what is actually being used.
+
+	session: add virt_viewer_session_mime_type()
+
+	debug.nsis: remove superflous path
+
+	display: only un-constrain display size once it is mapped
+	Wait until the widget is actually on screen before removing its
+	size constrain. This solves 50x50 window secondary window size
+	when connecting to a multi-monitor spice guest.
+
+2012-11-23  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	Add virt-viewer-debug.exe NSIS installer
+	This installer will provide with the tools and configuration needed to
+	debug virt-viewer & remote-viewer. It will install itself by default in
+	virt-viewer directory.
+
+2012-11-21  Michal Privoznik  <mprivozn@redhat.com>
+
+	debug-helper: include <config.h>
+
+	AUTHORS: add Dave Allan
+	as he has supplied patch (commit 74b1b62510d9390).
+
+	cfg.mk: Don't require bindtextdomain directly
+	With current implementation, all binaries that need it call
+	bindtextdomain but not directly. They call a helper function
+	instead.  This makes, however, syntax-check fail as it cannot
+	recognize it.
+
+	Original patch proposed by Eric Blake <eblake@redhat.com>
+
+2012-11-20  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	spice: the session is connected when main channel opened
+	The previous change in 399aae55aa384bf91dff0fc770497c0d5f935fa9 rely
+	on correct session-connected signal. However, the spice backend
+	is emiting it too early, when the main channel is created, where
+	it should wait until it is connected instead.
+
+	"Unable to connect to the graphic server" error on guest shutdown
+	In virt_viewer_app_activate(), priv->connected is set to FALSE when
+	the connect/active is successfull. However, we rely on it to know
+	whether the virt_viewer_app_disconnected() is an error, so only set it
+	to FALSE when connection failed.
+
+	Fixes:
+	https://bugzilla.redhat.com/show_bug.cgi?id=875697
+
+2012-11-16  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	build-sys: add min libvirt version requirement check
+
+2012-11-15  Christophe Fergeau  <cfergeau@redhat.com>
+
+	Make sure png screenshots have a .png extensions
+	When falling back to saving to .png, the filename might not
+	end with .png. This commit appends the .png extension to the
+	screenshot filename if it's missing.
+
+	Allow to save to other formats than png
+	Currently, the screenshots can only be saved to png. This commit
+	checks if the file extension is a known one, and will save to this
+	format if it is. Otherwise it will fallback to saving to png.
+
+	Set a default dir/name for screenshots
+	It makes sense for the screenshots to be saved in ~/Images,
+	especially as otherwise the filechooser will display
+	'recent documents' to which we cannot save. This commit also sets
+	the default screenshot name to 'Screenshot'.
+
+	Fix spice-gtk check in configure.ac
+	The check that at least one of spice-gtk and gtk-vnc is present
+	uses a wrong variable name to check for spice-gtk presence, which
+	causes the check to think it's never present. This would make
+	gtk-vnc presence mandatory. This commit fixes the name of the
+	spice-gtk variable ($have_gtk_spice -> $have_spice_gtk).
+
+2012-11-14  Michal Privoznik  <mprivozn@redhat.com>
+
+	Don't SIGSEGV if no transport is used.
+	One of previous commits (74b1b62510d939) allowed us to connect to
+	localhost directly if ssh transport was used. However, if there's
+	not transport, we SIGSEGV'ed as g_str_equal doesn't like NULL as
+	one of arguments. Change this to g_strcmp0 which does the same
+	service but is more friendly to NULL arguments.
+
+2012-11-13  Michal Privoznik  <mprivozn@redhat.com>
+
+	Reconnect to libvirtd after connection breaks
+	Currently, if user wants to reconnect to a domain he can use
+	'-r' cmd line argument. This makes virt-viewer listen to
+	domain events. However, if connection to libvirtd breaks
+	somehow, we will receive no longer any event. Hence we must
+	reconnect to the libvirt.
+
+2012-11-08  Dave Allan  <dallan@redhat.com>
+
+	Connect to localhost for display when transport is ssh
+	When connecting to a VM that does not have a 'listen' tag in its
+	graphcs element, we have to guess where to try to connect to the VM's
+	display.  The current default is the host specified in the connection
+	URI which is correct for most transports, however, the SSH transport
+	makes the display connection from the remote end, so in that case,
+	attempt to connect to localhost.
+
+2012-10-25  Guido Günther  <agx@sigxcpu.org>
+
+	Fail if neither vnc nor spice is detected
+	Since the viewer makes little sense otherwise.
+
+2012-10-23  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	Fix jenkins build failure
+	virt-viewer-util.c: In function 'virt_viewer_util_init':
+	virt-viewer-util.c:289: warning: implicit declaration of function 'setlocale'
+	virt-viewer-util.c:289: warning: nested extern declaration of 'setlocale'
+	virt-viewer-util.c:289: error: 'LC_ALL' undeclared (first use in this function)
+	virt-viewer-util.c:289: error: (Each undeclared identifier is reported only once
+	virt-viewer-util.c:289: error: for each function it appears in.)
+
+	Use a mutex to check if VirtViewer running
+	We need to warn user that installer can't proceed if there is already
+	a running instance of VirtViewer or of the installer.
+
+	https://bugzilla.redhat.com/show_bug.cgi?id=864033
+
+	Use a common early init() function
+	There is a number of things both virt-viewer and remote-viewer need to
+	do early during execution. Do it only in one place.
+
+	windows: add debug-helper
+	This is a simple program that will set some debug variable, and run
+	gdb and wait until it finished. This makes it possible to debug
+	"remote-viewer --spice-controller" easily, by setting the necessary
+	variables and keeping the parent process running (the activex whatches
+	its death)
+
+	To use it, replace the HKCU "Software\spice-space.org\spicex\client"
+	value "$INSTDIR\bin\remote-viewer.exe --spice-controller" with
+	"$INSTDIR\bin\debug-helper.exe remote-viewer.exe --spice-controller".
+
+	nsis: add deps.txt file in installer
+	This helps track package version that were used during the
+	build of Windows installer. It's not ideal, but make up the
+	lack of package management on windows
+
+	nsis: update required files and libraries
+
+	win32: there is no CONERR$, only CONOUT$
+
+2012-10-17  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	spice: only autoresize once with screen size in fullscreen
+	It's currently not possible to configure guest with higher resolution
+	than native, as it will switch back to native, since the gtk widget
+	allocation will always end up being the size of the screen. We
+	special-case fullscreen mode, and only resize when entering
+	fullscreen. Furthermore, it avoids sending extra unnecessary resize
+	events to the guest whenever gtk+ call size allocate in various
+	stages, with different values.
+
+	https://bugzilla.redhat.com/show_bug.cgi?id=864929
+
+	spice: avoid rounding issues when scaling up display
+	Fix some unwanted guest resize due to rounding issues (at least when
+	scaling up)
+
+	We may want to save the original remote desktop size, instead of
+	always checking widget requisition. That way zooming shouldn't resize
+	guest at all, but it seems tricky to handle that special case vs user
+	window resize that should trigger guest resize.
+
+	https://bugzilla.redhat.com/show_bug.cgi?id=856678
+
+2012-10-16  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	Do not resize window to minimum when toggling auto-resize
+	The virt_viewer_display_idle() will queue a resize event that will
+	result in display size requisition of 50x50. If we later resize the
+	window to 1x1 in virt_viewer_window_resize() we end up with a tiny
+	window.
+
+	It is legitimate not to force that 1x1 window resize when toggling the
+	option. After the rest of the logic in virt_viewer_window_resize(), if
+	the remote desktop ends up being resize, that will trigger another
+	virt_viewer_set_desktop_size() and finally change the window size
+	appropriately.
+
+	https://bugzilla.redhat.com/show_bug.cgi?id=856610
+
+2012-10-12  Daniel P. Berrange  <berrange@redhat.com>
+
+	Add RPM magic to run autoreconf
+
+2012-10-10  Daniel P. Berrange  <berrange@redhat.com>
+
+	Fix check for IPv6 any address
+	The string '::' is just one of many possible ways to express
+	the IPv6 "any" address. Others include  '::0', '0:0:0:0:0:0:0:0',
+	'0::0' and more. Instead of trying to do strcmp, actually try
+	parsing the address with GInetAddress and then simply use an
+	accessor to check what type it is
+
+2012-10-09  Daniel P. Berrange  <berrange@redhat.com>
+
+	Allow user to set a window title for remote-viewer
+	Currently the remote viewer windows get the URI as their
+	title. Provide a --title STRING arg to remote-viewer to
+	let the user override the title with something more
+	meaningful to them.
+
+2012-10-01  Christophe Fergeau  <cfergeau@redhat.com>
+
+	Don't free SPICE ticket twice
+	Commit 2201a5a was supposed to free a SPICE ticket leak, but it's
+	actually introducing a double-free as the SPICE ticket is
+	unconditionally freed at the end of
+	virt_viewer_session_spice_main_channel_event
+
+2012-09-18  Christophe Fergeau  <cfergeau@redhat.com>
+
+	Append \n to message in virt_viewer_app_trace
+	Callers manually add a trailing \n when they call virt_viewer_app_trace,
+	but it's sometimes forgotten, leading to rhbz#822794. This commit
+	removes the \n from all callers (it was missing in a few of them)
+	and adds it in virt_viewer_app_trace.
+
+2012-09-18  Daniel P. Berrange  <berrange@redhat.com>
+
+	Refresh translations
+
 2012-09-17  Daniel P. Berrange  <berrange@redhat.com>
 
 	Update for 0.5.4 releae
