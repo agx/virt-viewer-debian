@@ -1,9 +1,9 @@
 
-AC_INIT(virt-viewer, 0.5.4)
+AC_INIT([virt-viewer],[0.5.5])
 AC_CONFIG_SRCDIR(src/virt-viewer-main.c)
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([build-aux])
-AM_CONFIG_HEADER(config.h)
+AC_CONFIG_HEADERS([config.h])
 dnl Make automake keep quiet about wildcards & other GNUmake-isms
 AM_INIT_AUTOMAKE([-Wno-portability])
 AC_CANONICAL_HOST
@@ -14,12 +14,12 @@ AM_SILENT_RULES([yes])
 
 GLIB2_REQUIRED=2.22.0
 LIBXML2_REQUIRED="2.6.0"
-LIBVIRT_REQUIRED="0.9.7"
+LIBVIRT_REQUIRED="0.10.0"
 GTK2_REQUIRED="2.18.0"
 GTK3_REQUIRED="3.0"
 GTK_VNC1_REQUIRED="0.3.8"
 GTK_VNC2_REQUIRED="0.4.0"
-SPICE_GTK_REQUIRED="0.12.101"
+SPICE_GTK_REQUIRED="0.16.26"
 SPICE_PROTOCOL_REQUIRED="0.10.1"
 
 AC_MSG_CHECKING([for native Win32])
@@ -36,7 +36,7 @@ AM_CONDITIONAL([OS_WIN32],[test "$os_win32" = "yes"])
 
 AC_PROG_CC
 AM_PROG_CC_C_O
-AC_PROG_LIBTOOL
+LT_INIT
 
 AC_CHECK_PROGS(ICOTOOL, [icotool], [icotool])
 
@@ -84,7 +84,7 @@ AC_ARG_WITH([libvirt],
 
 AS_IF([test "x$with_libvirt" != "xno"],
       [PKG_CHECK_MODULES(LIBVIRT,
-                         [libvirt],
+                         [libvirt >= $LIBVIRT_REQUIRED],
                          [have_libvirt=yes], [have_libvirt=no])],
       [have_libvirt=no])
 
@@ -192,10 +192,20 @@ if test "x$enable_plugin" = "xyes"; then
 fi
 AM_CONDITIONAL(ENABLE_PLUGIN, [test "x$enable_plugin" = "xyes"])
 
-AC_OUTPUT([
+if test "x$have_gtk_vnc" != "xyes" && test "x$have_spice_gtk" != "xyes"; then
+    AC_MSG_ERROR([At least one of spice or vnc must be used])
+fi
+
+AC_ARG_WITH([buildid],
+    AS_HELP_STRING([--with-buildid=id], [Set additional build version details]))
+AC_DEFINE_UNQUOTED([BUILDID], "$with_buildid", [Build version details])
+
+AC_CONFIG_FILES([
     Makefile
     data/Makefile
+    data/virt-viewer.wxs
     data/virt-viewer.nsis
+    data/virt-viewer-debug.nsis
     icons/Makefile
     icons/16x16/Makefile
     icons/22x22/Makefile
@@ -211,6 +221,7 @@ AC_OUTPUT([
     src/virt-viewer.rc
     virt-viewer.spec
 ])
+AC_OUTPUT
 
 AC_MSG_NOTICE([])
 AC_MSG_NOTICE([Configuration summary])
