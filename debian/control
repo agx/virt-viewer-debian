@@ -6,7 +6,7 @@ Uploaders: Guido Günther <agx@sigxcpu.org>, Laurent Léonard <laurent@open-mind
 Build-Depends: cdbs,
  debhelper (>= 7),
  autotools-dev,
- libvirt-dev (>= 0.8.1),
+ libvirt-dev (>= 0.10),
  libgtk-vnc-2.0-dev,
  libspice-client-gtk-3.0-dev (>= 0.13),
  libxml2-dev,
