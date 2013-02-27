@@ -44,7 +44,7 @@
 static void
 remote_viewer_version(void)
 {
-    g_print(_("remote-viewer version %s\n"), VERSION);
+    g_print(_("remote-viewer version %s\n"), VERSION BUILDID);
     exit(EXIT_SUCCESS);
 }
 
@@ -136,6 +136,7 @@ static gint connect_dialog(gchar **uri)
     rfilter = gtk_recent_filter_new();
     gtk_recent_filter_add_mime_type(rfilter, "application/x-spice");
     gtk_recent_filter_add_mime_type(rfilter, "application/x-vnc");
+    gtk_recent_filter_add_mime_type(rfilter, "application/x-virt-viewer");
     gtk_recent_chooser_set_filter(GTK_RECENT_CHOOSER(recent), rfilter);
     gtk_recent_chooser_set_local_only(GTK_RECENT_CHOOSER(recent), FALSE);
     g_signal_connect(recent, "selection-changed",
@@ -158,19 +159,17 @@ static gint connect_dialog(gchar **uri)
 }
 
 static void
-recent_add(gchar *uri)
+recent_add(gchar *uri, const gchar *mime_type)
 {
     GtkRecentManager *recent;
     GtkRecentData meta = {
-        .mime_type    = (char*)"application/x-spice",
         .app_name     = (char*)"remote-viewer",
         .app_exec     = (char*)"remote-viewer %u",
+        .mime_type    = (char*)mime_type,
     };
 
     if (uri == NULL)
         return;
-
-    g_return_if_fail(g_str_has_prefix(uri, "spice://") || g_str_has_prefix(uri, "vnc://"));
 
     recent = gtk_recent_manager_get_default();
     meta.display_name = uri;
@@ -182,8 +181,9 @@ static void connected(VirtViewerSession *session,
                       VirtViewerApp *self G_GNUC_UNUSED)
 {
     gchar *uri = virt_viewer_session_get_uri(session);
+    const gchar *mime = virt_viewer_session_mime_type(session);
 
-    recent_add(uri);
+    recent_add(uri, mime);
     g_free(uri);
 }
 
@@ -196,6 +196,8 @@ main(int argc, char **argv)
     int zoom = 100;
     gchar **args = NULL;
     gchar *uri = NULL;
+    char *title = NULL;
+    char *hotkeys = NULL;
     gboolean verbose = FALSE;
     gboolean debug = FALSE;
     gboolean direct = FALSE;
@@ -209,6 +211,8 @@ main(int argc, char **argv)
           remote_viewer_version, N_("Display version information"), NULL },
         { "verbose", 'v', 0, G_OPTION_ARG_NONE, &verbose,
           N_("Display verbose information"), NULL },
+        { "title", 't', 0, G_OPTION_ARG_STRING, &title,
+          N_("Set window title"), NULL },
         { "direct", 'd', 0, G_OPTION_ARG_NONE, &direct,
           N_("Direct connection with no automatic tunnels"), NULL },
         { "zoom", 'z', 0, G_OPTION_ARG_INT, &zoom,
@@ -221,32 +225,14 @@ main(int argc, char **argv)
         { "spice-controller", '\0', 0, G_OPTION_ARG_NONE, &controller,
           N_("Open connection using Spice controller communication"), NULL },
 #endif
+        { "hotkeys", 'h', 0, G_OPTION_ARG_STRING, &hotkeys,
+          N_("Customise hotkeys"), NULL },
         { G_OPTION_REMAINING, '\0', 0, G_OPTION_ARG_STRING_ARRAY, &args,
           NULL, "URI" },
         { NULL, 0, 0, G_OPTION_ARG_NONE, NULL, NULL, NULL }
     };
 
-#ifdef G_OS_WIN32
-    if (AttachConsole(ATTACH_PARENT_PROCESS) != 0) {
-        freopen("CONIN$", "r", stdin);
-        freopen("CONOUT$", "w", stdout);
-        freopen("CONERR$", "w", stderr);
-        dup2(fileno(stdin), STDIN_FILENO);
-        dup2(fileno(stdout), STDOUT_FILENO);
-        dup2(fileno(stderr), STDERR_FILENO);
-    }
-#endif
-
-#if !GLIB_CHECK_VERSION(2,31,0)
-    g_thread_init(NULL);
-#endif
-
-    setlocale(LC_ALL, "");
-    bindtextdomain(GETTEXT_PACKAGE, LOCALE_DIR);
-    bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
-    textdomain(GETTEXT_PACKAGE);
-
-    g_set_application_name(_("Remote Viewer"));
+    virt_viewer_util_init(_("Remote Viewer"));
 
     /* Setup command line options */
     context = g_option_context_new (_("- Remote viewer client"));
@@ -304,7 +290,7 @@ main(int argc, char **argv)
         g_object_set(viewer, "guest-name", "defined by Spice controller", NULL);
     } else {
 #endif
-        viewer = remote_viewer_new(uri, verbose);
+        viewer = remote_viewer_new(uri, title, verbose);
         g_object_set(viewer, "guest-name", uri, NULL);
 #if HAVE_SPICE_GTK
     }
@@ -319,6 +305,7 @@ main(int argc, char **argv)
                  NULL);
     virt_viewer_window_set_zoom_level(virt_viewer_app_get_main_window(app), zoom);
     virt_viewer_app_set_direct(app, direct);
+    virt_viewer_app_set_hotkeys(app, hotkeys);
 
     if (!virt_viewer_app_start(app))
         goto cleanup;

@@ -27,6 +27,7 @@
 #include <gtk/gtk.h>
 
 #include "virt-viewer-app.h"
+#include "virt-viewer-file.h"
 #include "virt-viewer-display.h"
 
 G_BEGIN_DECLS
@@ -73,6 +74,7 @@ struct _VirtViewerSessionClass {
     void (* usb_device_selection) (VirtViewerSession* session, GtkWindow *parent);
     void (* smartcard_insert) (VirtViewerSession* session);
     void (* smartcard_remove) (VirtViewerSession* session);
+    const gchar* (* mime_type) (VirtViewerSession* session);
 
     /* signals */
     void (*session_connected)(VirtViewerSession *session);
@@ -98,6 +100,7 @@ struct _VirtViewerSessionClass {
 GType virt_viewer_session_get_type(void);
 
 GtkWidget *virt_viewer_session_new(void);
+const gchar* virt_viewer_session_mime_type(VirtViewerSession *session);
 
 void virt_viewer_session_add_display(VirtViewerSession *session,
                                      VirtViewerDisplay *display);
@@ -122,6 +125,8 @@ void virt_viewer_session_smartcard_insert(VirtViewerSession *self);
 void virt_viewer_session_smartcard_remove(VirtViewerSession *self);
 VirtViewerApp* virt_viewer_session_get_app(VirtViewerSession *self);
 gchar* virt_viewer_session_get_uri(VirtViewerSession *self);
+void virt_viewer_session_set_file(VirtViewerSession *self, VirtViewerFile *file);
+VirtViewerFile* virt_viewer_session_get_file(VirtViewerSession *self);
 
 G_END_DECLS
 
