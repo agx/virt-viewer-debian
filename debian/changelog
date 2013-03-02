@@ -1,3 +1,12 @@
+virt-viewer (0.5.5-4) experimental; urgency=low
+
+  * Upload to experimental since recent libvirt and spice-gtk aren't
+    available in sid/wheezy.
+  * [1ed354b] Depend on newer libvirt (Closes: #701684)
+  * [450bfec] Depend on newer spice-gtk
+
+ -- Guido Günther <agx@sigxcpu.org>  Sat, 02 Mar 2013 12:31:06 +0100
+
 virt-viewer (0.5.5-3) unstable; urgency=low
 
   * New upload
