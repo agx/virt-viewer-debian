@@ -1,2 +1,3 @@
 0001-Fail-if-opening-the-connection-fails.patch
 0002-Don-t-fail-early-if-virDomainOpenGraphics-fails.patch
+0003-Fix-ssh-access-if-no-listen-tag-is-set-on-the-domain.patch

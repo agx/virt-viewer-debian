@@ -1,0 +1,33 @@
+From: Attila Kinali <attila@kinali.ch>
+Date: Thu, 18 Apr 2013 08:15:16 +0200
+Subject: Fix ssh access if no listen tag is set on the domain
+
+Closes: #696435
+---
+ src/virt-viewer.c |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
+
+diff --git a/src/virt-viewer.c b/src/virt-viewer.c
+index 572e9e6..8ca9c63 100644
+--- a/src/virt-viewer.c
++++ b/src/virt-viewer.c
+@@ -354,10 +354,17 @@ virt_viewer_extract_connect_info(VirtViewer *self,
+     if (!ghost ||
+         (strcmp(ghost, "0.0.0.0") == 0 ||
+          strcmp(ghost, "::") == 0)) {
++	 char *replace = NULL;
++	if(strcmp(transport, "ssh") == 0)
++	{
++		replace = "localhost";
++	} else {
++		replace = host;
++	}
+         DEBUG_LOG("Guest graphics listen '%s' is NULL or a wildcard, replacing with '%s'",
+-                  ghost ? ghost : "", host);
++                  ghost ? ghost : "", replace);
+         g_free(ghost);
+-        ghost = g_strdup(host);
++        ghost = g_strdup(replace);
+     }
+ 
+     virt_viewer_app_set_connect_info(app, host, ghost, gport, gtlsport,transport, unixsock, user, port, NULL);
