@@ -13,7 +13,6 @@
 # PARTICULAR PURPOSE.
 
 @SET_MAKE@
-
 VPATH = @srcdir@
 am__make_dryrun = \
   { \
@@ -50,18 +49,9 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-@OS_WIN32_TRUE@am__append_1 = \
-@OS_WIN32_TRUE@	deps.txt				\
-@OS_WIN32_TRUE@	virt-viewer-$(VERSION).exe		\
-@OS_WIN32_TRUE@	virt-viewer-$(VERSION).msi		\
-@OS_WIN32_TRUE@	$(NULL)
-
-@OS_WIN32_FALSE@am__append_2 = $(mime_DATA) $(desktop_DATA)
-@OS_WIN32_FALSE@am__append_3 = $(MIMEFILES) $(DESKTOPFILES)
 subdir = data
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
-	$(srcdir)/virt-viewer-debug.nsis.in \
-	$(srcdir)/virt-viewer.nsis.in $(srcdir)/virt-viewer.wxs.in
+	$(srcdir)/virt-viewer.nsis.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/intltool.m4 \
 	$(top_srcdir)/m4/libtool.m4 $(top_srcdir)/m4/ltoptions.m4 \
@@ -72,8 +62,7 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config.h
-CONFIG_CLEAN_FILES = virt-viewer.wxs virt-viewer.nsis \
-	virt-viewer-debug.nsis
+CONFIG_CLEAN_FILES = virt-viewer.nsis
 CONFIG_CLEAN_VPATH_FILES =
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -94,35 +83,6 @@ am__can_run_installinfo = \
     n|no|NO) false;; \
     *) (install-info --version) >/dev/null 2>&1;; \
   esac
-am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
-am__vpath_adj = case $$p in \
-    $(srcdir)/*) f=`echo "$$p" | sed "s|^$$srcdirstrip/||"`;; \
-    *) f=$$p;; \
-  esac;
-am__strip_dir = f=`echo $$p | sed -e 's|^.*/||'`;
-am__install_max = 40
-am__nobase_strip_setup = \
-  srcdirstrip=`echo "$(srcdir)" | sed 's/[].[^$$\\*|]/\\\\&/g'`
-am__nobase_strip = \
-  for p in $$list; do echo "$$p"; done | sed -e "s|$$srcdirstrip/||"
-am__nobase_list = $(am__nobase_strip_setup); \
-  for p in $$list; do echo "$$p $$p"; done | \
-  sed "s| $$srcdirstrip/| |;"' / .*\//!s/ .*/ ./; s,\( .*\)/[^/]*$$,\1,' | \
-  $(AWK) 'BEGIN { files["."] = "" } { files[$$2] = files[$$2] " " $$1; \
-    if (++n[$$2] == $(am__install_max)) \
-      { print $$2, files[$$2]; n[$$2] = 0; files[$$2] = "" } } \
-    END { for (dir in files) print dir, files[dir] }'
-am__base_list = \
-  sed '$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;s/\n/ /g' | \
-  sed '$$!N;$$!N;$$!N;$$!N;s/\n/ /g'
-am__uninstall_files_from_dir = { \
-  test -z "$$files" \
-    || { test ! -d "$$dir" && test ! -f "$$dir" && test ! -r "$$dir"; } \
-    || { echo " ( cd '$$dir' && rm -f" $$files ")"; \
-         $(am__cd) "$$dir" && rm -f $$files; }; \
-  }
-am__installdirs = "$(DESTDIR)$(desktopdir)" "$(DESTDIR)$(mimedir)"
-DATA = $(desktop_DATA) $(mime_DATA)
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 ALL_LINGUAS = @ALL_LINGUAS@
@@ -300,16 +260,11 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 NULL = 
-CLEANFILES = $(am__append_1) $(am__append_2)
-EXTRA_DIST = spice-xpi-client-remote-viewer virt-viewer.wxs.in \
-	virt-viewer.nsis.in virt-viewer-debug.nsis.in $(NULL) \
-	$(am__append_3)
-@OS_WIN32_FALSE@desktopdir = $(datadir)/applications
-@OS_WIN32_FALSE@DESKTOPFILES = remote-viewer.desktop.in
-@OS_WIN32_FALSE@desktop_DATA = $(DESKTOPFILES:.desktop.in=.desktop)
-@OS_WIN32_FALSE@MIMEFILES = virt-viewer-mime.xml.in
-@OS_WIN32_FALSE@mimedir = $(datadir)/mime/packages
-@OS_WIN32_FALSE@mime_DATA = virt-viewer-mime.xml
+EXTRA_DIST = \
+	spice-xpi-client-remote-viewer		\
+	virt-viewer.nsis.in			\
+	$(NULL)
+
 all: all-am
 
 .SUFFIXES:
@@ -343,11 +298,7 @@ $(top_srcdir)/configure:  $(am__configure_deps)
 $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
-virt-viewer.wxs: $(top_builddir)/config.status $(srcdir)/virt-viewer.wxs.in
-	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
 virt-viewer.nsis: $(top_builddir)/config.status $(srcdir)/virt-viewer.nsis.in
-	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
-virt-viewer-debug.nsis: $(top_builddir)/config.status $(srcdir)/virt-viewer-debug.nsis.in
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
 
 mostlyclean-libtool:
@@ -355,48 +306,6 @@ mostlyclean-libtool:
 
 clean-libtool:
 	-rm -rf .libs _libs
-install-desktopDATA: $(desktop_DATA)
-	@$(NORMAL_INSTALL)
-	@list='$(desktop_DATA)'; test -n "$(desktopdir)" || list=; \
-	if test -n "$$list"; then \
-	  echo " $(MKDIR_P) '$(DESTDIR)$(desktopdir)'"; \
-	  $(MKDIR_P) "$(DESTDIR)$(desktopdir)" || exit 1; \
-	fi; \
-	for p in $$list; do \
-	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
-	  echo "$$d$$p"; \
-	done | $(am__base_list) | \
-	while read files; do \
-	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(desktopdir)'"; \
-	  $(INSTALL_DATA) $$files "$(DESTDIR)$(desktopdir)" || exit $$?; \
-	done
-
-uninstall-desktopDATA:
-	@$(NORMAL_UNINSTALL)
-	@list='$(desktop_DATA)'; test -n "$(desktopdir)" || list=; \
-	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
-	dir='$(DESTDIR)$(desktopdir)'; $(am__uninstall_files_from_dir)
-install-mimeDATA: $(mime_DATA)
-	@$(NORMAL_INSTALL)
-	@list='$(mime_DATA)'; test -n "$(mimedir)" || list=; \
-	if test -n "$$list"; then \
-	  echo " $(MKDIR_P) '$(DESTDIR)$(mimedir)'"; \
-	  $(MKDIR_P) "$(DESTDIR)$(mimedir)" || exit 1; \
-	fi; \
-	for p in $$list; do \
-	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
-	  echo "$$d$$p"; \
-	done | $(am__base_list) | \
-	while read files; do \
-	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(mimedir)'"; \
-	  $(INSTALL_DATA) $$files "$(DESTDIR)$(mimedir)" || exit $$?; \
-	done
-
-uninstall-mimeDATA:
-	@$(NORMAL_UNINSTALL)
-	@list='$(mime_DATA)'; test -n "$(mimedir)" || list=; \
-	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
-	dir='$(DESTDIR)$(mimedir)'; $(am__uninstall_files_from_dir)
 tags: TAGS
 TAGS:
 
@@ -438,11 +347,8 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(DATA)
+all-am: Makefile
 installdirs:
-	for dir in "$(DESTDIR)$(desktopdir)" "$(DESTDIR)$(mimedir)"; do \
-	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
-	done
 install: install-am
 install-exec: install-exec-am
 install-data: install-data-am
@@ -465,7 +371,6 @@ install-strip:
 mostlyclean-generic:
 
 clean-generic:
-	-test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
 
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
@@ -494,7 +399,7 @@ info: info-am
 
 info-am:
 
-install-data-am: install-desktopDATA install-mimeDATA
+install-data-am:
 
 install-dvi: install-dvi-am
 
@@ -538,45 +443,21 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-desktopDATA uninstall-mimeDATA
+uninstall-am:
 
 .MAKE: install-am install-strip
 
 .PHONY: all all-am check check-am clean clean-generic clean-libtool \
 	distclean distclean-generic distclean-libtool distdir dvi \
 	dvi-am html html-am info info-am install install-am \
-	install-data install-data-am install-desktopDATA install-dvi \
-	install-dvi-am install-exec install-exec-am install-html \
-	install-html-am install-info install-info-am install-man \
-	install-mimeDATA install-pdf install-pdf-am install-ps \
-	install-ps-am install-strip installcheck installcheck-am \
-	installdirs maintainer-clean maintainer-clean-generic \
-	mostlyclean mostlyclean-generic mostlyclean-libtool pdf pdf-am \
-	ps ps-am uninstall uninstall-am uninstall-desktopDATA \
-	uninstall-mimeDATA
+	install-data install-data-am install-dvi install-dvi-am \
+	install-exec install-exec-am install-html install-html-am \
+	install-info install-info-am install-man install-pdf \
+	install-pdf-am install-ps install-ps-am install-strip \
+	installcheck installcheck-am installdirs maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-generic \
+	mostlyclean-libtool pdf pdf-am ps ps-am uninstall uninstall-am
 
-
-@OS_WIN32_TRUE@deps.txt:
-@OS_WIN32_TRUE@	$(AM_V_GEN)rpm -qa | grep $(host_os) | sort | unix2dos > $@
-
-@OS_WIN32_TRUE@virt-viewer-$(VERSION).exe: virt-viewer.nsis deps.txt
-@OS_WIN32_TRUE@	$(AM_V_GEN)DESTDIR=`mktemp -d` && \
-@OS_WIN32_TRUE@	make -C $(top_builddir) install DESTDIR=$$DESTDIR >/dev/null && \
-@OS_WIN32_TRUE@	makensis -NOCD -DDESTDIR=$$DESTDIR $< >/dev/null && \
-@OS_WIN32_TRUE@	rm -rf $$DESTDIR
-
-@OS_WIN32_TRUE@virt-viewer-$(VERSION).msi: virt-viewer.wxs deps.txt
-@OS_WIN32_TRUE@	$(AM_V_GEN)DESTDIR=`mktemp -d` && \
-@OS_WIN32_TRUE@	make -C $(top_builddir) install DESTDIR=$$DESTDIR >/dev/null && \
-@OS_WIN32_TRUE@	find $$DESTDIR | wixl-heat -p $$DESTDIR$(prefix)/ \
-@OS_WIN32_TRUE@	    --component-group CG.virt-viewer --var var.DESTDIR \
-@OS_WIN32_TRUE@	    --directory-ref=INSTALLDIR > virt-viewer-files.wxs && \
-@OS_WIN32_TRUE@	wixl -D SourceDir=$(prefix) \
-@OS_WIN32_TRUE@             -D DESTDIR=$$DESTDIR$(prefix) -o $@ \
-@OS_WIN32_TRUE@	     $< virt-viewer-files.wxs && \
-@OS_WIN32_TRUE@	rm -rf $$DESTDIR virt-viewer-files.wxs
-@OS_WIN32_FALSE@@INTLTOOL_DESKTOP_RULE@
-@OS_WIN32_FALSE@@INTLTOOL_XML_RULE@
 
 -include $(top_srcdir)/git.mk
 

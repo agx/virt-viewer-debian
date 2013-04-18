@@ -354,8 +354,8 @@ virt_viewer_display_size_request(GtkWidget *widget,
 
     if (priv->dirty) {
         if (priv->zoom) {
-            requisition->width += round(priv->desktopWidth * priv->zoom_level / 100.0);
-            requisition->height += round(priv->desktopHeight * priv->zoom_level / 100.0);
+            requisition->width += priv->desktopWidth * priv->zoom_level / 100;
+            requisition->height += priv->desktopHeight * priv->zoom_level / 100;
         } else {
             requisition->width += priv->desktopWidth;
             requisition->height += priv->desktopHeight;
@@ -448,8 +448,7 @@ end:
      */
     if (priv->dirty) {
         g_idle_add(virt_viewer_display_idle, widget);
-        if (gtk_widget_get_mapped(widget))
-            priv->dirty = FALSE;
+        priv->dirty = FALSE;
     }
 }
 

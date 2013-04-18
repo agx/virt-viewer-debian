@@ -29,11 +29,9 @@
 #include <libvirt/libvirt.h>
 #endif
 
-#include "virt-viewer-session.h"
 #include "virt-viewer-util.h"
 
-void virt_viewer_auth_vnc_credentials(VirtViewerSession *session,
-                                      GtkWindow *window,
+void virt_viewer_auth_vnc_credentials(GtkWindow *window,
                                       GtkWidget *vnc,
                                       GValueArray *credList,
                                       char *vncAddress);

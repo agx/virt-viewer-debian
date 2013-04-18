@@ -35,7 +35,7 @@
 
 static void virt_viewer_version(void)
 {
-    g_print(_("%s version %s\n"), PACKAGE, VERSION BUILDID);
+    g_print(_("%s version %s\n"), PACKAGE, VERSION);
 
     exit(EXIT_SUCCESS);
 }
@@ -49,7 +49,6 @@ int main(int argc, char **argv)
     char *uri = NULL;
     int zoom = 100;
     gchar **args = NULL;
-    gchar *hotkeys = NULL;
     gboolean verbose = FALSE;
     gboolean debug = FALSE;
     gboolean direct = FALSE;
@@ -81,14 +80,22 @@ int main(int argc, char **argv)
           N_("Display debugging information"), NULL },
         { "full-screen", 'f', 0, G_OPTION_ARG_NONE, &fullscreen,
           N_("Open in full screen mode"), NULL },
-        { "hotkeys", 'h', 0, G_OPTION_ARG_STRING, &hotkeys,
-          N_("Customise hotkeys"), NULL },
         { G_OPTION_REMAINING, '\0', 0, G_OPTION_ARG_STRING_ARRAY, &args,
           NULL, "DOMAIN-NAME|ID|UUID" },
         { NULL, 0, 0, G_OPTION_ARG_NONE, NULL, NULL, NULL }
     };
 
-    virt_viewer_util_init(_("Virt Viewer"));
+#if !GLIB_CHECK_VERSION(2,31,0)
+    g_thread_init(NULL);
+#endif
+
+    setlocale(LC_ALL, "");
+    bindtextdomain(GETTEXT_PACKAGE, LOCALE_DIR);
+    bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
+    textdomain(GETTEXT_PACKAGE);
+
+    g_set_application_name(_("Virt Viewer"));
+
 
     basename = g_path_get_basename(argv[0]);
     help_msg = g_strdup_printf(_("Run '%s --help' to see a full list of available command line options"),
@@ -134,7 +141,6 @@ int main(int argc, char **argv)
         goto cleanup;
 
     g_object_set(viewer, "fullscreen", fullscreen, NULL);
-    virt_viewer_app_set_hotkeys(VIRT_VIEWER_APP(viewer), hotkeys);
     if (!virt_viewer_app_start(VIRT_VIEWER_APP(viewer)))
         goto cleanup;
 

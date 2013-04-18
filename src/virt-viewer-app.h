@@ -60,8 +60,6 @@ typedef struct {
 
 GType virt_viewer_app_get_type (void);
 
-const char *virt_viewer_app_get_title(VirtViewerApp *app);
-void virt_viewer_app_set_title(VirtViewerApp *app, const char *title);
 void virt_viewer_app_set_debug(gboolean debug);
 gboolean virt_viewer_app_start(VirtViewerApp *app);
 void virt_viewer_app_quit(VirtViewerApp *self);
@@ -76,7 +74,6 @@ int virt_viewer_app_initial_connect(VirtViewerApp *self);
 void virt_viewer_app_start_reconnect_poll(VirtViewerApp *self);
 void virt_viewer_app_set_zoom_level(VirtViewerApp *self, gint zoom_level);
 void virt_viewer_app_set_direct(VirtViewerApp *self, gboolean direct);
-void virt_viewer_app_set_hotkeys(VirtViewerApp *self, const gchar *hotkeys);
 void virt_viewer_app_set_attach(VirtViewerApp *self, gboolean attach);
 gboolean virt_viewer_app_get_attach(VirtViewerApp *self);
 gboolean virt_viewer_app_has_session(VirtViewerApp *self);
@@ -96,7 +93,6 @@ void virt_viewer_app_show_display(VirtViewerApp *self);
 GHashTable* virt_viewer_app_get_windows(VirtViewerApp *self);
 gboolean virt_viewer_app_get_enable_accel(VirtViewerApp *self);
 VirtViewerSession* virt_viewer_app_get_session(VirtViewerApp *self);
-gboolean virt_viewer_app_get_fullscreen(VirtViewerApp *app);
 
 G_END_DECLS
 

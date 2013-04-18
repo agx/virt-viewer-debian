@@ -39,7 +39,6 @@ COMMON_SOURCES =					\
 	virt-viewer-util.h virt-viewer-util.c		\
 	virt-viewer-auth.h virt-viewer-auth.c		\
 	virt-viewer-app.h virt-viewer-app.c		\
-	virt-viewer-file.h virt-viewer-file.c		\
 	virt-viewer-session.h virt-viewer-session.c	\
 	virt-viewer-display.h virt-viewer-display.c	\
 	virt-viewer-notebook.h virt-viewer-notebook.c	\
@@ -136,6 +135,11 @@ if OS_WIN32
 remote_viewer_LDFLAGS += -Wl,--subsystem,windows
 endif
 
+desktopdir = $(datadir)/applications
+desktop_DATA = remote-viewer.desktop
+
+EXTRA_DIST += $(desktop_DATA)
+
 VIRT_VIEWER_RES = virt-viewer.rc virt-viewer.manifest
 ICONDIR = $(top_builddir)/icons
 MANIFESTDIR = $(srcdir)
@@ -153,11 +157,6 @@ virt-viewer_rc.$(OBJEXT): $(VIRT_VIEWER_RES) $(ICONDIR)/virt-viewer.ico
 		-i $< -o $@
 LDADD += virt-viewer_rc.$(OBJEXT)
 MAINTAINERCLEANFILES += virt-viewer_rc.$(OBJEXT)
-
-bin_PROGRAMS += debug-helper
-debug_helper_SOURCES = debug-helper.c
-debug_helper_LDFLAGS = $(GLIB2_LIBS) -Wl,--subsystem,windows
-debug_helper_CFLAGS = $(GLIB2_CFLAGS)
 endif
 
 -include $(top_srcdir)/git.mk

@@ -9,12 +9,12 @@ BEGIN
     BEGIN
       VALUE "CompanyName", "virt-manager.org"
       VALUE "FileDescription", "A remote desktop client"
-      VALUE "FileVersion", "0.5.5"
-      VALUE "InternalName", "virt-viewer 0.5.5"
+      VALUE "FileVersion", "0.5.4"
+      VALUE "InternalName", "virt-viewer 0.5.4"
       VALUE "LegalCopyright", "Copyright (C) 2007-2012 Red Hat, Inc."
       VALUE "OriginalFilename", "virt-viewer.exe"
       VALUE "ProductName", "VirtViewer"
-      VALUE "ProductVersion", "0.5.5"
+      VALUE "ProductVersion", "0.5.4"
     END
   END
 

@@ -61,7 +61,7 @@ void virt_viewer_window_menu_view_release_cursor(GtkWidget *menu, VirtViewerWind
 /* Internal methods */
 static void virt_viewer_window_enable_modifiers(VirtViewerWindow *self);
 static void virt_viewer_window_disable_modifiers(VirtViewerWindow *self);
-static void virt_viewer_window_resize(VirtViewerWindow *self, gboolean keep_win_size);
+static void virt_viewer_window_resize(VirtViewerWindow *self);
 static void virt_viewer_window_toolbar_setup(VirtViewerWindow *self);
 static GtkMenu* virt_viewer_window_get_keycombo_menu(VirtViewerWindow *self);
 
@@ -100,7 +100,6 @@ struct _VirtViewerWindowPrivate {
     gboolean grabbed;
     gboolean before_saved;
     GdkRectangle before_fullscreen;
-    GdkPoint fullscreen_coordinate;
     gboolean desktop_resize_pending;
 
     gint zoomlevel;
@@ -289,7 +288,6 @@ virt_viewer_window_init (VirtViewerWindow *self)
     priv = self->priv;
 
     priv->auto_resize = TRUE;
-    priv->fullscreen_coordinate.x = priv->fullscreen_coordinate.y = -1;
     g_value_init(&priv->accel_setting, G_TYPE_STRING);
 
     priv->notebook = virt_viewer_notebook_new();
@@ -348,7 +346,7 @@ virt_viewer_window_desktop_resize(VirtViewerDisplay *display G_GNUC_UNUSED,
         self->priv->desktop_resize_pending = TRUE;
         return;
     }
-    virt_viewer_window_resize(self, FALSE);
+    virt_viewer_window_resize(self);
 }
 
 
@@ -405,7 +403,7 @@ virt_viewer_window_menu_view_zoom_reset(GtkWidget *menu G_GNUC_UNUSED,
  * scale down to fit, maintaining aspect ratio
  */
 static void
-virt_viewer_window_resize(VirtViewerWindow *self, gboolean keep_win_size)
+virt_viewer_window_resize(VirtViewerWindow *self)
 {
     GdkRectangle fullscreen;
     GdkScreen *screen;
@@ -425,8 +423,7 @@ virt_viewer_window_resize(VirtViewerWindow *self, gboolean keep_win_size)
         return;
     }
 
-    if (!keep_win_size)
-        gtk_window_resize(GTK_WINDOW(priv->window), 1, 1);
+    gtk_window_resize(GTK_WINDOW(priv->window), 1, 1);
 
     virt_viewer_display_get_desktop_size(VIRT_VIEWER_DISPLAY(priv->display),
                                          &desktopWidth, &desktopHeight);
@@ -481,7 +478,6 @@ virt_viewer_window_leave_fullscreen(VirtViewerWindow *self)
 
     gtk_check_menu_item_set_active(check, FALSE);
     priv->fullscreen = FALSE;
-    priv->fullscreen_coordinate.x = priv->fullscreen_coordinate.y = -1;
     ViewAutoDrawer_SetActive(VIEW_AUTODRAWER(priv->layout), FALSE);
     gtk_widget_show(menu);
     gtk_widget_hide(priv->toolbar);
@@ -529,11 +525,8 @@ virt_viewer_window_enter_fullscreen(VirtViewerWindow *self, gboolean move, gint 
     ViewAutoDrawer_Close(VIEW_AUTODRAWER(priv->layout));
 
     /* g_debug("enter fullscreen move:%d %d+%d", move, x, y); */
-    if (move) {
+    if (move)
         gtk_window_move(GTK_WINDOW(priv->window), x, y);
-        priv->fullscreen_coordinate.x = x;
-        priv->fullscreen_coordinate.y = y;
-    }
 
     gtk_window_fullscreen(GTK_WINDOW(priv->window));
 #ifdef G_OS_WIN32
@@ -748,53 +741,12 @@ virt_viewer_window_menu_view_resize(GtkWidget *menu,
 
     if (gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menu))) {
         priv->auto_resize = TRUE;
-        virt_viewer_window_resize(self, TRUE);
+        virt_viewer_window_resize(self);
     } else {
         priv->auto_resize = FALSE;
     }
 
     virt_viewer_display_set_auto_resize(priv->display, priv->auto_resize);
-}
-
-static void add_if_writable (GdkPixbufFormat *data, GHashTable *formats)
-{
-    if (gdk_pixbuf_format_is_writable(data)) {
-        gchar **extensions;
-        gchar **it;
-        extensions = gdk_pixbuf_format_get_extensions(data);
-        for (it = extensions; *it != NULL; it++) {
-            g_hash_table_insert(formats, g_strdup(*it), data);
-        }
-        g_strfreev(extensions);
-    }
-}
-
-static GHashTable *init_image_formats(void)
-{
-    GHashTable *format_map;
-    GSList *formats = gdk_pixbuf_get_formats();
-
-    format_map = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, NULL);
-    g_slist_foreach(formats, (GFunc)add_if_writable, format_map);
-    g_slist_free (formats);
-
-    return format_map;
-}
-
-static GdkPixbufFormat *get_image_format(const char *filename)
-{
-    static GOnce image_formats_once = G_ONCE_INIT;
-    const char *ext;
-
-    g_once(&image_formats_once, (GThreadFunc)init_image_formats, NULL);
-
-    ext = strrchr(filename, '.');
-    if (ext == NULL)
-        return NULL;
-
-    ext++; /* skip '.' */
-
-    return g_hash_table_lookup(image_formats_once.retval, ext);
 }
 
 static void
@@ -803,27 +755,9 @@ virt_viewer_window_save_screenshot(VirtViewerWindow *self,
 {
     VirtViewerWindowPrivate *priv = self->priv;
     GdkPixbuf *pix = virt_viewer_display_get_pixbuf(VIRT_VIEWER_DISPLAY(priv->display));
-    GdkPixbufFormat *format = get_image_format(file);
 
-    if (format == NULL) {
-        g_debug("unknown file extension, falling back to png");
-        if (!g_str_has_suffix(file, ".png")) {
-            char *png_filename;
-            png_filename = g_strconcat(file, ".png", NULL);
-            gdk_pixbuf_save(pix, png_filename, "png", NULL,
-                            "tEXt::Generator App", PACKAGE, NULL);
-            g_free(png_filename);
-        } else {
-            gdk_pixbuf_save(pix, file, "png", NULL,
-                            "tEXt::Generator App", PACKAGE, NULL);
-        }
-    } else {
-        char *type = gdk_pixbuf_format_get_name(format);
-        g_debug("saving to %s", type);
-        gdk_pixbuf_save(pix, file, type, NULL, NULL);
-        g_free(type);
-    }
-
+    gdk_pixbuf_save(pix, file, "png", NULL,
+                    "tEXt::Generator App", PACKAGE, NULL);
     g_object_unref(pix);
 }
 
@@ -833,7 +767,6 @@ virt_viewer_window_menu_file_screenshot(GtkWidget *menu G_GNUC_UNUSED,
 {
     GtkWidget *dialog;
     VirtViewerWindowPrivate *priv = self->priv;
-    const char *image_dir;
 
     g_return_if_fail(priv->display != NULL);
 
@@ -846,10 +779,9 @@ virt_viewer_window_menu_file_screenshot(GtkWidget *menu G_GNUC_UNUSED,
     gtk_file_chooser_set_do_overwrite_confirmation(GTK_FILE_CHOOSER (dialog), TRUE);
     gtk_window_set_transient_for(GTK_WINDOW(dialog),
                                  GTK_WINDOW(self->priv->window));
-    image_dir = g_get_user_special_dir(G_USER_DIRECTORY_PICTURES);
-    if (image_dir != NULL)
-        gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER (dialog), image_dir);
-    gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER (dialog), _("Screenshot"));
+
+    //gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dialog), default_folder_for_saving);
+    //gtk_file_chooser_set_current_name (GTK_FILE_CHOOSER (dialog), "Screenshot");
 
     if (gtk_dialog_run(GTK_DIALOG (dialog)) == GTK_RESPONSE_ACCEPT) {
         char *filename;
@@ -898,7 +830,7 @@ virt_viewer_window_menu_help_about(GtkWidget *menu G_GNUC_UNUSED,
     GtkBuilder *about = virt_viewer_util_load_ui("virt-viewer-about.xml");
 
     GtkWidget *dialog = GTK_WIDGET(gtk_builder_get_object(about, "about"));
-    gtk_about_dialog_set_version(GTK_ABOUT_DIALOG(dialog), VERSION BUILDID);
+    gtk_about_dialog_set_version(GTK_ABOUT_DIALOG(dialog), VERSION);
 
     gtk_window_set_transient_for(GTK_WINDOW(dialog),
                                  GTK_WINDOW(self->priv->window));
@@ -1023,10 +955,10 @@ virt_viewer_window_update_title(VirtViewerWindow *self)
 
     if (priv->grabbed) {
         gchar *label;
-        GtkAccelKey key;
 
-        if (virt_viewer_app_get_enable_accel(priv->app)
-                && gtk_accel_map_lookup_entry("<virt-viewer>/view/release-cursor", &key)) {
+        if (virt_viewer_app_get_enable_accel(priv->app)) {
+            GtkAccelKey key;
+            gtk_accel_map_lookup_entry("<virt-viewer>/view/release-cursor", &key);
             label = gtk_accelerator_get_label(key.accel_key, key.accel_mods);
         } else {
             label = g_strdup(_("Ctrl+Alt"));
@@ -1133,22 +1065,15 @@ virt_viewer_window_set_display(VirtViewerWindow *self, VirtViewerDisplay *displa
 void
 virt_viewer_window_show(VirtViewerWindow *self)
 {
-    VirtViewerWindowPrivate *priv = self->priv;
-
     gtk_widget_show(self->priv->window);
 
     if (self->priv->display)
         virt_viewer_display_set_enabled(self->priv->display, TRUE);
 
     if (self->priv->desktop_resize_pending) {
-        virt_viewer_window_resize(self, FALSE);
+        virt_viewer_window_resize(self);
         self->priv->desktop_resize_pending = FALSE;
     }
-
-    if (priv->fullscreen && priv->fullscreen_coordinate.x != -1)
-        gtk_window_move(GTK_WINDOW(priv->window),
-                        priv->fullscreen_coordinate.x,
-                        priv->fullscreen_coordinate.y);
 }
 
 void

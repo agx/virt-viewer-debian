@@ -64,11 +64,6 @@ virt_viewer_session_vnc_finalize(GObject *obj)
     G_OBJECT_CLASS(virt_viewer_session_vnc_parent_class)->finalize(obj);
 }
 
-static const gchar*
-virt_viewer_session_vnc_mime_type(VirtViewerSession *self G_GNUC_UNUSED)
-{
-    return "application/x-vnc";
-}
 
 static void
 virt_viewer_session_vnc_class_init(VirtViewerSessionVncClass *klass)
@@ -83,7 +78,6 @@ virt_viewer_session_vnc_class_init(VirtViewerSessionVncClass *klass)
     dclass->open_host = virt_viewer_session_vnc_open_host;
     dclass->open_uri = virt_viewer_session_vnc_open_uri;
     dclass->channel_open_fd = virt_viewer_session_vnc_channel_open_fd;
-    dclass->mime_type = virt_viewer_session_vnc_mime_type;
 
     g_type_class_add_private(klass, sizeof(VirtViewerSessionVncPrivate));
 }
@@ -201,8 +195,7 @@ virt_viewer_session_vnc_open_uri(VirtViewerSession* session,
                                  const gchar *uristr)
 {
     VirtViewerSessionVnc *self = VIRT_VIEWER_SESSION_VNC(session);
-    VirtViewerFile *file = virt_viewer_session_get_file(session);
-    VirtViewerApp *app = virt_viewer_session_get_app(session);
+    xmlURIPtr uri = NULL;
     gchar *portstr;
     gchar *hoststr = NULL;
     gboolean ret;
@@ -210,33 +203,20 @@ virt_viewer_session_vnc_open_uri(VirtViewerSession* session,
     g_return_val_if_fail(self != NULL, FALSE);
     g_return_val_if_fail(self->priv->vnc != NULL, FALSE);
 
-    if (file) {
-        g_return_val_if_fail(virt_viewer_file_is_set(file, "port"), FALSE);
-        g_return_val_if_fail(virt_viewer_file_is_set(file, "host"), FALSE);
+    if (!(uri = xmlParseURI(uristr)))
+        return FALSE;
 
-        portstr = g_strdup_printf("%d", virt_viewer_file_get_port(file));
-        hoststr = g_strdup(virt_viewer_file_get_host(file));
+    portstr = g_strdup_printf("%d", uri->port);
 
-        virt_viewer_file_fill_app(file, app);
-    } else {
-        xmlURIPtr uri = NULL;
-        if (!(uri = xmlParseURI(uristr)))
-            return FALSE;
-
-        portstr = g_strdup_printf("%d", uri->port);
-
-        if (uri->server) {
-            if (uri->server[0] == '[') {
-                gchar *tmp;
-                hoststr = g_strdup(uri->server + 1);
-                if ((tmp = strchr(hoststr, ']')))
-                    *tmp = '\0';
-            } else {
-                hoststr = g_strdup(uri->server);
-            }
+    if (uri->server) {
+        if (uri->server[0] == '[') {
+            gchar *tmp;
+            hoststr = g_strdup(uri->server + 1);
+            if ((tmp = strchr(hoststr, ']')))
+                *tmp = '\0';
+        } else {
+            hoststr = g_strdup(uri->server);
         }
-
-        xmlFreeURI(uri);
     }
 
     ret = vnc_display_open_host(self->priv->vnc,
@@ -244,6 +224,7 @@ virt_viewer_session_vnc_open_uri(VirtViewerSession* session,
                                 portstr);
     g_free(portstr);
     g_free(hoststr);
+    xmlFreeURI(uri);
     return ret;
 }
 
@@ -255,8 +236,7 @@ virt_viewer_session_vnc_auth_credential(GtkWidget *src,
 {
     VirtViewerSessionVnc *self = VIRT_VIEWER_SESSION_VNC(session);
 
-    virt_viewer_auth_vnc_credentials(session,
-                                     self->priv->main_window,
+    virt_viewer_auth_vnc_credentials(self->priv->main_window,
                                      src,
                                      credList,
                                      NULL);
@@ -302,11 +282,11 @@ virt_viewer_session_vnc_close(VirtViewerSession* session)
 }
 
 VirtViewerSession *
-virt_viewer_session_vnc_new(VirtViewerApp *app, GtkWindow *main_window)
+virt_viewer_session_vnc_new(GtkWindow *main_window)
 {
     VirtViewerSessionVnc *session;
 
-    session = g_object_new(VIRT_VIEWER_TYPE_SESSION_VNC, "app", app, NULL);
+    session = g_object_new(VIRT_VIEWER_TYPE_SESSION_VNC, NULL);
 
     session->priv->vnc = VNC_DISPLAY(vnc_display_new());
     g_object_ref_sink(session->priv->vnc);

@@ -30,7 +30,7 @@
  *   if (AttachConsole(ATTACH_PARENT_PROCESS) != 0) {
  *       freopen("CONIN$", "r", stdin);
  *       freopen("CONOUT$", "w", stdout);
- *       freopen("CONOUT$", "w", stderr);
+ *       freopen("CONERR$", "w", stderr);
  *       dup2(fileno(stdin), STDIN_FILENO);
  *       dup2(fileno(stdout), STDOUT_FILENO);
  *       dup2(fileno(stderr), STDERR_FILENO);

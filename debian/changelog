@@ -1,3 +1,10 @@
+virt-viewer (0.5.5+really0.5.4-1) unstable; urgency=low
+
+  * [21a772c] Revert back to 0.5.4-1.
+    The libvirt version in sid is too old to built virt-viewer (Closes: #701684)
+
+ -- Guido Günther <agx@sigxcpu.org>  Thu, 18 Apr 2013 08:05:36 +0200
+
 virt-viewer (0.5.5-3) unstable; urgency=low
 
   * New upload

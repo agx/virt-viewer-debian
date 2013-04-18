@@ -24,7 +24,6 @@
 
 #include <config.h>
 
-#include <math.h>
 #include <spice-audio.h>
 
 #include <glib/gi18n.h>
@@ -38,13 +37,6 @@ G_DEFINE_TYPE (VirtViewerDisplaySpice, virt_viewer_display_spice, VIRT_VIEWER_TY
 struct _VirtViewerDisplaySpicePrivate {
     SpiceChannel *channel; /* weak reference */
     SpiceDisplay *display;
-    int auto_resize;
-};
-
-enum {
-    AUTO_RESIZE_ALWAYS,
-    AUTO_RESIZE_FULLSCREEN,
-    AUTO_RESIZE_NEVER,
 };
 
 #define VIRT_VIEWER_DISPLAY_SPICE_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE((o), VIRT_VIEWER_TYPE_DISPLAY_SPICE, VirtViewerDisplaySpicePrivate))
@@ -189,8 +181,6 @@ virt_viewer_display_spice_size_allocate(VirtViewerDisplaySpice *self,
     gdouble dw = allocation->width, dh = allocation->height;
     guint zoom = 100;
     guint nth;
-    gint x = 0, y = 0;
-    gboolean disable_display_position = TRUE;
 
     if (virt_viewer_display_get_auto_resize(VIRT_VIEWER_DISPLAY(self)) == FALSE)
         return;
@@ -198,45 +188,17 @@ virt_viewer_display_spice_size_allocate(VirtViewerDisplaySpice *self,
     if (virt_viewer_display_get_show_hint(VIRT_VIEWER_DISPLAY(self)) & VIRT_VIEWER_DISPLAY_SHOW_HINT_DISABLED)
         return;
 
-    if (self->priv->auto_resize == AUTO_RESIZE_FULLSCREEN) {
-        GdkRectangle monitor;
-        GdkScreen *screen = gtk_widget_get_screen(GTK_WIDGET(self));
-        int n = gdk_screen_get_monitor_at_window(screen,
-                                     gtk_widget_get_window(GTK_WIDGET(self)));
-        gdk_screen_get_monitor_geometry(screen, n, &monitor);
-        disable_display_position = FALSE;
-        x = monitor.x;
-        y = monitor.y;
-        dw = monitor.width;
-        dh = monitor.height;
-    } else {
-        GtkWidget *top = gtk_widget_get_toplevel(GTK_WIDGET(self));
-        gtk_window_get_position(GTK_WINDOW(top), &x, &y);
-        if (x < 0)
-            x = 0;
-        if (y < 0)
-            y = 0;
-    }
-
     if (virt_viewer_display_get_zoom(VIRT_VIEWER_DISPLAY(self))) {
         zoom = virt_viewer_display_get_zoom_level(VIRT_VIEWER_DISPLAY(self));
 
-        dw = round(dw * 100 / zoom);
-        dh = round(dh * 100 / zoom);
+        dw /= ((double)zoom / 100.0);
+        dh /= ((double)zoom / 100.0);
     }
 
     g_object_get(self, "nth-display", &nth, NULL);
 
-    if (self->priv->auto_resize != AUTO_RESIZE_NEVER) {
-        g_object_set(get_main(VIRT_VIEWER_DISPLAY(self)),
-                     "disable-display-position", disable_display_position,
-                     "disable-display-align", !disable_display_position,
-                     NULL);
-        spice_main_set_display(get_main(VIRT_VIEWER_DISPLAY(self)),
-                               nth, x, y, dw, dh);
-    }
-    if (self->priv->auto_resize == AUTO_RESIZE_FULLSCREEN)
-        self->priv->auto_resize = AUTO_RESIZE_NEVER;
+    spice_main_set_display(get_main(VIRT_VIEWER_DISPLAY(self)),
+                           nth, 0, 0, dw, dh);
 }
 
 static void
@@ -244,24 +206,13 @@ enable_accel_changed(VirtViewerApp *app,
                      GParamSpec *pspec G_GNUC_UNUSED,
                      VirtViewerDisplaySpice *self)
 {
-    if (virt_viewer_app_get_enable_accel(app)
-            && gtk_accel_map_lookup_entry("<virt-viewer>/view/release-cursor", NULL)) {
-        SpiceGrabSequence *seq = spice_grab_sequence_new(0, NULL);
+    if (virt_viewer_app_get_enable_accel(app)) {
         /* disable default grab sequence */
-        spice_display_set_grab_keys(self->priv->display, seq);
-        spice_grab_sequence_free(seq);
+        spice_display_set_grab_keys(self->priv->display,
+                                    spice_grab_sequence_new(0, NULL));
     } else {
         spice_display_set_grab_keys(self->priv->display, NULL);
     }
-}
-
-static void
-fullscreen_changed(VirtViewerApp *app,
-                   GParamSpec *pspec G_GNUC_UNUSED,
-                   VirtViewerDisplaySpice *self)
-{
-    self->priv->auto_resize = virt_viewer_app_get_fullscreen(app) ?
-        AUTO_RESIZE_FULLSCREEN : AUTO_RESIZE_ALWAYS;
 }
 
 GtkWidget *
@@ -316,8 +267,6 @@ virt_viewer_display_spice_new(VirtViewerSessionSpice *session,
     app = virt_viewer_session_get_app(VIRT_VIEWER_SESSION(session));
     virt_viewer_signal_connect_object(app, "notify::enable-accel",
                                       G_CALLBACK(enable_accel_changed), self, 0);
-    virt_viewer_signal_connect_object(app, "notify::fullscreen",
-                                      G_CALLBACK(fullscreen_changed), self, 0);
     enable_accel_changed(app, NULL, self);
 
     return GTK_WIDGET(self);

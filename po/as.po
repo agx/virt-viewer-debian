@@ -9,15 +9,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: virt-viewer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-09-18 14:26+0100\n"
-"PO-Revision-Date: 2012-09-18 13:26+0000\n"
+"POT-Creation-Date: 2012-04-25 15:50+0100\n"
+"PO-Revision-Date: 2012-04-25 14:50+0000\n"
 "Last-Translator: Daniel Berrange <dan-transifex@berrange.com>\n"
-"Language-Team: Assamese (http://www.transifex.com/projects/p/fedora/language/as/)\n"
+"Language-Team: Assamese (http://www.transifex.net/projects/p/fedora/language/as/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Language: as\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
 
 #: ../src/gbinding.c:637
 msgid "Source"
@@ -67,49 +67,47 @@ msgstr "দুৰৱৰ্তী-দৰ্শক সংস্কৰণ %s\n"
 #: ../src/remote-viewer-main.c:69
 #, c-format
 msgid "Invalid full-screen argument: %s"
-msgstr "অবৈধ সম্পূৰ্ণ-পৰ্দা তৰ্ক: %s"
+msgstr ""
 
 #. Create the widgets
 #: ../src/remote-viewer-main.c:104
 msgid "Connection details"
-msgstr "সংযোগৰ বিৱৰণসমূহ"
+msgstr ""
 
 #: ../src/remote-viewer-main.c:119
 msgid "URL:"
-msgstr "URL:"
+msgstr ""
 
 #: ../src/remote-viewer-main.c:127
 msgid "Recent connections:"
-msgstr "শেহতীয়া সংযোগসমূহ:"
+msgstr ""
 
-#: ../src/remote-viewer-main.c:209 ../src/virt-viewer-main.c:64
+#: ../src/remote-viewer-main.c:206 ../src/virt-viewer-main.c:60
+msgid "Run '"
+msgstr "চলাওক '"
+
+#: ../src/remote-viewer-main.c:209 ../src/virt-viewer-main.c:63
 msgid "Display version information"
 msgstr "সংস্কৰণ তথ্য প্ৰদৰ্শন কৰক"
 
-#: ../src/remote-viewer-main.c:211 ../src/virt-viewer-main.c:66
+#: ../src/remote-viewer-main.c:211 ../src/virt-viewer-main.c:65
 msgid "Display verbose information"
 msgstr "ভাৰভৌচ তথ্য প্ৰদৰ্শন কৰক"
 
-#: ../src/remote-viewer-main.c:213 ../src/virt-viewer-main.c:68
+#: ../src/remote-viewer-main.c:213 ../src/virt-viewer-main.c:67
 msgid "Direct connection with no automatic tunnels"
 msgstr "কোনো স্বচালিত টানেল নহোৱাকৈ প্ৰত্যক্ষ সংযোগ"
 
-#: ../src/remote-viewer-main.c:215 ../src/virt-viewer-main.c:78
+#: ../src/remote-viewer-main.c:215 ../src/virt-viewer-main.c:77
 msgid "Zoom level of window, in percentage"
 msgstr "উইন্ডোৰ জুম স্তৰ, শতাংশত"
 
-#: ../src/remote-viewer-main.c:217 ../src/virt-viewer-main.c:80
+#: ../src/remote-viewer-main.c:217 ../src/virt-viewer-main.c:79
 msgid "Display debugging information"
 msgstr "ডিবাগ তথ্য প্ৰদৰ্শন কৰক"
 
 #: ../src/remote-viewer-main.c:219
-msgid ""
-"Open in full screen mode (auto-conf adjusts guest resolution to fit the "
-"client's)."
-msgstr ""
-
-#: ../src/remote-viewer-main.c:219
-msgid "<auto-conf>"
+msgid "Open in full screen mode (=<auto-conf>)"
 msgstr ""
 
 #: ../src/remote-viewer-main.c:222
@@ -118,31 +116,24 @@ msgstr "Spice নিয়ন্ত্ৰক সংযোগ ব্যৱহাৰ 
 
 #: ../src/remote-viewer-main.c:249
 msgid "Remote Viewer"
-msgstr "দূৰৱৰ্তী দৰ্শক"
+msgstr ""
 
 #. Setup command line options
 #: ../src/remote-viewer-main.c:252
 msgid "- Remote viewer client"
 msgstr "- দূৰৱৰ্তী দৰ্শক ক্লাএন্ট"
 
-#: ../src/remote-viewer-main.c:265
-#, c-format
-msgid ""
-"%s\n"
-"Run '%s --help' to see a full list of available command line options\n"
-msgstr ""
-
-#: ../src/remote-viewer-main.c:277
+#: ../src/remote-viewer-main.c:275
 #, c-format
 msgid "Error: extra arguments given while using Spice controller\n"
-msgstr "ত্ৰুটি: Spice নিয়ন্ত্ৰক ব্যৱহাৰ কৰোতে অতিৰিক্ত ত্ৰকসমূহ দিয়া হৈছে\n"
+msgstr ""
 
-#: ../src/remote-viewer-main.c:286
+#: ../src/remote-viewer-main.c:284
 #, c-format
 msgid "Error: can't handle multiple URIs\n"
-msgstr "ত্ৰুটি: কেইবাটাও URls নিয়ন্ত্ৰণ কৰিব নোৱাৰি\n"
+msgstr ""
 
-#: ../src/remote-viewer-main.c:293 ../src/virt-viewer-main.c:131
+#: ../src/remote-viewer-main.c:291 ../src/virt-viewer-main.c:125
 #, c-format
 msgid "Zoom level must be within 10-200\n"
 msgstr "জুম স্তৰ ১০-২০০ ৰ মাজত হব লাগিব\n"
@@ -184,22 +175,22 @@ msgstr "এই ধৰণৰ বাবে এটা অধিবেশন সৃ�
 #. * End:
 #. 
 #: ../src/virt-viewer-about.xml.h:1
+msgid "A remote desktop client built with GTK-VNC, SPICE-GTK and libvirt"
+msgstr "GTK-VNC, SPICE-GTK আৰু libvirt ৰ সৈতে নিৰ্মাণ কৰা এটা দূৰৱৰ্তী ডেস্কটপ ক্লাএন্ট"
+
+#: ../src/virt-viewer-about.xml.h:2
 msgid "About Glade"
 msgstr "Glade ৰ বিষয়ে"
 
-#: ../src/virt-viewer-about.xml.h:2
+#: ../src/virt-viewer-about.xml.h:3
 msgid ""
 "Copyright (C) 2007-2012 Daniel P. Berrange\n"
 "Copyright (C) 2007-2012 Red Hat, Inc."
 msgstr "স্বত্বাধিকাৰ (C) ২০০৭-২০১২ ডেনিয়েল পি. বিৰেইঞ্জ\nস্বত্বাধিকাৰ (C) ২০০৭-২০১২ Red Hat, Inc."
 
-#: ../src/virt-viewer-about.xml.h:4
-msgid "A remote desktop client built with GTK-VNC, SPICE-GTK and libvirt"
-msgstr "GTK-VNC, SPICE-GTK আৰু libvirt ৰ সৈতে নিৰ্মাণ কৰা এটা দূৰৱৰ্তী ডেস্কটপ ক্লাএন্ট"
-
 #: ../src/virt-viewer-about.xml.h:5
-msgid "virt-manager.org"
-msgstr "virt-manager.org"
+msgid "The Fedora Translation Team"
+msgstr "Fedora অনুবাদ দল"
 
 #: ../src/virt-viewer-about.xml.h:6
 msgid ""
@@ -216,76 +207,71 @@ msgid ""
 "You should have received a copy of the GNU General Public License\n"
 "along with this program; if not, write to the Free Software\n"
 "Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA\n"
-msgstr "এই প্ৰগ্ৰামটো এটা বিনামুলিয়া চফ্টৱেৰ; আপুনি Free Software Foundation ৰ দ্বাৰা প্ৰকাশিত GNU General Public License ৰ চুক্তিসমূহৰ অন্তৰ্গত ইয়াক পুনৰ বিলাব পাৰিব অথবা সলনি  কৰিব পাৰিব; হৈতো অনুজ্ঞাৰ সংস্কৰণ ২, অথবা (আপুনাৰ বিকল্পত) যিকোনো পৰৱৰ্তী সংস্কৰণ।\n\nএই প্ৰগ্ৰামটো এইটো আশাত বিলোৱা হৈছে যে ই ব্যৱহাৰযোগ্য হ'ব, কিন্তু কোনো ৱাৰেন্টি নথকাকৈ; ব্যৱসায়ীক  অথবা কোনো এটা বিশেষ কাৰণৰ যোগ্যতাৰ বাবে বুজুৱা ৱাৰেন্টি  নথকাকৈ। অধিক যানিবলৈ  GNU General Public License চাওক।\n\nআপুনি হৈতো ইতিমধ্যে এই প্ৰগ্ৰামৰ সৈতে GNU General Public License ৰ কপি এটা পাইছে; যদি নাই,  Free Software\nFoundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA লে লিখক\n"
+msgstr "এই প্ৰগ্ৰামটো এটা বিনামুলিয়া চফ্টওৱেৰ; আপুনি Free Software Foundation -ৰ দ্বাৰা প্ৰকাশিত GNU General Public License -ৰ চুক্তিসমূহৰ অন্তৰ্গত ইয়াক পুনৰ বিলাব পাৰিব অথবা সলনি  কৰিব পাৰিব; হৈতো লাইচেঞ্চৰ সংস্কৰণ ২, অথবা (আপুনাৰ বিকল্পত) যিকোনো পৰৱৰ্তী সংস্কৰণ।\n\nএই প্ৰগ্ৰামটো এইটো আশাত বিলোৱা হৈছে যে ই ব্যৱহাৰযোগ্য হ'ব, কিন্তু কোনো ওৱাৰেন্টি নথকাকৈ; ব্যৱসায়ীক  অথবা কোনো এটা বিশেষ কাৰণৰ যোগ্যতাৰ বাবে বুজুৱা ওৱাৰেন্টি  নথকাকৈ। অধিক যানিবলৈ  GNU General Public License চাওক।\n\nআপুনি হৈতো ইতিমধ্যে এই প্ৰগ্ৰামৰ সৈতে GNU General Public License -ৰ কপি এটা পাইছে; যদি নাই,  Free Software\nFoundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA লে লিখক\n"
 
 #: ../src/virt-viewer-about.xml.h:20
-msgid "The Fedora Translation Team"
-msgstr "Fedora অনুবাদ দল"
+msgid "virt-manager.org"
+msgstr "virt-manager.org"
 
 #: ../src/virt-viewer-app.c:284
 msgid "This is the last visible display. Do you want to quit?"
 msgstr "এইটো শেষ দৃশ্যমান প্ৰদৰ্শন। আপুনি প্ৰস্থান কৰিব বিচাৰে নে?"
 
-#: ../src/virt-viewer-app.c:635
+#: ../src/virt-viewer-app.c:624
 #, c-format
 msgid "Waiting for display %d..."
 msgstr "প্ৰদৰ্শন %d ৰ বাবে অপেক্ষা কৰা হৈ আছে..."
 
-#: ../src/virt-viewer-app.c:722
+#: ../src/virt-viewer-app.c:707
 #, c-format
 msgid "Unknown graphic type for the guest %s"
 msgstr "অতিথি %s ৰ বাবে অজ্ঞাত গ্ৰাফিক ধৰণ"
 
-#: ../src/virt-viewer-app.c:799
+#: ../src/virt-viewer-app.c:782
 msgid "Connect to ssh failed."
 msgstr "ssh লে সংযোগ ব্যৰ্থ হল।"
 
-#: ../src/virt-viewer-app.c:801
+#: ../src/virt-viewer-app.c:784
 msgid "Can't connect to channel, SSH only supported."
 msgstr "চেনেলে সংযোগ কৰিব নোৱাৰি, কেৱল SSH সমৰ্থিত।"
 
-#: ../src/virt-viewer-app.c:813
+#: ../src/virt-viewer-app.c:796
 msgid "Connect to channel unsupported."
 msgstr "চেনেললে সংযোগ অসমৰ্থিত।"
 
-#: ../src/virt-viewer-app.c:893
+#: ../src/virt-viewer-app.c:876
 msgid "Connecting to graphic server"
 msgstr "গ্ৰাফিক চাৰ্ভাৰলে সংযোগ কৰা হৈ আছে"
 
-#: ../src/virt-viewer-app.c:1023
+#: ../src/virt-viewer-app.c:1006
 msgid "Guest domain has shutdown"
 msgstr "অতিথি ডমেইন বন্ধ হল"
 
-#: ../src/virt-viewer-app.c:1073
+#: ../src/virt-viewer-app.c:1056
 msgid "Connected to graphic server"
 msgstr "গ্ৰাফিক চাৰ্ভাৰলে সংযোগিত"
 
-#: ../src/virt-viewer-app.c:1099
+#: ../src/virt-viewer-app.c:1082
 #, c-format
 msgid "Unable to connect to the graphic server %s"
 msgstr "গ্ৰাফিক চাৰ্ভাৰ %s লে সংযোগ কৰিবলে অক্ষম"
 
-#: ../src/virt-viewer-app.c:1128
+#: ../src/virt-viewer-app.c:1111
 #, c-format
 msgid ""
 "Unable to authenticate with remote desktop server at %s: %s\n"
 "Retry connection again?"
 msgstr "%s ত দূৰৱৰ্তী ডেস্কটপ চাৰ্ভাৰৰ সৈতে প্ৰমাণীত কৰিবলে অক্ষম: %s\nসংযোগ পুনৰ চেষ্টা কৰিব নে?"
 
-#: ../src/virt-viewer-app.c:1148
+#: ../src/virt-viewer-app.c:1131
 #, c-format
 msgid "Unable to authenticate with remote desktop server: %s"
 msgstr "দূৰৱৰ্তী ডেস্কটপ চাৰ্ভাৰৰ সৈতে প্ৰমাণিত কৰিবলে অক্ষম: %s"
 
-#: ../src/virt-viewer-app.c:1156
+#: ../src/virt-viewer-app.c:1139
 #, c-format
 msgid "USB redirection error: %s"
 msgstr "USB পুনৰনিৰ্দেশ ত্ৰুটি: %s"
-
-#: ../src/virt-viewer-app.c:1652
-#, c-format
-msgid "Display %d"
-msgstr ""
 
 #. * Local variables:
 #. *  c-indent-level: 4
@@ -298,57 +284,52 @@ msgid "Authentication required"
 msgstr "প্ৰমাণীকৰণৰ প্ৰয়োজন"
 
 #: ../src/virt-viewer-auth.xml.h:2
-msgid "label"
-msgstr "লেবেল"
-
-#: ../src/virt-viewer-auth.xml.h:3
 msgid "Password:"
 msgstr "পাছৱাৰ্ড:"
 
-#: ../src/virt-viewer-auth.xml.h:4
+#: ../src/virt-viewer-auth.xml.h:3
 msgid "Username:"
 msgstr "ব্যৱহাৰকাৰীৰ নাম:"
+
+#: ../src/virt-viewer-auth.xml.h:4
+msgid "label"
+msgstr "লেবেল"
 
 #: ../src/virt-viewer-main.c:38
 #, c-format
 msgid "%s version %s\n"
 msgstr "%s সংস্কৰণ %s\n"
 
-#: ../src/virt-viewer-main.c:70
+#: ../src/virt-viewer-main.c:69
 msgid "Attach to the local display using libvirt"
 msgstr "libvirt ব্যৱহাৰ কৰি স্থানীয় প্ৰদৰ্শনলে সংলঘ্ন কৰক"
 
-#: ../src/virt-viewer-main.c:72
+#: ../src/virt-viewer-main.c:71
 msgid "Connect to hypervisor"
 msgstr "হাইপাৰভাইছৰলে সংযোগ কৰক"
 
-#: ../src/virt-viewer-main.c:74
+#: ../src/virt-viewer-main.c:73
 msgid "Wait for domain to start"
 msgstr "ডমেইন আৰম্ভ হবলে অপেক্ষা কৰক"
 
-#: ../src/virt-viewer-main.c:76
+#: ../src/virt-viewer-main.c:75
 msgid "Reconnect to domain upon restart"
 msgstr "পুনৰাম্ভ হওতে ডমেইনলে পুনৰসংযোগ কৰক"
 
-#: ../src/virt-viewer-main.c:82
+#: ../src/virt-viewer-main.c:81
 msgid "Open in full screen mode"
 msgstr "পূৰ্ণ পৰ্দা অৱস্থাত খোলক"
 
-#: ../src/virt-viewer-main.c:97
+#: ../src/virt-viewer-main.c:96
 msgid "Virt Viewer"
 msgstr "Virt দৰ্শক"
 
-#: ../src/virt-viewer-main.c:101
-#, c-format
-msgid "Run '%s --help' to see a full list of available command line options"
-msgstr ""
-
 #. Setup command line options
-#: ../src/virt-viewer-main.c:106
+#: ../src/virt-viewer-main.c:99
 msgid "- Virtual machine graphical console"
 msgstr "- ভাৰ্চুৱেল যন্ত্ৰৰ চিত্ৰাঙ্কিত ক'ন্সোল"
 
-#: ../src/virt-viewer-main.c:126
+#: ../src/virt-viewer-main.c:120
 #, c-format
 msgid ""
 "\n"
@@ -359,7 +340,7 @@ msgid ""
 msgstr "\nব্যৱহাৰপদ্ধতি: %s [OPTIONS] DOMAIN-NAME|ID|UUID\n\n%s\n\n"
 
 #. Create the widgets
-#: ../src/virt-viewer-session-spice.c:382
+#: ../src/virt-viewer-session-spice.c:380
 msgid "Select USB devices for redirection"
 msgstr "পুনৰনিৰ্দেশৰ বাবে USB ডিভাইচসমূহ বাছক"
 
@@ -368,31 +349,31 @@ msgstr "পুনৰনিৰ্দেশৰ বাবে USB ডিভাইচ
 msgid "Unsupported authentication type %d"
 msgstr "অসমৰ্থিত প্ৰমাণীকৰণ ধৰণ %d"
 
-#: ../src/virt-viewer-window.c:859
+#: ../src/virt-viewer-window.c:832
 msgid "Disconnect"
 msgstr "বিচ্ছিন্ন কৰক"
 
-#: ../src/virt-viewer-window.c:866 ../src/virt-viewer-window.c:867
-#: ../src/virt-viewer.xml.h:3
+#: ../src/virt-viewer-window.c:839 ../src/virt-viewer-window.c:840
+#: ../src/virt-viewer.xml.h:22
 msgid "USB device selection"
 msgstr "USB ডিভাইছ নিৰ্বাচন"
 
-#: ../src/virt-viewer-window.c:875
+#: ../src/virt-viewer-window.c:848
 msgid "Send key combination"
-msgstr "চাবি সংযুক্তি পঠাওক"
+msgstr ""
 
-#: ../src/virt-viewer-window.c:884 ../src/virt-viewer-window.c:885
+#: ../src/virt-viewer-window.c:857 ../src/virt-viewer-window.c:858
 msgid "Leave fullscreen"
 msgstr "পূৰ্ণপৰ্দা ত্যাগ কৰক"
 
-#: ../src/virt-viewer-window.c:964
+#: ../src/virt-viewer-window.c:937
 msgid "Ctrl+Alt"
-msgstr "Ctrl+Alt"
+msgstr ""
 
-#: ../src/virt-viewer-window.c:967
+#: ../src/virt-viewer-window.c:940
 #, c-format
 msgid "(Press %s to release pointer)"
-msgstr "(পোইন্টাৰ এৰিবলে %s টিপক)"
+msgstr ""
 
 #. translators:
 #. * This is "<ungrab (or empty)><space (or empty)><subtitle (or empty)> -
@@ -400,13 +381,13 @@ msgstr "(পোইন্টাৰ এৰিবলে %s টিপক)"
 #. * Such as: "(Press Ctrl+Alt to release pointer) BigCorpTycoon MOTD - Virt
 #. Viewer"
 #. 
-#: ../src/virt-viewer-window.c:978
+#: ../src/virt-viewer-window.c:951
 #, c-format
 msgid "%s%s%s - %s"
 msgstr "%s%s%s - %s"
 
 #. translators: <space>
-#: ../src/virt-viewer-window.c:982
+#: ../src/virt-viewer-window.c:955
 msgid " "
 msgstr " "
 
@@ -470,109 +451,109 @@ msgstr "[none]"
 #. * End:
 #. 
 #: ../src/virt-viewer.xml.h:1
-msgid "_File"
-msgstr "ফাইল (_F)"
-
-#: ../src/virt-viewer.xml.h:2
-msgid "Screenshot"
-msgstr "স্ক্ৰিনশ্বট"
-
-#: ../src/virt-viewer.xml.h:4
-msgid "Smartcard insertion"
-msgstr "স্মাৰ্টকাৰ্ড সোমোৱা"
-
-#: ../src/virt-viewer.xml.h:5
-msgid "Smartcard removal"
-msgstr "স্মাৰ্টকাৰ্ড আতৰোৱা"
-
-#: ../src/virt-viewer.xml.h:6
-msgid "_View"
-msgstr "দৰ্শন কৰক (_V)"
-
-#: ../src/virt-viewer.xml.h:7
-msgid "Full screen"
-msgstr "সম্পূৰ্ণ পৰ্দা"
-
-#: ../src/virt-viewer.xml.h:8
-msgid "_Zoom"
-msgstr "জুম কৰক (_Z)"
-
-#: ../src/virt-viewer.xml.h:9
 msgid "Automatically resize"
 msgstr "স্বচালিতভাৱে পুনৰআকাৰ দিয়ক"
 
+#: ../src/virt-viewer.xml.h:2
+msgid "Ctrl+Alt+F11"
+msgstr "Ctrl+Alt+F11"
+
+#: ../src/virt-viewer.xml.h:3
+msgid "Ctrl+Alt+F12"
+msgstr "Ctrl+Alt+F12"
+
+#: ../src/virt-viewer.xml.h:4
+msgid "Ctrl+Alt+F1_0"
+msgstr "Ctrl+Alt+F1_0"
+
+#: ../src/virt-viewer.xml.h:5
+msgid "Ctrl+Alt+F_1"
+msgstr "Ctrl+Alt+F_1"
+
+#: ../src/virt-viewer.xml.h:6
+msgid "Ctrl+Alt+F_2"
+msgstr "Ctrl+Alt+F_2"
+
+#: ../src/virt-viewer.xml.h:7
+msgid "Ctrl+Alt+F_3"
+msgstr "Ctrl+Alt+F_3"
+
+#: ../src/virt-viewer.xml.h:8
+msgid "Ctrl+Alt+F_4"
+msgstr "Ctrl+Alt+F_4"
+
+#: ../src/virt-viewer.xml.h:9
+msgid "Ctrl+Alt+F_5"
+msgstr "Ctrl+Alt+F_5"
+
 #: ../src/virt-viewer.xml.h:10
-msgid "Displays"
-msgstr "প্ৰদৰ্শনসমূহ"
+msgid "Ctrl+Alt+F_6"
+msgstr "Ctrl+Alt+F_6"
 
 #: ../src/virt-viewer.xml.h:11
-msgid "Release cursor"
-msgstr "উন্মোচন কাৰ্চাৰ"
+msgid "Ctrl+Alt+F_7"
+msgstr "Ctrl+Alt+F_7"
 
 #: ../src/virt-viewer.xml.h:12
-msgid "_Send key"
-msgstr "কি পঠাওক (_S)"
+msgid "Ctrl+Alt+F_8"
+msgstr "Ctrl+Alt+F_8"
 
 #: ../src/virt-viewer.xml.h:13
-msgid "Ctrl+Alt+_Del"
-msgstr "Ctrl+Alt+_Del"
+msgid "Ctrl+Alt+F_9"
+msgstr "Ctrl+Alt+F_9"
 
 #: ../src/virt-viewer.xml.h:14
 msgid "Ctrl+Alt+_Backspace"
 msgstr "Ctrl+Alt+_Backspace"
 
 #: ../src/virt-viewer.xml.h:15
-msgid "Ctrl+Alt+F_1"
-msgstr "Ctrl+Alt+F_1"
+msgid "Ctrl+Alt+_Del"
+msgstr "Ctrl+Alt+_Del"
 
 #: ../src/virt-viewer.xml.h:16
-msgid "Ctrl+Alt+F_2"
-msgstr "Ctrl+Alt+F_2"
+msgid "Displays"
+msgstr "প্ৰদৰ্শনসমূহ"
 
 #: ../src/virt-viewer.xml.h:17
-msgid "Ctrl+Alt+F_3"
-msgstr "Ctrl+Alt+F_3"
+msgid "Full screen"
+msgstr "সম্পূৰ্ণ পৰ্দা"
 
 #: ../src/virt-viewer.xml.h:18
-msgid "Ctrl+Alt+F_4"
-msgstr "Ctrl+Alt+F_4"
+msgid "Release cursor"
+msgstr "উন্মোচন কাৰ্চাৰ"
 
 #: ../src/virt-viewer.xml.h:19
-msgid "Ctrl+Alt+F_5"
-msgstr "Ctrl+Alt+F_5"
+msgid "Screenshot"
+msgstr "স্ক্ৰিনশ্বট"
 
 #: ../src/virt-viewer.xml.h:20
-msgid "Ctrl+Alt+F_6"
-msgstr "Ctrl+Alt+F_6"
+msgid "Smartcard insertion"
+msgstr "স্মাৰ্টকাৰ্ড সোমোৱা"
 
 #: ../src/virt-viewer.xml.h:21
-msgid "Ctrl+Alt+F_7"
-msgstr "Ctrl+Alt+F_7"
-
-#: ../src/virt-viewer.xml.h:22
-msgid "Ctrl+Alt+F_8"
-msgstr "Ctrl+Alt+F_8"
+msgid "Smartcard removal"
+msgstr "স্মাৰ্টকাৰ্ড আতৰোৱা"
 
 #: ../src/virt-viewer.xml.h:23
-msgid "Ctrl+Alt+F_9"
-msgstr "Ctrl+Alt+F_9"
+msgid "_File"
+msgstr "নথিপত্ৰ (_F)"
 
 #: ../src/virt-viewer.xml.h:24
-msgid "Ctrl+Alt+F1_0"
-msgstr "Ctrl+Alt+F1_0"
+msgid "_Help"
+msgstr "সহায় (_H)"
 
 #: ../src/virt-viewer.xml.h:25
-msgid "Ctrl+Alt+F11"
-msgstr "Ctrl+Alt+F11"
-
-#: ../src/virt-viewer.xml.h:26
-msgid "Ctrl+Alt+F12"
-msgstr "Ctrl+Alt+F12"
-
-#: ../src/virt-viewer.xml.h:27
 msgid "_PrintScreen"
 msgstr "প্ৰিন্টস্ক্ৰিন (_P)"
 
+#: ../src/virt-viewer.xml.h:26
+msgid "_Send key"
+msgstr "কি পঠাওক (_S)"
+
+#: ../src/virt-viewer.xml.h:27
+msgid "_View"
+msgstr "দৰ্শন কৰক (_V)"
+
 #: ../src/virt-viewer.xml.h:28
-msgid "_Help"
-msgstr "সহায় (_H)"
+msgid "_Zoom"
+msgstr "জুম কৰক (_Z)"
