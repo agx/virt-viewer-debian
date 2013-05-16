@@ -1,3 +1,12 @@
+virt-viewer (0.5.5-4) experimental; urgency=low
+
+  * Upload to experimental since recent libvirt and spice-gtk aren't
+    available in sid/wheezy.
+  * [1ed354b] Depend on newer libvirt (Closes: #701684)
+  * [450bfec] Depend on newer spice-gtk
+
+ -- Guido Günther <agx@sigxcpu.org>  Sat, 02 Mar 2013 12:31:06 +0100
+
 virt-viewer (0.5.5-3) unstable; urgency=low
 
   * New upload
@@ -15,6 +24,20 @@ virt-viewer (0.5.5-1) unstable; urgency=low
   * [5bf850a] Imported Upstream version 0.5.5 (Closes: #684725)
 
  -- Laurent Léonard <laurent@open-minds.org>  Wed, 20 Feb 2013 23:20:54 +0100
+
+virt-viewer (0.5.4-3) experimental; urgency=low
+
+  * [af14ec8] Fix ssh connection tunneling
+
+ -- Guido Günther <agx@sigxcpu.org>  Mon, 22 Oct 2012 22:40:32 +0200
+
+virt-viewer (0.5.4-2) experimental; urgency=low
+
+  * Upload to experimental
+  * [0029b1c] Enable spice support (Closes: #667565)
+  * [b139b7c] Drop unneeded build-deps
+
+ -- Guido Günther <agx@sigxcpu.org>  Wed, 26 Sep 2012 08:59:19 +0200
 
 virt-viewer (0.5.4-1) unstable; urgency=low
 
@@ -57,6 +80,12 @@ virt-viewer (0.4.2-1) unstable; urgency=low
       upstream
 
  -- Laurent Léonard <laurent@open-minds.org>  Thu, 10 Nov 2011 09:01:35 +0100
+
+virt-viewer (0.4.1-4) experimental; urgency=low
+
+  * [0029b1c] Enable spice support
+
+ -- Guido Günther <agx@sigxcpu.org>  Fri, 02 Sep 2011 21:04:44 +0200
 
 virt-viewer (0.4.1-3) unstable; urgency=low
 

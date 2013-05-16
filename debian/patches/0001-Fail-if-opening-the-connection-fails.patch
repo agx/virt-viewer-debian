@@ -1,0 +1,27 @@
+From: =?UTF-8?q?Guido=20G=C3=BCnther?= <agx@sigxcpu.org>
+Date: Mon, 22 Oct 2012 20:05:24 +0200
+Subject: Fail if opening the connection fails
+
+instead of returning True. Which then fails with the misleading error
+
+(virt-viewer:18631): Gtk-WARNING **: Attempting to add a widget with type
+VncDisplay to a container of type VirtViewerDisplayVnc, but the widget is
+already inside a container of type VirtViewerDisplayVnc, please use
+gtk_widget_reparent()
+---
+ src/virt-viewer.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/virt-viewer.c b/src/virt-viewer.c
+index 3143104..572e9e6 100644
+--- a/src/virt-viewer.c
++++ b/src/virt-viewer.c
+@@ -425,7 +425,7 @@ virt_viewer_open_connection(VirtViewerApp *self G_GNUC_UNUSED, int *fd)
+         DEBUG_LOG("Error %s", err && err->message ? err->message : "Unknown");
+         close(pair[0]);
+         close(pair[1]);
+-        return TRUE;
++        return FALSE;
+     }
+     close(pair[0]);
+     *fd = pair[1];
