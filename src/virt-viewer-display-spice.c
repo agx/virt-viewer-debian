@@ -99,14 +99,15 @@ show_hint_changed(VirtViewerDisplay *self)
 {
     SpiceMainChannel *main_channel = get_main(self);
     guint enabled = TRUE;
-    guint nth;
+    guint nth, hint = virt_viewer_display_get_show_hint(self);
 
     /* this may happen when finalizing */
     if (!main_channel)
         return;
 
     g_object_get(self, "nth-display", &nth, NULL);
-    if (virt_viewer_display_get_show_hint(self) & VIRT_VIEWER_DISPLAY_SHOW_HINT_DISABLED)
+    if (!(hint & VIRT_VIEWER_DISPLAY_SHOW_HINT_SET) ||
+        hint & VIRT_VIEWER_DISPLAY_SHOW_HINT_DISABLED)
         enabled = FALSE;
 
     spice_main_set_display_enabled(main_channel, nth, enabled);
@@ -201,7 +202,9 @@ virt_viewer_display_spice_size_allocate(VirtViewerDisplaySpice *self,
     if (self->priv->auto_resize == AUTO_RESIZE_FULLSCREEN) {
         GdkRectangle monitor;
         GdkScreen *screen = gtk_widget_get_screen(GTK_WIDGET(self));
-        int n = gdk_screen_get_monitor_at_window(screen,
+        int n = virt_viewer_display_get_monitor(VIRT_VIEWER_DISPLAY(self));
+        if (n == -1)
+            n = gdk_screen_get_monitor_at_window(screen,
                                      gtk_widget_get_window(GTK_WIDGET(self)));
         gdk_screen_get_monitor_geometry(screen, n, &monitor);
         disable_display_position = FALSE;
@@ -260,8 +263,15 @@ fullscreen_changed(VirtViewerApp *app,
                    GParamSpec *pspec G_GNUC_UNUSED,
                    VirtViewerDisplaySpice *self)
 {
-    self->priv->auto_resize = virt_viewer_app_get_fullscreen(app) ?
-        AUTO_RESIZE_FULLSCREEN : AUTO_RESIZE_ALWAYS;
+    if (virt_viewer_app_get_fullscreen(app)) {
+        gboolean auto_conf;
+        g_object_get(app, "fullscreen-auto-conf", &auto_conf, NULL);
+        if (auto_conf)
+            self->priv->auto_resize = AUTO_RESIZE_NEVER;
+        else
+            self->priv->auto_resize = AUTO_RESIZE_FULLSCREEN;
+    } else
+        self->priv->auto_resize = AUTO_RESIZE_ALWAYS;
 }
 
 GtkWidget *
@@ -318,6 +328,7 @@ virt_viewer_display_spice_new(VirtViewerSessionSpice *session,
                                       G_CALLBACK(enable_accel_changed), self, 0);
     virt_viewer_signal_connect_object(app, "notify::fullscreen",
                                       G_CALLBACK(fullscreen_changed), self, 0);
+    fullscreen_changed(app, NULL, self);
     enable_accel_changed(app, NULL, self);
 
     return GTK_WIDGET(self);

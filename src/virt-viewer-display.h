@@ -58,6 +58,7 @@ typedef struct _VirtViewerDisplayChannel VirtViewerDisplayChannel;
 typedef enum {
     VIRT_VIEWER_DISPLAY_SHOW_HINT_READY            = 1 << 0,
     VIRT_VIEWER_DISPLAY_SHOW_HINT_DISABLED         = 1 << 1,
+    VIRT_VIEWER_DISPLAY_SHOW_HINT_SET              = 1 << 2,
 } VirtViewerDisplayShowHintFlags;
 
 /* perhaps this become an interface, and be pushed in gtkvnc and spice? */
@@ -115,11 +116,14 @@ guint virt_viewer_display_get_show_hint(VirtViewerDisplay *display);
 VirtViewerSession* virt_viewer_display_get_session(VirtViewerDisplay *display);
 void virt_viewer_display_set_auto_resize(VirtViewerDisplay *display, gboolean auto_resize);
 gboolean virt_viewer_display_get_auto_resize(VirtViewerDisplay *display);
+void virt_viewer_display_set_monitor(VirtViewerDisplay *display, gint monitor);
+gint virt_viewer_display_get_monitor(VirtViewerDisplay *display);
 void virt_viewer_display_release_cursor(VirtViewerDisplay *display);
 
 void virt_viewer_display_close(VirtViewerDisplay *display);
 void virt_viewer_display_set_enabled(VirtViewerDisplay *display, gboolean enabled);
 gboolean virt_viewer_display_get_selectable(VirtViewerDisplay *display);
+void virt_viewer_display_queue_resize(VirtViewerDisplay *display);
 
 G_END_DECLS
 
