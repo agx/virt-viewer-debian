@@ -1,0 +1,10 @@
+#!/bin/sh -e
+
+if [ "$1" = "remove" ] || [ "$1" = "deconfigure" ] ; then
+    if [ -x /usr/bin/spice-xpi-client-remote-viewer ]; then
+        update-alternatives --remove spice-xpi-client \
+                  /usr/bin/spice-xpi-client-remote-viewer
+    fi
+fi
+
+#DEBHELPER#

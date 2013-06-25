@@ -1,0 +1,10 @@
+#!/bin/sh -e
+
+if [ "$1" = "configure" ] || [ "$1" = "abort-upgrade" ] ; then
+    if [ -x /usr/bin/spice-xpi-client-remote-viewer ]; then
+      update-alternatives --install /usr/bin/spice-xpi-client \
+        spice-xpi-client /usr/bin/spice-xpi-client-remote-viewer 70
+    fi
+fi
+
+#DEBHELPER#
