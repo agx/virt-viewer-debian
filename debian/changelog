@@ -1,3 +1,12 @@
+virt-viewer (0.5.6-1) unstable; urgency=low
+
+  * Upload to unstable (Closes: #667565)
+  * [01d4881] New upstream version 0.5.6
+  * [a40ea7d] Drop all patches - fixed upstream.
+  * [6a48df3] Fix compilation due to missing format string
+
+ -- Guido Günther <agx@sigxcpu.org>  Tue, 25 Jun 2013 12:29:56 +0200
+
 virt-viewer (0.5.5-5) experimental; urgency=low
 
   * Upload to unstable (Closes: #667565)
