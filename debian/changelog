@@ -1,3 +1,16 @@
+virt-viewer (0.5.6-2) unstable; urgency=low
+
+  * [72a675c] Remove now unused DM-Upload-Allowed
+  * [ff900a3] Swith to dh
+  * [274651a] Unapply patches after the build
+  * [ba6f30c] Bump standards version to 3.9.4 (no source changes)
+  * [20493e3] Spice is only available on i386 and amd64 so don't try to use it
+    on other architectures
+  * [508a44f] Install spice-xpi-client-remote-viewer and make it available as
+    alternative for spice-xpi-client (Closes: #704217)
+
+ -- Guido Günther <agx@sigxcpu.org>  Tue, 25 Jun 2013 17:18:25 +0200
+
 virt-viewer (0.5.6-1) unstable; urgency=low
 
   * Upload to unstable (Closes: #667565)
