@@ -37,6 +37,7 @@ virt_viewer_display_show_hint_flags_get_type (void)
       static const GFlagsValue values[] = {
         { VIRT_VIEWER_DISPLAY_SHOW_HINT_READY, "VIRT_VIEWER_DISPLAY_SHOW_HINT_READY", "ready" },
         { VIRT_VIEWER_DISPLAY_SHOW_HINT_DISABLED, "VIRT_VIEWER_DISPLAY_SHOW_HINT_DISABLED", "disabled" },
+        { VIRT_VIEWER_DISPLAY_SHOW_HINT_SET, "VIRT_VIEWER_DISPLAY_SHOW_HINT_SET", "set" },
         { 0, NULL, NULL }
       };
       GType g_define_type_id =

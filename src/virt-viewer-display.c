@@ -27,6 +27,7 @@
 #include <locale.h>
 #include <math.h>
 
+#include "virt-gtk-compat.h"
 #include "virt-viewer-session.h"
 #include "virt-viewer-display.h"
 #include "virt-viewer-util.h"
@@ -35,20 +36,24 @@
 
 struct _VirtViewerDisplayPrivate
 {
+#if !GTK_CHECK_VERSION(3, 0, 0)
     gboolean dirty;
+#endif
     guint desktopWidth;
     guint desktopHeight;
     guint zoom_level;
     gboolean zoom;
-    gint nth_display;
+    gint nth_display; /* Monitor number inside the guest */
+    gint monitor;     /* Monitor number on the client */
     guint show_hint;
     VirtViewerSession *session;
     gboolean auto_resize;
 };
 
+#if !GTK_CHECK_VERSION(3, 0, 0)
 static void virt_viewer_display_size_request(GtkWidget *widget,
                                              GtkRequisition *requisition);
-#if GTK_CHECK_VERSION(3, 0, 0)
+#else
 static void virt_viewer_display_get_preferred_width(GtkWidget *widget,
                                                     int *minwidth,
                                                     int *defwidth);
@@ -81,6 +86,7 @@ enum {
     PROP_SHOW_HINT,
     PROP_SESSION,
     PROP_SELECTABLE,
+    PROP_MONITOR,
 };
 
 static void
@@ -176,6 +182,17 @@ virt_viewer_display_class_init(VirtViewerDisplayClass *class)
                                                          FALSE,
                                                          G_PARAM_READABLE));
 
+    g_object_class_install_property(object_class,
+                                    PROP_MONITOR,
+                                    g_param_spec_int("monitor",
+                                                     "Monitor",
+                                                     "Display Monitor",
+                                                     -1,
+                                                     G_MAXINT32,
+                                                     -1,
+                                                     G_PARAM_READWRITE |
+                                                     G_PARAM_CONSTRUCT));
+
     g_signal_new("display-pointer-grab",
                  G_OBJECT_CLASS_TYPE(object_class),
                  G_SIGNAL_RUN_LAST | G_SIGNAL_NO_HOOKS,
@@ -241,8 +258,10 @@ virt_viewer_display_init(VirtViewerDisplay *display)
     display->priv->desktopHeight = 100;
     display->priv->zoom_level = 100;
     display->priv->zoom = TRUE;
-    display->priv->dirty = TRUE;
     display->priv->auto_resize = TRUE;
+#if !GTK_CHECK_VERSION(3, 0, 0)
+    display->priv->dirty = TRUE;
+#endif
 }
 
 GtkWidget*
@@ -277,6 +296,9 @@ virt_viewer_display_set_property(GObject *object,
     case PROP_SESSION:
         g_warn_if_fail(priv->session == NULL);
         priv->session = g_value_get_object(value);
+        break;
+    case PROP_MONITOR:
+        priv->monitor = g_value_get_int(value);
         break;
 
     default:
@@ -313,6 +335,9 @@ virt_viewer_display_get_property(GObject *object,
     case PROP_SELECTABLE:
         g_value_set_boolean(value, virt_viewer_display_get_selectable(display));
         break;
+    case PROP_MONITOR:
+        g_value_set_int(value, priv->monitor);
+        break;
 
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -330,6 +355,7 @@ virt_viewer_display_grab_focus(GtkWidget *widget)
 }
 
 
+#if !GTK_CHECK_VERSION(3, 0, 0)
 static gboolean
 virt_viewer_display_idle(gpointer opaque)
 {
@@ -370,17 +396,24 @@ virt_viewer_display_size_request(GtkWidget *widget,
               priv->desktopWidth, priv->desktopHeight);
 }
 
+#else
 
-#if GTK_CHECK_VERSION(3, 0, 0)
 static void virt_viewer_display_get_preferred_width(GtkWidget *widget,
                                                     int *minwidth,
                                                     int *defwidth)
 {
-    GtkRequisition req;
+    VirtViewerDisplay *display = VIRT_VIEWER_DISPLAY(widget);
+    VirtViewerDisplayPrivate *priv = display->priv;
+    int border_width = gtk_container_get_border_width(GTK_CONTAINER(widget));
 
-    virt_viewer_display_size_request(widget, &req);
+    *minwidth = 50 + 2 * border_width;
 
-    *minwidth = *defwidth = req.width;
+    if (priv->zoom) {
+        *defwidth = round(priv->desktopWidth * priv->zoom_level / 100.0) +
+                    2 * border_width;
+    } else {
+        *defwidth = priv->desktopWidth + 2 * border_width;
+    }
 }
 
 
@@ -388,11 +421,18 @@ static void virt_viewer_display_get_preferred_height(GtkWidget *widget,
                                                      int *minheight,
                                                      int *defheight)
 {
-    GtkRequisition req;
+    VirtViewerDisplay *display = VIRT_VIEWER_DISPLAY(widget);
+    VirtViewerDisplayPrivate *priv = display->priv;
+    int border_height = gtk_container_get_border_width(GTK_CONTAINER(widget));
 
-    virt_viewer_display_size_request(widget, &req);
+    *minheight = 50 + 2 * border_height;
 
-    *minheight = *defheight = req.height;
+    if (priv->zoom) {
+        *defheight = round(priv->desktopHeight * priv->zoom_level / 100.0) +
+                    2 * border_height;
+    } else {
+        *defheight = priv->desktopHeight + 2 * border_height;
+    }
 }
 #endif
 
@@ -416,7 +456,11 @@ virt_viewer_display_size_allocate(GtkWidget *widget,
 
     if (priv->desktopWidth == 0 ||
         priv->desktopHeight == 0)
+#if !GTK_CHECK_VERSION(3, 0, 0)
         goto end;
+#else
+        return;
+#endif
 
     desktopAspect = (double)priv->desktopWidth / (double)priv->desktopHeight;
 
@@ -442,6 +486,7 @@ virt_viewer_display_size_allocate(GtkWidget *widget,
         gtk_widget_size_allocate(child, &child_allocation);
     }
 
+#if !GTK_CHECK_VERSION(3, 0, 0)
 end:
     /* This unsets the size request, so that the user can
      * manually resize the window smaller again
@@ -451,6 +496,7 @@ end:
         if (gtk_widget_get_mapped(widget))
             priv->dirty = FALSE;
     }
+#endif
 }
 
 
@@ -465,9 +511,9 @@ void virt_viewer_display_set_desktop_size(VirtViewerDisplay *display,
 
     priv->desktopWidth = width;
     priv->desktopHeight = height;
-    priv->dirty = TRUE;
 
-    gtk_widget_queue_resize(GTK_WIDGET(display));
+    virt_viewer_display_queue_resize(display);
+
     g_signal_emit_by_name(display, "display-desktop-resize");
 }
 
@@ -483,11 +529,22 @@ void virt_viewer_display_get_desktop_size(VirtViewerDisplay *display,
 }
 
 
+void virt_viewer_display_queue_resize(VirtViewerDisplay *display)
+{
+    GtkWidget *child = gtk_bin_get_child(GTK_BIN(display));
+
+    if (child && gtk_widget_get_visible(child)) {
+#if !GTK_CHECK_VERSION(3, 0, 0)
+        display->priv->dirty = TRUE;
+#endif
+        gtk_widget_queue_resize(GTK_WIDGET(display));
+    }
+}
+
 void virt_viewer_display_set_zoom_level(VirtViewerDisplay *display,
                                         guint zoom)
 {
     VirtViewerDisplayPrivate *priv = display->priv;
-    GtkWidget *child = gtk_bin_get_child(GTK_BIN(display));
 
     if (zoom < 10)
         zoom = 10;
@@ -495,10 +552,7 @@ void virt_viewer_display_set_zoom_level(VirtViewerDisplay *display,
         zoom = 400;
     priv->zoom_level = zoom;
 
-    if (child && gtk_widget_get_visible(child)) {
-        priv->dirty = TRUE;
-        gtk_widget_queue_resize(GTK_WIDGET(display));
-    }
+    virt_viewer_display_queue_resize(display);
 }
 
 
@@ -513,13 +567,9 @@ void virt_viewer_display_set_zoom(VirtViewerDisplay *display,
                                   gboolean zoom)
 {
     VirtViewerDisplayPrivate *priv = display->priv;
-    GtkWidget *child = gtk_bin_get_child(GTK_BIN(display));
 
     priv->zoom = zoom;
-    if (child && gtk_widget_get_visible(child)) {
-        priv->dirty = TRUE;
-        gtk_widget_queue_resize(GTK_WIDGET(display));
-    }
+    virt_viewer_display_queue_resize(display);
 }
 
 
@@ -577,6 +627,8 @@ void virt_viewer_display_set_enabled(VirtViewerDisplay *self, gboolean enabled)
 {
     g_return_if_fail(VIRT_VIEWER_IS_DISPLAY(self));
 
+    virt_viewer_display_set_show_hint(self, VIRT_VIEWER_DISPLAY_SHOW_HINT_SET, TRUE);
+
     virt_viewer_display_set_show_hint(self, VIRT_VIEWER_DISPLAY_SHOW_HINT_DISABLED, !enabled);
 }
 
@@ -599,6 +651,21 @@ gboolean virt_viewer_display_get_auto_resize(VirtViewerDisplay *self)
     g_return_val_if_fail(VIRT_VIEWER_IS_DISPLAY(self), FALSE);
 
     return self->priv->auto_resize;
+}
+
+void virt_viewer_display_set_monitor(VirtViewerDisplay *self, gint monitor)
+{
+    g_return_if_fail(VIRT_VIEWER_IS_DISPLAY(self));
+
+    self->priv->monitor = monitor;
+    g_object_notify(G_OBJECT(self), "monitor");
+}
+
+gint virt_viewer_display_get_monitor(VirtViewerDisplay *self)
+{
+    g_return_val_if_fail(VIRT_VIEWER_IS_DISPLAY(self), -1);
+
+    return self->priv->monitor;
 }
 
 void virt_viewer_display_release_cursor(VirtViewerDisplay *self)

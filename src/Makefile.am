@@ -35,6 +35,7 @@ $(BUILT_SOURCES): %: %.etemplate $(ENUMS_FILES)
 COMMON_SOURCES =					\
 	$(BUILT_SOURCES)				\
 	virt-glib-compat.h				\
+	virt-glib-compat.c				\
 	virt-gtk-compat.h				\
 	virt-viewer-util.h virt-viewer-util.c		\
 	virt-viewer-auth.h virt-viewer-auth.c		\
@@ -79,27 +80,25 @@ virt_viewer_LDFLAGS =				\
 	-lm					\
 	$(GLIB2_LIBS)				\
 	$(GTK_LIBS)				\
+	$(GTK_VNC_LIBS)				\
 	$(LIBXML2_LIBS)				\
 	$(LIBVIRT_LIBS)				\
+	$(OVIRT_LIBS)				\
+	$(SPICE_GTK_LIBS)			\
 	$(NULL)
 virt_viewer_CFLAGS = 				\
 	-DLOCALE_DIR=\""$(datadir)/locale"\"	\
 	-DG_LOG_DOMAIN=\"virt-viewer\"          \
 	$(GLIB2_CFLAGS) 			\
 	$(GTK_CFLAGS)				\
+	$(GTK_VNC_CFLAGS)			\
 	$(LIBXML2_CFLAGS)			\
 	$(LIBVIRT_CFLAGS)			\
+	$(OVIRT_CFLAGS)				\
+	$(SPICE_GTK_CFLAGS)			\
+	$(SPICE_CONTROLLER_CFLAGS)		\
 	$(WARN_CFLAGS)				\
 	$(NULL)
-
-if HAVE_GTK_VNC
-virt_viewer_LDFLAGS += $(GTK_VNC_LIBS)
-virt_viewer_CFLAGS += $(GTK_VNC_CFLAGS)
-endif
-if HAVE_SPICE_GTK
-virt_viewer_LDFLAGS += $(SPICE_GTK_LIBS)
-virt_viewer_CFLAGS += $(SPICE_GTK_CFLAGS)
-endif
 endif
 
 
@@ -113,25 +112,25 @@ remote_viewer_LDFLAGS =				\
 	-lm					\
 	$(GLIB2_LIBS)				\
 	$(GTK_LIBS)				\
+	$(GTK_VNC_LIBS)				\
 	$(LIBXML2_LIBS)				\
+	$(OVIRT_LIBS)				\
+	$(SPICE_GTK_LIBS)			\
+	$(SPICE_CONTROLLER_LIBS)		\
 	$(NULL)
 remote_viewer_CFLAGS =				\
 	-DLOCALE_DIR=\""$(datadir)/locale"\"	\
 	-DG_LOG_DOMAIN=\"remote-viewer\"        \
 	$(GLIB2_CFLAGS) 			\
 	$(GTK_CFLAGS)				\
+	$(GTK_VNC_CFLAGS)			\
 	$(LIBXML2_CFLAGS)			\
+	$(OVIRT_CFLAGS)				\
+	$(SPICE_GTK_CFLAGS)			\
+	$(SPICE_CONTROLLER_CFLAGS)		\
 	$(WARN_CFLAGS)				\
 	$(NULL)
 
-if HAVE_GTK_VNC
-remote_viewer_LDFLAGS += $(GTK_VNC_LIBS)
-remote_viewer_CFLAGS += $(GTK_VNC_CFLAGS)
-endif
-if HAVE_SPICE_GTK
-remote_viewer_LDFLAGS += $(SPICE_GTK_LIBS) $(SPICE_CONTROLLER_LIBS)
-remote_viewer_CFLAGS += $(SPICE_GTK_CFLAGS) $(SPICE_CONTROLLER_CFLAGS)
-endif
 if OS_WIN32
 remote_viewer_LDFLAGS += -Wl,--subsystem,windows
 endif

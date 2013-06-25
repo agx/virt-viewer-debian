@@ -52,8 +52,8 @@ typedef struct {
 
     /*< private >*/
     gboolean (*start) (VirtViewerApp *self);
-    int (*initial_connect) (VirtViewerApp *self);
-    int (*activate) (VirtViewerApp *self);
+    gboolean (*initial_connect) (VirtViewerApp *self, GError **error);
+    gboolean (*activate) (VirtViewerApp *self, GError **error);
     void (*deactivated) (VirtViewerApp *self);
     gboolean (*open_connection)(VirtViewerApp *self, int *fd);
 } VirtViewerAppClass;
@@ -65,14 +65,15 @@ void virt_viewer_app_set_title(VirtViewerApp *app, const char *title);
 void virt_viewer_app_set_debug(gboolean debug);
 gboolean virt_viewer_app_start(VirtViewerApp *app);
 void virt_viewer_app_quit(VirtViewerApp *self);
+void virt_viewer_app_maybe_quit(VirtViewerApp *self, VirtViewerWindow *window);
 VirtViewerWindow* virt_viewer_app_get_main_window(VirtViewerApp *self);
 void virt_viewer_app_trace(VirtViewerApp *self, const char *fmt, ...);
 void virt_viewer_app_simple_message_dialog(VirtViewerApp *self, const char *fmt, ...);
 gboolean virt_viewer_app_is_active(VirtViewerApp *app);
 void virt_viewer_app_free_connect_info(VirtViewerApp *self);
 int virt_viewer_app_create_session(VirtViewerApp *self, const gchar *type);
-int virt_viewer_app_activate(VirtViewerApp *self);
-int virt_viewer_app_initial_connect(VirtViewerApp *self);
+gboolean virt_viewer_app_activate(VirtViewerApp *self, GError **error);
+gboolean virt_viewer_app_initial_connect(VirtViewerApp *self, GError **error);
 void virt_viewer_app_start_reconnect_poll(VirtViewerApp *self);
 void virt_viewer_app_set_zoom_level(VirtViewerApp *self, gint zoom_level);
 void virt_viewer_app_set_direct(VirtViewerApp *self, gboolean direct);
@@ -97,6 +98,7 @@ GHashTable* virt_viewer_app_get_windows(VirtViewerApp *self);
 gboolean virt_viewer_app_get_enable_accel(VirtViewerApp *self);
 VirtViewerSession* virt_viewer_app_get_session(VirtViewerApp *self);
 gboolean virt_viewer_app_get_fullscreen(VirtViewerApp *app);
+gboolean virt_viewer_app_get_fullscreen_auto_conf(VirtViewerApp *app);
 
 G_END_DECLS
 

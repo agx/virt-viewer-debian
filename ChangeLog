@@ -1,4 +1,397 @@
+2013-05-01  Daniel P. Berrange  <berrange@redhat.com>
+
+	Set PKG_CONFIG_LIBDIR variable for mingw builds
+	To avoid pkg-config accidentally falling back to
+	native versions, set the PKG_CONFIG_LIBDIR var
+	explicitly
+
+	Set a default value for AUTOBUILD_INSTALL_ROOT
+
+	Set MANUFACTURER env variable when running wixl
+	The MANUFACTURER env variable is mandatory since it is used
+	in the data files. wixl will exit with parser error if it
+	is not set
+
+	Add missing include of config.h
+
+	Remove tab from source file
+
+	Refresh translations from transifex
+
+2013-04-30  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	file: add delete-this-file option
+	In case the virt-viewer setting file is meant to temporary, you may use
+	the delete-this-file=1 option to ask the client to remove it, once it
+	has been read. This is useful for example in ovirt context, where
+	connection settings file are generated and can't be reused.
+
+2013-04-25  Christophe Fergeau  <cfergeau@redhat.com>
+
+	Exit virt-viewer when trying to close any window
+	Currently, in multi-screen scenarios, when closing one remote-viewer
+	window, the corresponding screen gets disabled in the guest OS.
+	This can be confusing as this behaves very differently from
+	File/Quit. This commit will exit the whole application when the user
+	tries to close one of virt-viewer window.
+
+2013-04-23  Hans de Goede  <hdegoede@redhat.com>
+
+	gtk-3: Rework window size handling
+	With gtk-2 we have a special hack, where at first we make the
+	virt-viewer-display request its actual size, and then once the window is
+	mapped, we request a size of 50x50 to allow the user to resize the window
+	to something smaller.
+
+	With gtk-3 >= 3.8.1 this is broken, and the window gets resized to a
+	smaller size as soon as we change the size request to 50x50.
+
+	gtk-3 has a much better way of dealing with this in the form of widgets
+	being able to specify both a minimal and a natural size. This patch changes
+	virt-viewer to use this with gtk-3, instead of the gtk-2 hack.
+
+	ovBox: Make get_preferred_width/height differentiate between min and natural
+	gtk-3's widget size negotiation code differentiates between the minimum
+	size and the natural size of a widget, fix ovBox to pass this along from
+	its underlying widget to its parent.
+
+	virt-viewer-window: cleanup zoom handling
+	We've 3 similar zoom function zoom in / out / reset. in / out do not
+	schedule a window resize when there is no display, where as reset does,
+	which is not consistent. Also there is some duplicate code between them.
+
+	virt-viewer-display: Use virt_viewer_display_queue_resize where possible
+
+2013-04-23  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	mingw spec: fix x64 msi location
+
+2013-04-15  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	Prepeare notes for release 0.5.6
+
+	msi: build correct 64-bit msi
+
+	msi: fix icon location
+
+	build-sys: generate MSI installer instead of NSIS
+
+	build-sys: regenerate spec files when they change
+
+	spice: forward secure-channels
+	This needs spice-gtk >= 0.19.7 and will warn with lower version
+
+2013-04-13  Christophe Fergeau  <cfergeau@redhat.com>
+
+	Remove redundant check, g_strdup(NULL) is allowed
+	This also makes the code consistent with its surroundings.
+
+	Fix memory leak on remote-viewer exit
+	When exiting remote-viewer, VirtViewepApp::dispose() calls
+	virt_viewer_app_set_connect_info() with NULL parameters to free all
+	internal fields. However, _set_connect_info() calls
+	virt_viewer_app_update_pretty_address() which will always allocate
+	a new string even if the fields it's using to fill the string are NULL.
+	This commit fixes the leak by checking if the fields have non-NULL
+	values before creating the newly-allocated string.
+
+	==24180== 14 bytes in 1 blocks are definitely lost in loss record 540 of 8,671
+	==24180==    at 0x4A0887C: malloc (vg_replace_malloc.c:270)
+	==24180==    by 0x32D2B0A187: __vasprintf_chk (vasprintf_chk.c:80)
+	==24180==    by 0x32D52845AA: g_vasprintf (stdio2.h:210)
+	==24180==    by 0x32D52640DC: g_strdup_vprintf (gstrfuncs.c:517)
+	==24180==    by 0x32D526417B: g_strdup_printf (gstrfuncs.c:543)
+	==24180==    by 0x4136E6: virt_viewer_app_update_pretty_address (virt-viewer-app.c:1681)
+	==24180==    by 0x414100: virt_viewer_app_set_connect_info (virt-viewer-app.c:1902)
+	==24180==    by 0x4141D0: virt_viewer_app_free_connect_info (virt-viewer-app.c:1910)
+	==24180==    by 0x4127C6: virt_viewer_app_dispose (virt-viewer-app.c:1353)
+	==24180==    by 0x425488: remote_viewer_dispose (remote-viewer.c:131)
+	==24180==    by 0x32D5E14787: g_object_unref (gobject.c:2986)
+	==24180==    by 0x4280AF: main (remote-viewer-main.c:323)
+
+2013-04-12  Christophe Fergeau  <cfergeau@redhat.com>
+
+	build-sys: Simplify setting of optional CFLAGS/LDFLAGS
+	They don't need to be wrapped inside if HAVE_XXX blocks in Makefile.am
+	as when XXX is not available, XXX_CFLAGS and XXX_LIBS will expand to
+	the empty string, and thus we can carry them unconditionally in
+	our app_CFLAGS/app_LDFLAGS variables.
+
+	Be more consistent in #if/#ifdef use
+	Some of the code is checking for spice-gtk/oVirt availability
+	by using #ifdef HAVE_XXX, and some of the code is using #if HAVE_XXX.
+	As configure.ac only AC_DEFINE() HAVE_XXX when XXX could be found,
+	let's use the #ifdef HAVE_XXX form everywhere
+
+	Add oVirt support
+	This commit adds support for ovirt:// URIs. It does so by using
+	libgovirt to get the spice/vnc connection information through
+	oVirt xmlrpc API.
+
+2013-04-11  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	build-sys: fix distcheck
+
+2013-04-11  Hans de Goede  <hdegoede@redhat.com>
+
+	po: Remove extraenous backslash, breaking the build
+
+2013-04-08  Daniel P. Berrange  <berrange@redhat.com>
+
+	Refresh translations from transifex
+
+2013-04-05  Hans de Goede  <hdegoede@redhat.com>
+
+	virt-viewer-app: Always allow users to close displays from the displays menu
+	Marking display menu items as non sensitive for shown displays make no sense,
+	since the user can always close them through the window-manager.
+
+	Having a window for a display shown when the display is not selectable nor
+	ready, can happen when the agent goes away. This happens for example when using
+	a dual monitor config with a Linux guest and then switching to a text console
+	inside the guest.
+
+2013-04-02  Christophe Fergeau  <cfergeau@redhat.com>
+
+	Use translations when looking up key combination to send
+	virt_viewer_window_menu_send() compares the label of the menu item
+	that was clicked on with a list of known labels to know which
+	key combination should be sent to the guest.
+	However, the menu label can be translated, but the table doing
+	the label -> key combination mapping uses untranslated labels.
+	This means the menu item will not send any key combination when
+	clicked if translated.
+	This can be observed with fr_FR where "Ctrl+Alt+_Del" is translated
+	to "Ctrl+Alt+_Suppr".
+
+2013-04-02  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	win32: maximize when leaving fullscreen the first time
+	On windows, the client window may end up with a non-visible toolbar,
+	and overlapping the windows statusbar. To workaround this, let's
+	maximize the client the first time leaving fullscreen.
+
+	https://bugzilla.redhat.com/show_bug.cgi?id=916810
+
+2013-03-28  Marc-André Lureau  <marcandre.lureau@redhat.com>
+
+	Do not enable extra monitors until they are explicitely enabled
+
+	Make display menu item sensitive again
+	Even if the display has not been explicitely disabled, as long as
+	the display is "selectable"
+
+	Fix regression introduced with "Do not disable extra client monitors"
+	3b981d953f270662360e5b0c78183924276a18ed
+
+2013-03-26  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	Remove gtk_window_present() call
+	gtk_window_present() may forcefully call gdk_window_show(), which will
+	call ShowWindow(). Although gdk call is not supposed to move the
+	window if it's already visible, it does restore the window position on
+	Vista+. For example, a snapped window will be moved back to its
+	previous position.
+
+	Gtk+ ShowWindow() is currently using SW_SHOWNOACTIVATE, it should
+	probably use SW_SHOWNA instead, but that didn't help anyway for a
+	snapped window.
+
+	Since virt_viewer_window_show() already ensure the window is visible,
+	I am not sure why gtk_window_present() is there in the first place, so
+	just remove it.
+
+	https://bugzilla.redhat.com/show_bug.cgi?id=912713
+
+	Add gtk_widget_get_realized() define for old gtk+
+	Fix build with gtk < 2.20
+
+	window: keep display size when leaving fullscreen for first time
+	If the application was started in fullscreen, window geometry has not
+	been saved, since the window was not realized. We can unfullscreen and
+	restore 1:1 window to match guest display size with
+	virt_viewer_display_queue_resize()
+
+	https://bugzilla.redhat.com/show_bug.cgi?id=916810
+
+	window: save window geometry if the window is realized
+	Protect against re-entering fullscreen by moving pre-condition,
+	keey the last know window geometry, since it stays valid.
+
+	window: resize to monitor geometry
+	This code is potentially bad, we should set size request to the size of the monitor
+
+2013-03-25  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	display: make a function to queue the dirty display allocation trick
+
+	app: add get_fullscreen_auto_conf()
+
+2013-03-25  Christophe Fergeau  <cfergeau@redhat.com>
+
+	Reuse existing 'displays' submenu rather than recreating it
+	Because of what apparently is a gtk+2 bug , we
+	cannot recreate the submenu every time we need to refresh it,
+	otherwise the application may get frozen with the keyboard and
+	mouse grabbed if gtk_menu_item_set_submenu is called while
+	the menu is displayed. Reusing the same menu every time
+	works around this issue.
+
+	https://bugzilla.redhat.com/show_bug.cgi?id=922712
+
+2013-03-22  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	Do not disable extra client monitors
+	This allows reconfiguration of extra monitors whenever the agent is
+	back, for example after reboot.
+
+	https://bugzilla.redhat.com/show_bug.cgi?id=918997
+
+	spice: always send auto-conf on agent connection
+	Restore the auto-conf client monitor configuration whenever the agent
+	is started. This ensures the guest has the expected number of monitors
+	enabled when rebooting in fullscreen.
+
+	https://bugzilla.redhat.com/show_bug.cgi?id=918997
+
+2013-03-22  Hans de Goede  <hdegoede@redhat.com>
+
+	virt-viewer-display-spice: Skip monitor info in fullscreen-auto-conf mode
+	When we are in fullscreen-auto-conf virt-viewer-session-spice sends a
+	monitor-info message to the agent with the exact client monitor info, and
+	virt-viewer-display-spice should not override that.
+
+	Acked-by: Marc-André Lureau <marcandre.lureau@redhat.com>
+
+2013-03-22  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	Forward directly key events to display
+	Even if the display is disabled, we should keep sending key events to
+	guest. It can wake up from sleep for instance.
+
+	There is a single widget per window, so we can directly send key
+	events there. If the menu is active, it has the grab, so the window
+	doesn't receive those key events.
+
+	https://bugzilla.redhat.com/show_bug.cgi?id=870710
+
+2013-03-21  Hans de Goede  <hdegoede@redhat.com>
+
+	virt-viewer-app: Call virt_viewer_app_update_menu_displays on show_hint change
+	Since the sensitivity of the display menu-check-items depends on show_hint,
+	we need to call virt_viewer_app_update_menu_displays on show_hint change.
+
+	This fixes the following scenario:
+	1) Linux guest with upto 4 displays on a single qxl dev
+	2) Configure it for 2 displays
+	3) Switch to a text-console in the guest (ie send ctrl+alt+F3)
+	4) All displays except for disp 1 are now not sensitve in the menu
+	5) Switch back to X
+	6) The second display in the view->displays menu is still not sensitive
+
+	virt-viewer-display: Document difference between nth display and monitor
+
+	virt-viewer-window: Don't use priv->display when it is NULL
+	Add some missing checks for not having a display. Note that where
+	functions should not be called (ie menu items should be disabled) I've
+	used g_return_if_fail.
+
+	virt-viewer-window: Store the monitor locally
+	With commit 81ed9d13 "virt_viewer_window_enter_fullscreen: Pass in monitor for
+	fullscreen window" we need a monitor number to determine where to move
+	the window when going fullscreen.
+
+	Since the VirtViewerDisplay needs to know the fullscreen monitor number too,
+	to determine the fullscreen size it was being stored there. But we don't
+	always have a display, leading to errors like:
+
+	(remote-viewer:7996): remote-viewer-CRITICAL **:
+	virt_viewer_display_get_monitor: assertion `VIRT_VIEWER_IS_DISPLAY(self)'
+	failed
+
+	And to the monitor number not always being stored. This patchset fixes this
+	by storing the monitor number inside VirtViewerWindow, and passing it to
+	VirtViewerDisplay only when we've a display.
+
+2013-03-20  Christophe Fergeau  <cfergeau@redhat.com>
+
+	Fix compilation with older glib versions
+	Recent commits introduced use of g_clear_object and
+	g_byte_array_new_take which are only present respectively in glib
+	2.28 and 2.32
+
+	Fix compilation with older gtk+
+	gtk_widget_get_mapped is only available in gtk+ 2.20, so we need
+	a compat definition for older releases.
+
+2013-03-20  Hans de Goede  <hdegoede@redhat.com>
+
+	virt-viewer-display-spice: Use display monitor property for fullscreen size
+	When a display is pinned to a certain monitor for fullscreen, it will be moved
+	there when going fullscreen. Currently we use gdk_screen_get_monitor_at_window
+	to determine which monitor we are on and get the size from that monitor.
+
+	But this is racy, sometimes the size_allocate function runs before the move
+	has finished and we get the size from the wrong monitor:
+	https://bugzilla.redhat.com/show_bug.cgi?id=918570
+
+	Since if the display is pinned to a certain monitor, the display will always
+	end up on that monitor we can avoid the race by simply using that monitors
+	size.
+
+	virt_viewer_window_enter_fullscreen: Pass in monitor for fullscreen window
+	Rather then passing in a move boolean + coordinates to move the window
+	to for fullscreen mode, simply pass in the monitor, so that the underlying
+	objects can also use the monitors size to determine the display size.
+
+	Note: pass in -1 to use the monitor the window is currently on.
+
+	virt-viewer-display: Add monitor property
+
+2013-03-13  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	spice: update fullscreen state on display creation
+	This ensure self->priv->auto_resize has correct value.
+	And allow changing guest resolution when started in fullscreen.
+
+	https://bugzilla.redhat.com/show_bug.cgi?id=873298
+
+	Don't override G_LOG_DOMAIN=all
+	If the string is different, the GLib log handler will not log all
+	messages.
+
+2013-03-13  Daniel P. Berrange  <berrange@redhat.com>
+
+	Delete browser plugin entirely
+	The browser plugin code has been effectively unmaintained since
+	the day it was merged. There has always been a caveat that the
+	code has not been properly audited to ensure it is secure, and
+	being unmaintained doesn't give a warm secure feeling. These
+	days there are better solutions for the browser which are pure
+	HTML5 code, noVNC and SPICE-HTML5.
+
+2013-03-08  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	file: add version field, raise an error if incompatibily
+	The virt-viewer connection file can now have a version=0.5 field. If
+	the virt-viewer version opening the connection doesn't provide at
+	least that version, an error is raised with the version required.
+
+	Allow app_initial_connect() to raise an error
+
+	Add virt_viewer_compare_version()
+
+	Add VIRT_VIEWER_ERROR GError
+
+2013-02-21  Hans de Goede  <hdegoede@redhat.com>
+
+	Fix send-key menu not showing in fullscreen with gtk3 (rhbz#913601)
+	This should also fix the send-key menu showing in the wrong position with a
+	gtk2 build, when the tooltray icon is clicked on the 2nd or higher monitor.
+
 2013-02-13  Daniel P. Berrange  <berrange@redhat.com>
+
+	Post release version bump
 
 	Update for 0.5.5 release
 

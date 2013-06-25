@@ -100,7 +100,7 @@ struct _VirtViewerWindowPrivate {
     gboolean grabbed;
     gboolean before_saved;
     GdkRectangle before_fullscreen;
-    GdkPoint fullscreen_coordinate;
+    gint fullscreen_monitor;
     gboolean desktop_resize_pending;
 
     gint zoomlevel;
@@ -289,7 +289,6 @@ virt_viewer_window_init (VirtViewerWindow *self)
     priv = self->priv;
 
     priv->auto_resize = TRUE;
-    priv->fullscreen_coordinate.x = priv->fullscreen_coordinate.y = -1;
     g_value_init(&priv->accel_setting, G_TYPE_STRING);
 
     priv->notebook = virt_viewer_notebook_new();
@@ -356,46 +355,37 @@ G_MODULE_EXPORT void
 virt_viewer_window_menu_view_zoom_out(GtkWidget *menu G_GNUC_UNUSED,
                                       VirtViewerWindow *self)
 {
-    VirtViewerWindowPrivate *priv = self->priv;
-
-    if (priv->zoomlevel > 10)
-        priv->zoomlevel -= 10;
-
-    if (!priv->display)
-        return;
-
-    gtk_window_resize(GTK_WINDOW(priv->window), 1, 1);
-    if (priv->display)
-        virt_viewer_display_set_zoom_level(VIRT_VIEWER_DISPLAY(priv->display), priv->zoomlevel);
+    virt_viewer_window_set_zoom_level(self, self->priv->zoomlevel - 10);
 }
 
 G_MODULE_EXPORT void
 virt_viewer_window_menu_view_zoom_in(GtkWidget *menu G_GNUC_UNUSED,
                                      VirtViewerWindow *self)
 {
-    VirtViewerWindowPrivate *priv = self->priv;
-
-    if (priv->zoomlevel < 400)
-        priv->zoomlevel += 10;
-
-    if (!priv->display)
-        return;
-
-    gtk_window_resize(GTK_WINDOW(priv->window), 1, 1);
-    if (priv->display)
-        virt_viewer_display_set_zoom_level(VIRT_VIEWER_DISPLAY(priv->display), priv->zoomlevel);
+    virt_viewer_window_set_zoom_level(self, self->priv->zoomlevel + 10);
 }
 
 G_MODULE_EXPORT void
 virt_viewer_window_menu_view_zoom_reset(GtkWidget *menu G_GNUC_UNUSED,
                                         VirtViewerWindow *self)
 {
-    VirtViewerWindowPrivate *priv = self->priv;
-    gtk_window_resize(GTK_WINDOW(priv->window), 1, 1);
-    priv->zoomlevel = 100;
+    virt_viewer_window_set_zoom_level(self, 100);
+}
 
-    if (priv->display)
-        virt_viewer_display_set_zoom_level(VIRT_VIEWER_DISPLAY(priv->display), priv->zoomlevel);
+/* Kick GtkWindow to tell it to adjust to our new widget sizes */
+static void
+virt_viewer_window_queue_resize(VirtViewerWindow *self)
+{
+    VirtViewerWindowPrivate *priv = self->priv;
+#if GTK_CHECK_VERSION(3, 0, 0)
+    GtkRequisition nat;
+
+    gtk_window_set_default_size(GTK_WINDOW(priv->window), -1, -1);
+    gtk_widget_get_preferred_size(GTK_WIDGET(priv->window), NULL, &nat);
+    gtk_window_resize(GTK_WINDOW(priv->window), nat.width, nat.height);
+#else
+    gtk_window_resize(GTK_WINDOW(priv->window), 1, 1);
+#endif
 }
 
 /*
@@ -424,9 +414,6 @@ virt_viewer_window_resize(VirtViewerWindow *self, gboolean keep_win_size)
         DEBUG_LOG("Skipping inactive resize");
         return;
     }
-
-    if (!keep_win_size)
-        gtk_window_resize(GTK_WINDOW(priv->window), 1, 1);
 
     virt_viewer_display_get_desktop_size(VIRT_VIEWER_DISPLAY(priv->display),
                                          &desktopWidth, &desktopHeight);
@@ -467,6 +454,30 @@ virt_viewer_window_resize(VirtViewerWindow *self, gboolean keep_win_size)
 
     virt_viewer_display_set_desktop_size(VIRT_VIEWER_DISPLAY(priv->display),
                                          width, height);
+
+    if (!keep_win_size)
+        virt_viewer_window_queue_resize(self);
+}
+
+static void
+virt_viewer_window_move_to_monitor(VirtViewerWindow *self)
+{
+    VirtViewerWindowPrivate *priv = self->priv;
+    GdkRectangle mon;
+    gint n = priv->fullscreen_monitor;
+
+    if (n == -1 || !priv->fullscreen)
+        return;
+
+    gdk_screen_get_monitor_geometry(gdk_screen_get_default(), n, &mon);
+    gtk_window_move(GTK_WINDOW(priv->window), mon.x, mon.y);
+#ifdef G_OS_WIN32
+    /* FIXME: on windows, fullscreen doesn't always hide the taskbar
+       See https://bugzilla.gnome.org/show_bug.cgi?id=652049 */
+    gtk_widget_set_size_request(GTK_WIDGET(priv->window),
+                                mon.width,
+                                mon.height);
+#endif
 }
 
 void
@@ -481,7 +492,9 @@ virt_viewer_window_leave_fullscreen(VirtViewerWindow *self)
 
     gtk_check_menu_item_set_active(check, FALSE);
     priv->fullscreen = FALSE;
-    priv->fullscreen_coordinate.x = priv->fullscreen_coordinate.y = -1;
+    priv->fullscreen_monitor = -1;
+    if (priv->display)
+        virt_viewer_display_set_monitor(priv->display, -1);
     ViewAutoDrawer_SetActive(VIEW_AUTODRAWER(priv->layout), FALSE);
     gtk_widget_show(menu);
     gtk_widget_hide(priv->toolbar);
@@ -497,18 +510,29 @@ virt_viewer_window_leave_fullscreen(VirtViewerWindow *self)
         gtk_window_resize(GTK_WINDOW(priv->window),
                           priv->before_fullscreen.width,
                           priv->before_fullscreen.height);
-        priv->before_saved = FALSE;
+    } else {
+#ifdef G_OS_WIN32
+        /* win32 window manager isn't smart enough to place
+         * the window so that titlebar would be visible */
+        gtk_window_maximize(GTK_WINDOW(priv->window));
+#else
+        virt_viewer_display_queue_resize(priv->display);
+#endif
     }
 }
 
 void
-virt_viewer_window_enter_fullscreen(VirtViewerWindow *self, gboolean move, gint x, gint y)
+virt_viewer_window_enter_fullscreen(VirtViewerWindow *self, gint monitor)
 {
     VirtViewerWindowPrivate *priv = self->priv;
     GtkWidget *menu = GTK_WIDGET(gtk_builder_get_object(priv->builder, "top-menu"));
     GtkCheckMenuItem *check = GTK_CHECK_MENU_ITEM(gtk_builder_get_object(priv->builder, "menu-view-fullscreen"));
 
-    if (!priv->before_saved) {
+    if (priv->fullscreen)
+        return;
+    priv->fullscreen = TRUE;
+
+    if (gtk_widget_get_realized(priv->window)) {
         gtk_window_get_position(GTK_WINDOW(priv->window),
                                 &priv->before_fullscreen.x,
                                 &priv->before_fullscreen.y);
@@ -518,31 +542,18 @@ virt_viewer_window_enter_fullscreen(VirtViewerWindow *self, gboolean move, gint 
         priv->before_saved = TRUE;
     }
 
-    if (priv->fullscreen)
-        return;
-    priv->fullscreen = TRUE;
-
     gtk_check_menu_item_set_active(check, TRUE);
     gtk_widget_hide(menu);
     gtk_widget_show(priv->toolbar);
     ViewAutoDrawer_SetActive(VIEW_AUTODRAWER(priv->layout), TRUE);
     ViewAutoDrawer_Close(VIEW_AUTODRAWER(priv->layout));
 
-    /* g_debug("enter fullscreen move:%d %d+%d", move, x, y); */
-    if (move) {
-        gtk_window_move(GTK_WINDOW(priv->window), x, y);
-        priv->fullscreen_coordinate.x = x;
-        priv->fullscreen_coordinate.y = y;
-    }
+    priv->fullscreen_monitor = monitor;
+    if (priv->display)
+        virt_viewer_display_set_monitor(priv->display, monitor);
+    virt_viewer_window_move_to_monitor(self);
 
     gtk_window_fullscreen(GTK_WINDOW(priv->window));
-#ifdef G_OS_WIN32
-    /* on windows, fullscreen doesn't always hide the taskbar
-       See https://bugzilla.gnome.org/show_bug.cgi?id=652049 */
-    gtk_widget_set_size_request(GTK_WIDGET(priv->window),
-                                gdk_screen_width(),
-                                gdk_screen_height());
-#endif
 }
 
 #define MAX_KEY_COMBO 3
@@ -553,21 +564,21 @@ struct        keyComboDef {
 };
 
 static const struct keyComboDef keyCombos[] = {
-    { { GDK_Control_L, GDK_Alt_L, GDK_Delete }, 3, "Ctrl+Alt+_Del"},
-    { { GDK_Control_L, GDK_Alt_L, GDK_BackSpace }, 3, "Ctrl+Alt+_Backspace"},
+    { { GDK_Control_L, GDK_Alt_L, GDK_Delete }, 3, N_("Ctrl+Alt+_Del")},
+    { { GDK_Control_L, GDK_Alt_L, GDK_BackSpace }, 3, N_("Ctrl+Alt+_Backspace")},
     { {}, 0, "" },
-    { { GDK_Control_L, GDK_Alt_L, GDK_F1 }, 3, "Ctrl+Alt+F_1"},
-    { { GDK_Control_L, GDK_Alt_L, GDK_F2 }, 3, "Ctrl+Alt+F_2"},
-    { { GDK_Control_L, GDK_Alt_L, GDK_F3 }, 3, "Ctrl+Alt+F_3"},
-    { { GDK_Control_L, GDK_Alt_L, GDK_F4 }, 3, "Ctrl+Alt+F_4"},
-    { { GDK_Control_L, GDK_Alt_L, GDK_F5 }, 3, "Ctrl+Alt+F_5"},
-    { { GDK_Control_L, GDK_Alt_L, GDK_F6 }, 3, "Ctrl+Alt+F_6"},
-    { { GDK_Control_L, GDK_Alt_L, GDK_F7 }, 3, "Ctrl+Alt+F_7"},
-    { { GDK_Control_L, GDK_Alt_L, GDK_F8 }, 3, "Ctrl+Alt+F_8"},
-    { { GDK_Control_L, GDK_Alt_L, GDK_F9 }, 3, "Ctrl+Alt+F_9"},
-    { { GDK_Control_L, GDK_Alt_L, GDK_F10 }, 3, "Ctrl+Alt+F1_0"},
-    { { GDK_Control_L, GDK_Alt_L, GDK_F11 }, 3, "Ctrl+Alt+F11"},
-    { { GDK_Control_L, GDK_Alt_L, GDK_F12 }, 3, "Ctrl+Alt+F12"},
+    { { GDK_Control_L, GDK_Alt_L, GDK_F1 }, 3, N_("Ctrl+Alt+F_1")},
+    { { GDK_Control_L, GDK_Alt_L, GDK_F2 }, 3, N_("Ctrl+Alt+F_2")},
+    { { GDK_Control_L, GDK_Alt_L, GDK_F3 }, 3, N_("Ctrl+Alt+F_3")},
+    { { GDK_Control_L, GDK_Alt_L, GDK_F4 }, 3, N_("Ctrl+Alt+F_4")},
+    { { GDK_Control_L, GDK_Alt_L, GDK_F5 }, 3, N_("Ctrl+Alt+F_5")},
+    { { GDK_Control_L, GDK_Alt_L, GDK_F6 }, 3, N_("Ctrl+Alt+F_6")},
+    { { GDK_Control_L, GDK_Alt_L, GDK_F7 }, 3, N_("Ctrl+Alt+F_7")},
+    { { GDK_Control_L, GDK_Alt_L, GDK_F8 }, 3, N_("Ctrl+Alt+F_8")},
+    { { GDK_Control_L, GDK_Alt_L, GDK_F9 }, 3, N_("Ctrl+Alt+F_9")},
+    { { GDK_Control_L, GDK_Alt_L, GDK_F10 }, 3, N_("Ctrl+Alt+F1_0")},
+    { { GDK_Control_L, GDK_Alt_L, GDK_F11 }, 3, N_("Ctrl+Alt+F11")},
+    { { GDK_Control_L, GDK_Alt_L, GDK_F12 }, 3, N_("Ctrl+Alt+F12")},
     { {}, 0, "" },
     { { GDK_Print }, 1, "_PrintScreen"},
 };
@@ -581,8 +592,10 @@ virt_viewer_window_menu_send(GtkWidget *menu,
     const char *text = gtk_label_get_label(GTK_LABEL(label));
     VirtViewerWindowPrivate *priv = self->priv;
 
+    g_return_if_fail(priv->display != NULL);
+
     for (i = 0 ; i < G_N_ELEMENTS(keyCombos) ; i++) {
-        if (!strcmp(text, keyCombos[i].label)) {
+        if (!strcmp(text, _(keyCombos[i].label))) {
             DEBUG_LOG("Sending key combo %s", gtk_label_get_text(GTK_LABEL(label)));
             virt_viewer_display_send_keys(VIRT_VIEWER_DISPLAY(priv->display),
                                           keyCombos[i].keys,
@@ -597,6 +610,7 @@ static GtkMenu*
 virt_viewer_window_get_keycombo_menu(VirtViewerWindow *self)
 {
     gint i;
+    VirtViewerWindowPrivate *priv = self->priv;
     GtkMenu *menu = GTK_MENU(gtk_menu_new());
 
     for (i = 0 ; i < G_N_ELEMENTS(keyCombos) ; i++) {
@@ -610,6 +624,7 @@ virt_viewer_window_get_keycombo_menu(VirtViewerWindow *self)
         gtk_container_add(GTK_CONTAINER(menu), item);
     }
 
+    gtk_menu_attach_to_widget(menu, GTK_WIDGET(priv->window), NULL);
     gtk_widget_show_all(GTK_WIDGET(menu));
     return g_object_ref_sink(menu);
 }
@@ -686,7 +701,7 @@ virt_viewer_window_delete(GtkWidget *src G_GNUC_UNUSED,
                           VirtViewerWindow *self)
 {
     DEBUG_LOG("Window closed");
-    virt_viewer_app_window_set_visible(self->priv->app, self, FALSE);
+    virt_viewer_app_maybe_quit(self->priv->app, self);
     return TRUE;
 }
 
@@ -753,7 +768,8 @@ virt_viewer_window_menu_view_resize(GtkWidget *menu,
         priv->auto_resize = FALSE;
     }
 
-    virt_viewer_display_set_auto_resize(priv->display, priv->auto_resize);
+    if (priv->display)
+        virt_viewer_display_set_auto_resize(priv->display, priv->auto_resize);
 }
 
 static void add_if_writable (GdkPixbufFormat *data, GHashTable *formats)
@@ -888,6 +904,7 @@ G_MODULE_EXPORT void
 virt_viewer_window_menu_view_release_cursor(GtkWidget *menu G_GNUC_UNUSED,
                                             VirtViewerWindow *self)
 {
+    g_return_if_fail(self->priv->display != NULL);
     virt_viewer_display_release_cursor(VIRT_VIEWER_DISPLAY(self->priv->display));
 }
 
@@ -1086,6 +1103,14 @@ display_show_hint(VirtViewerDisplay *display,
     gtk_widget_set_sensitive(GTK_WIDGET(gtk_builder_get_object(self->priv->builder, "menu-file-screenshot")), hint);
     gtk_widget_set_sensitive(self->priv->toolbar_send_key, hint);
 }
+static gboolean
+window_key_pressed (GtkWidget *widget G_GNUC_UNUSED,
+                    GdkEvent  *event,
+                    GtkWidget *display)
+{
+    gtk_widget_grab_focus(display);
+    return gtk_widget_event(display, event);
+}
 
 void
 virt_viewer_window_set_display(VirtViewerWindow *self, VirtViewerDisplay *display)
@@ -1107,9 +1132,14 @@ virt_viewer_window_set_display(VirtViewerWindow *self, VirtViewerDisplay *displa
 
         virt_viewer_display_set_zoom_level(VIRT_VIEWER_DISPLAY(priv->display), priv->zoomlevel);
         virt_viewer_display_set_auto_resize(VIRT_VIEWER_DISPLAY(priv->display), priv->auto_resize);
+        virt_viewer_display_set_monitor(VIRT_VIEWER_DISPLAY(priv->display), priv->fullscreen_monitor);
 
         gtk_widget_show_all(GTK_WIDGET(display));
         gtk_notebook_append_page(GTK_NOTEBOOK(priv->notebook), GTK_WIDGET(display), NULL);
+
+        virt_viewer_signal_connect_object(priv->window, "key-press-event",
+                                          G_CALLBACK(window_key_pressed), display, 0);
+
         /* switch back to non-display if not ready */
         if (!(virt_viewer_display_get_show_hint(display) &
               VIRT_VIEWER_DISPLAY_SHOW_HINT_READY))
@@ -1133,8 +1163,6 @@ virt_viewer_window_set_display(VirtViewerWindow *self, VirtViewerDisplay *displa
 void
 virt_viewer_window_show(VirtViewerWindow *self)
 {
-    VirtViewerWindowPrivate *priv = self->priv;
-
     gtk_widget_show(self->priv->window);
 
     if (self->priv->display)
@@ -1145,10 +1173,7 @@ virt_viewer_window_show(VirtViewerWindow *self)
         self->priv->desktop_resize_pending = FALSE;
     }
 
-    if (priv->fullscreen && priv->fullscreen_coordinate.x != -1)
-        gtk_window_move(GTK_WINDOW(priv->window),
-                        priv->fullscreen_coordinate.x,
-                        priv->fullscreen_coordinate.y);
+    virt_viewer_window_move_to_monitor(self);
 }
 
 void
@@ -1169,10 +1194,23 @@ virt_viewer_window_hide(VirtViewerWindow *self)
 void
 virt_viewer_window_set_zoom_level(VirtViewerWindow *self, gint zoom_level)
 {
-    g_return_if_fail(VIRT_VIEWER_IS_WINDOW(self));
+    VirtViewerWindowPrivate *priv;
 
-    /* FIXME: turn into a dynamic property */
-    self->priv->zoomlevel = zoom_level;
+    g_return_if_fail(VIRT_VIEWER_IS_WINDOW(self));
+    priv = self->priv;
+
+    if (zoom_level < 10)
+        zoom_level = 10;
+    if (zoom_level > 400)
+        zoom_level = 400;
+    priv->zoomlevel = zoom_level;
+
+    if (!priv->display)
+        return;
+
+    virt_viewer_display_set_zoom_level(VIRT_VIEWER_DISPLAY(priv->display), priv->zoomlevel);
+
+    virt_viewer_window_queue_resize(self);
 }
 
 gint virt_viewer_window_get_zoom_level(VirtViewerWindow *self)

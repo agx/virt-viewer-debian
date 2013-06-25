@@ -1,5 +1,5 @@
 
-AC_INIT([virt-viewer],[0.5.5])
+AC_INIT([virt-viewer],[0.5.6])
 AC_CONFIG_SRCDIR(src/virt-viewer-main.c)
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([build-aux])
@@ -26,6 +26,15 @@ AC_MSG_CHECKING([for native Win32])
 case "$host_os" in
      *mingw*|*cygwin*)
         os_win32=yes
+        case "$host" in
+            amd64*|x86_64*)
+                WIXL_ARCH="x64"
+            ;;
+            *)
+                WIXL_ARCH="x86"
+            ;;
+        esac
+        AC_SUBST(WIXL_ARCH)
         ;;
      *)
         os_win32=no
@@ -165,32 +174,25 @@ AS_IF([test "x$have_spice_gtk" = "xyes"],
 ])
 AM_CONDITIONAL([HAVE_SPICE_GTK], [test "x$have_spice_gtk" = "xyes"])
 
+AC_ARG_WITH([ovirt],
+    AS_HELP_STRING([--without-ovirt], [Ignore presence of librest and disable oVirt support]))
+
+AS_IF([test "x$with_ovirt" != "xno"],
+      [PKG_CHECK_MODULES([OVIRT], [govirt-1.0],
+                         [have_ovirt=yes], [have_ovirt=no])],
+      [have_ovirt=no])
+
+AS_IF([test "x$have_ovirt" = "xyes"],
+      [AC_DEFINE([HAVE_OVIRT], 1, [Have libgovirt?])],
+      [AS_IF([test "x$with_ovirt" = "xyes"],
+             [AC_MSG_ERROR([oVirt support requested but libgovirt not found])
+      ])
+])
+
 dnl Decide if this platform can support the SSH tunnel feature.
 AC_CHECK_HEADERS([sys/socket.h sys/un.h windows.h])
 AC_CHECK_FUNCS([fork socketpair])
 
-dnl --enable-plugin to enable the browser plugin.
-NSPR_REQUIRED=4.0.0
-FIREFOX_PLUGIN_REQUIRED=1.5.0
-MOZILLA_PLUGIN_REQUIRED=1.8
-AC_ARG_ENABLE(plugin,
-        [  --enable-plugin=[no/yes] enable browser plugin [default=no]],,
-        enable_plugin=no)
-if test "x$enable_plugin" = "xyes"; then
-    dnl Check for Netscape Portable Runtime development package.
-    PKG_CHECK_MODULES(NSPR, nspr >= $NSPR_REQUIRED)
-    dnl Check for Firefox plugin package (also includes NSPR cflags/libs).
-    PKG_CHECK_MODULES(FIREFOX_PLUGIN,
-                     firefox-plugin >= $FIREFOX_PLUGIN_REQUIRED, ,[
-        PKG_CHECK_MODULES(MOZILLA_PLUGIN,
-                          mozilla-plugin >= $MOZILLA_PLUGIN_REQUIRED)
-        FIREFOX_PLUGIN_CFLAGS="$MOZILLA_PLUGIN_CFLAGS"
-        FIREFOX_PLUGIN_LIBS="$MOZILLA_PLUGIN_LIBS"
-    ])
-    AC_SUBST(FIREFOX_PLUGIN_CFLAGS)
-    AC_SUBST(FIREFOX_PLUGIN_LIBS)
-fi
-AM_CONDITIONAL(ENABLE_PLUGIN, [test "x$enable_plugin" = "xyes"])
 
 if test "x$have_gtk_vnc" != "xyes" && test "x$have_spice_gtk" != "xyes"; then
     AC_MSG_ERROR([At least one of spice or vnc must be used])
@@ -215,7 +217,6 @@ AC_CONFIG_FILES([
     icons/256x256/Makefile
     man/Makefile
     mingw-virt-viewer.spec
-    plugin/Makefile
     po/Makefile.in
     src/Makefile
     src/virt-viewer.rc
@@ -229,7 +230,6 @@ AC_MSG_NOTICE([=====================])
 AC_MSG_NOTICE([])
 AC_MSG_NOTICE([ Features:])
 AC_MSG_NOTICE([])
-AC_MSG_NOTICE([   Plugin: $enable_plugin])
 AC_MSG_NOTICE([      Gtk: $with_gtk])
 AC_MSG_NOTICE([])
 AC_MSG_NOTICE([ Libraries:])
@@ -245,4 +245,6 @@ AC_MSG_NOTICE([])
 AC_MSG_NOTICE([     LIBXML2: $LIBXML2_CFLAGS $LIBXML2_LIBS])
 AC_MSG_NOTICE([])
 AC_MSG_NOTICE([     LIBVIRT: $LIBVIRT_CFLAGS $LIBVIRT_LIBS])
+AC_MSG_NOTICE([])
+AC_MSG_NOTICE([       OVIRT: $OVIRT_CFLAGS $OVIRT_LIBS])
 AC_MSG_NOTICE([])
