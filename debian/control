@@ -16,7 +16,7 @@ Build-Depends:
  libffi-dev,
  libtool,
  intltool
-Standards-Version: 3.9.4
+Standards-Version: 3.9.5
 Vcs-Git: git://git.debian.org/git/pkg-libvirt/virt-viewer.git
 Vcs-Browser: http://git.debian.org/?p=pkg-libvirt/virt-viewer.git;a=summary
 Homepage: http://virt-manager.et.redhat.com/
