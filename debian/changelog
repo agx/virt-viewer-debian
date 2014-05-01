@@ -1,3 +1,13 @@
+virt-viewer (0.6.0-1) unstable; urgency=medium
+
+  * [0d29721] Imported Upstream version 0.6.0
+  * [374172f] Drop patch
+    - 0001-Use-format-string.patch - fixed upstream
+  * [4de1fdd] Bump Standards-Version to 3.9.5
+  * [0307038] Disable update-mime-database
+
+ -- Laurent Léonard <laurent@open-minds.org>  Fri, 02 May 2014 01:40:31 +0200
+
 virt-viewer (0.5.6-2) unstable; urgency=low
 
   * [72a675c] Remove now unused DM-Upload-Allowed
