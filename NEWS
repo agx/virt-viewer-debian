@@ -1,6 +1,49 @@
   Virt Viewer News
   ================
 
+0.6.0: Jan 24, 2014
+-------------------
+
+  - Require govirt 0.3.0
+  - Require spice-gtk 0.22
+  - Show error dialog if password is wrong
+  - Document application/x-virt-viewer file format
+  - Remove unused '-d' option from remote-viewer
+  - Add a kiosk mode
+  - Add menu for sending Ctrl+Alt+Delete
+  - Add Ctrl+Alt+End as accelerator for Ctrl+Alt+Delete
+  - Send modifiers before the non-modifier key in send
+    key menu
+  - Fix GTK warning when disconnecting from VNC due to
+    auth error
+  - Make 'Cancel' default button in exit dialog
+  - Make send key menu accelerators work in fullscreen
+  - Remove insecure fetching of oVirt CA cert
+  - Build for GTK 3 by default
+  - Fix title bar after failed connection
+  - Reshow remote-viewer connection dialog upon error
+  - Hide all windows upon disconnect
+  - Add ability to define custom monitor mapping
+  - Ensure all windows obey command line zoom level
+  - Add an icon to the desktop file
+  - Fix event loop implementation on Win32 platforms
+  - Misc other bug fixes
+
+0.5.7: Jul 31, 2013
+-------------------
+
+  - Many fixes to full screen / window positioning handling
+  - Reshow connect dialog if connection fails
+  - Misc man page fixes
+  - Mark RPM as obsoleting spice-client
+  - Set the host subject to fix SSL connections with ovirt
+  - Use -H as short variant of --hotkeys
+  - Add missing trailing ';' in desktop file
+  - Allow TLS only SPICE connections
+  - Use dynamic key send menu
+  - Enable smartcard shortcuts only when smartcard reader is present
+  - Misc other bug fixes
+
 0.5.6: Apr 12, 2013
 -------------------
 

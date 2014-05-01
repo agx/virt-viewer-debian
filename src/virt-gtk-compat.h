@@ -34,9 +34,12 @@ G_BEGIN_DECLS
 #endif
 
 #if GTK_CHECK_VERSION(3, 0, 0)
+#define GDK_Shift_L GDK_KEY_Shift_L
+#define GDK_VoidSymbol GDK_KEY_VoidSymbol
 #define GDK_Control_L GDK_KEY_Control_L
 #define GDK_Alt_L GDK_KEY_Alt_L
 #define GDK_Delete GDK_KEY_Delete
+#define GDK_End GDK_KEY_End
 #define GDK_BackSpace GDK_KEY_BackSpace
 #define GDK_Print GDK_KEY_Print
 #define GDK_F1 GDK_KEY_F1
@@ -51,6 +54,7 @@ G_BEGIN_DECLS
 #define GDK_F10 GDK_KEY_F10
 #define GDK_F11 GDK_KEY_F11
 #define GDK_F12 GDK_KEY_F12
+#define GDK_0 GDK_KEY_0
 #endif
 
 #if !GTK_CHECK_VERSION(3, 0, 0)

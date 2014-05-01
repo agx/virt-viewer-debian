@@ -118,12 +118,16 @@ void virt_viewer_display_set_auto_resize(VirtViewerDisplay *display, gboolean au
 gboolean virt_viewer_display_get_auto_resize(VirtViewerDisplay *display);
 void virt_viewer_display_set_monitor(VirtViewerDisplay *display, gint monitor);
 gint virt_viewer_display_get_monitor(VirtViewerDisplay *display);
+void virt_viewer_display_set_fullscreen(VirtViewerDisplay *display, gboolean fullscreen);
+gboolean virt_viewer_display_get_fullscreen(VirtViewerDisplay *display);
 void virt_viewer_display_release_cursor(VirtViewerDisplay *display);
 
 void virt_viewer_display_close(VirtViewerDisplay *display);
 void virt_viewer_display_set_enabled(VirtViewerDisplay *display, gboolean enabled);
+gboolean virt_viewer_display_get_enabled(VirtViewerDisplay *display);
 gboolean virt_viewer_display_get_selectable(VirtViewerDisplay *display);
 void virt_viewer_display_queue_resize(VirtViewerDisplay *display);
+void virt_viewer_display_get_preferred_monitor_geometry(VirtViewerDisplay *self, GdkRectangle* preferred);
 
 G_END_DECLS
 

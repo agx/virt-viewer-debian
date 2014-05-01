@@ -35,16 +35,16 @@
 
 G_DEFINE_TYPE (VirtViewerDisplaySpice, virt_viewer_display_spice, VIRT_VIEWER_TYPE_DISPLAY)
 
-struct _VirtViewerDisplaySpicePrivate {
-    SpiceChannel *channel; /* weak reference */
-    SpiceDisplay *display;
-    int auto_resize;
-};
-
-enum {
+typedef enum {
     AUTO_RESIZE_ALWAYS,
     AUTO_RESIZE_FULLSCREEN,
     AUTO_RESIZE_NEVER,
+} AutoResizeState;
+
+struct _VirtViewerDisplaySpicePrivate {
+    SpiceChannel *channel; /* weak reference */
+    SpiceDisplay *display;
+    AutoResizeState auto_resize;
 };
 
 #define VIRT_VIEWER_DISPLAY_SPICE_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE((o), VIRT_VIEWER_TYPE_DISPLAY_SPICE, VirtViewerDisplaySpicePrivate))
@@ -95,21 +95,28 @@ get_main(VirtViewerDisplay *self)
 }
 
 static void
+virt_viewer_display_spice_monitor_geometry_changed(VirtViewerDisplaySpice *self)
+{
+
+    if (virt_viewer_display_get_auto_resize(VIRT_VIEWER_DISPLAY(self)) == FALSE)
+        return;
+
+    g_signal_emit_by_name(self, "monitor-geometry-changed", NULL);
+
+}
+
+static void
 show_hint_changed(VirtViewerDisplay *self)
 {
     SpiceMainChannel *main_channel = get_main(self);
-    guint enabled = TRUE;
-    guint nth, hint = virt_viewer_display_get_show_hint(self);
+    guint enabled = virt_viewer_display_get_enabled(self);
+    guint nth;
 
     /* this may happen when finalizing */
     if (!main_channel)
         return;
 
     g_object_get(self, "nth-display", &nth, NULL);
-    if (!(hint & VIRT_VIEWER_DISPLAY_SHOW_HINT_SET) ||
-        hint & VIRT_VIEWER_DISPLAY_SHOW_HINT_DISABLED)
-        enabled = FALSE;
-
     spice_main_set_display_enabled(main_channel, nth, enabled);
 }
 
@@ -117,6 +124,7 @@ static void
 virt_viewer_display_spice_init(VirtViewerDisplaySpice *self G_GNUC_UNUSED)
 {
     self->priv = VIRT_VIEWER_DISPLAY_SPICE_GET_PRIVATE(self);
+    self->priv->auto_resize = AUTO_RESIZE_ALWAYS;
 
     g_signal_connect(self, "notify::show-hint", G_CALLBACK(show_hint_changed), NULL);
 }
@@ -146,16 +154,14 @@ virt_viewer_display_spice_get_pixbuf(VirtViewerDisplay *display)
 }
 
 static void
-display_ready(GObject *display,
-              GParamSpec *pspec G_GNUC_UNUSED,
-              VirtViewerDisplay *self)
+update_display_ready(VirtViewerDisplaySpice *self)
 {
     gboolean ready;
 
-    g_object_get(display, "ready", &ready, NULL);
-    DEBUG_LOG("display %p ready:%d", self, ready);
+    g_object_get(self->priv->display, "ready", &ready, NULL);
 
-    virt_viewer_display_set_show_hint(self, VIRT_VIEWER_DISPLAY_SHOW_HINT_READY, ready);
+    virt_viewer_display_set_show_hint(VIRT_VIEWER_DISPLAY(self),
+                                      VIRT_VIEWER_DISPLAY_SHOW_HINT_READY, ready);
 }
 
 static void
@@ -184,62 +190,25 @@ virt_viewer_display_spice_mouse_grab(SpiceDisplay *display G_GNUC_UNUSED,
 
 static void
 virt_viewer_display_spice_size_allocate(VirtViewerDisplaySpice *self,
-                                        GtkAllocation *allocation,
+                                        GtkAllocation *allocation G_GNUC_UNUSED,
                                         gpointer data G_GNUC_UNUSED)
 {
-    gdouble dw = allocation->width, dh = allocation->height;
-    guint zoom = 100;
-    guint nth;
-    gint x = 0, y = 0;
-    gboolean disable_display_position = TRUE;
+    if (self->priv->auto_resize != AUTO_RESIZE_NEVER)
+        virt_viewer_display_spice_monitor_geometry_changed(self);
 
-    if (virt_viewer_display_get_auto_resize(VIRT_VIEWER_DISPLAY(self)) == FALSE)
-        return;
-
-    if (virt_viewer_display_get_show_hint(VIRT_VIEWER_DISPLAY(self)) & VIRT_VIEWER_DISPLAY_SHOW_HINT_DISABLED)
-        return;
-
-    if (self->priv->auto_resize == AUTO_RESIZE_FULLSCREEN) {
-        GdkRectangle monitor;
-        GdkScreen *screen = gtk_widget_get_screen(GTK_WIDGET(self));
-        int n = virt_viewer_display_get_monitor(VIRT_VIEWER_DISPLAY(self));
-        if (n == -1)
-            n = gdk_screen_get_monitor_at_window(screen,
-                                     gtk_widget_get_window(GTK_WIDGET(self)));
-        gdk_screen_get_monitor_geometry(screen, n, &monitor);
-        disable_display_position = FALSE;
-        x = monitor.x;
-        y = monitor.y;
-        dw = monitor.width;
-        dh = monitor.height;
-    } else {
-        GtkWidget *top = gtk_widget_get_toplevel(GTK_WIDGET(self));
-        gtk_window_get_position(GTK_WINDOW(top), &x, &y);
-        if (x < 0)
-            x = 0;
-        if (y < 0)
-            y = 0;
-    }
-
-    if (virt_viewer_display_get_zoom(VIRT_VIEWER_DISPLAY(self))) {
-        zoom = virt_viewer_display_get_zoom_level(VIRT_VIEWER_DISPLAY(self));
-
-        dw = round(dw * 100 / zoom);
-        dh = round(dh * 100 / zoom);
-    }
-
-    g_object_get(self, "nth-display", &nth, NULL);
-
-    if (self->priv->auto_resize != AUTO_RESIZE_NEVER) {
-        g_object_set(get_main(VIRT_VIEWER_DISPLAY(self)),
-                     "disable-display-position", disable_display_position,
-                     "disable-display-align", !disable_display_position,
-                     NULL);
-        spice_main_set_display(get_main(VIRT_VIEWER_DISPLAY(self)),
-                               nth, x, y, dw, dh);
-    }
     if (self->priv->auto_resize == AUTO_RESIZE_FULLSCREEN)
         self->priv->auto_resize = AUTO_RESIZE_NEVER;
+}
+
+static void
+zoom_level_changed(VirtViewerDisplaySpice *self,
+                   GParamSpec *pspec G_GNUC_UNUSED,
+                   VirtViewerApp *app G_GNUC_UNUSED)
+{
+    if (self->priv->auto_resize != AUTO_RESIZE_NEVER)
+        return;
+
+    virt_viewer_display_spice_monitor_geometry_changed(self);
 }
 
 static void
@@ -259,13 +228,13 @@ enable_accel_changed(VirtViewerApp *app,
 }
 
 static void
-fullscreen_changed(VirtViewerApp *app,
+fullscreen_changed(VirtViewerDisplaySpice *self,
                    GParamSpec *pspec G_GNUC_UNUSED,
-                   VirtViewerDisplaySpice *self)
+                   VirtViewerApp *app)
 {
-    if (virt_viewer_app_get_fullscreen(app)) {
+    if (virt_viewer_display_get_fullscreen(VIRT_VIEWER_DISPLAY(self))) {
         gboolean auto_conf;
-        g_object_get(app, "fullscreen-auto-conf", &auto_conf, NULL);
+        g_object_get(app, "fullscreen", &auto_conf, NULL);
         if (auto_conf)
             self->priv->auto_resize = AUTO_RESIZE_NEVER;
         else
@@ -304,7 +273,9 @@ virt_viewer_display_spice_new(VirtViewerSessionSpice *session,
     g_object_unref(s);
 
     virt_viewer_signal_connect_object(self->priv->display, "notify::ready",
-                                      G_CALLBACK(display_ready), self, 0);
+                                      G_CALLBACK(update_display_ready), self,
+                                      G_CONNECT_SWAPPED);
+    update_display_ready(self);
 
     gtk_container_add(GTK_CONTAINER(self), g_object_ref(self->priv->display));
     gtk_widget_show(GTK_WIDGET(self->priv->display));
@@ -326,9 +297,11 @@ virt_viewer_display_spice_new(VirtViewerSessionSpice *session,
     app = virt_viewer_session_get_app(VIRT_VIEWER_SESSION(session));
     virt_viewer_signal_connect_object(app, "notify::enable-accel",
                                       G_CALLBACK(enable_accel_changed), self, 0);
-    virt_viewer_signal_connect_object(app, "notify::fullscreen",
-                                      G_CALLBACK(fullscreen_changed), self, 0);
-    fullscreen_changed(app, NULL, self);
+    virt_viewer_signal_connect_object(self, "notify::fullscreen",
+                                      G_CALLBACK(fullscreen_changed), app, 0);
+    virt_viewer_signal_connect_object(self, "notify::zoom-level",
+                                      G_CALLBACK(zoom_level_changed), app, 0);
+    fullscreen_changed(self, NULL, app);
     enable_accel_changed(app, NULL, self);
 
     return GTK_WIDGET(self);

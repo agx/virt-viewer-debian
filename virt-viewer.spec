@@ -3,31 +3,30 @@
 # Default to skipping autoreconf.  Distros can change just this one line
 # (or provide a command-line override) if they backport any patches that
 # touch configure.ac or Makefile.am.
-%{!?enable_autotools:%define enable_autotools 1}
+%{!?enable_autotools:%define enable_autotools 0}
 
 %define with_gtk3 0
-%if 0%{?fedora} >= 15
+%if 0%{?fedora} >= 15 || 0%{?rhel} >= 7
 %define with_gtk3 1
 %endif
 
 %define with_spice 0
-%if 0%{?fedora} >= 17
+%if 0%{?fedora} >= 17 || 0%{?rhel} >= 6
 %define with_spice 1
 %endif
 
 %define with_govirt 0
-
-%if 0%{?rhel} >= 6
-%define with_spice 1
+%if 0%{?fedora} > 19 || 0%{?rhel} >= 7
+%define with_govirt 1
 %endif
 
-# spice-gtk is x86 x86_64 only currently:
-%ifnarch %{ix86} x86_64
+# spice-gtk is x86 x86_64 arm only currently:
+%ifnarch %{ix86} x86_64 %{arm}
 %define with_spice 0
 %endif
 
 Name: virt-viewer
-Version: 0.5.6
+Version: 0.6.0
 Release: 1%{?dist}%{?extra_release}
 Summary: Virtual Machine Viewer
 Group: Applications/System
@@ -48,14 +47,14 @@ BuildRequires: gettext-devel
 BuildRequires: libtool
 %endif
 
-BuildRequires: glib2-devel >= 2.22
+BuildRequires: glib2-devel >= 2.22.0
 %if %{with_gtk3}
-BuildRequires: gtk3-devel >= 3.0.0
+BuildRequires: gtk3-devel >= 3.0
 %else
-BuildRequires: gtk2-devel >= 2.12.0
+BuildRequires: gtk2-devel >= 2.18.0
 %endif
-BuildRequires: libvirt-devel >= 0.9.7
-BuildRequires: libxml2-devel
+BuildRequires: libvirt-devel >= 0.10.0
+BuildRequires: libxml2-devel >= 2.6.0
 %if %{with_gtk3}
 BuildRequires: gtk-vnc2-devel >= 0.4.0
 %else
@@ -63,14 +62,22 @@ BuildRequires: gtk-vnc-devel >= 0.3.8
 %endif
 %if %{with_spice}
 %if %{with_gtk3}
-BuildRequires: spice-gtk3-devel >= 0.16.26
+BuildRequires: spice-gtk3-devel >= 0.22
 %else
-BuildRequires: spice-gtk-devel >= 0.16.26
+BuildRequires: spice-gtk-devel >= 0.22
 %endif
 BuildRequires: spice-protocol >= 0.10.1
 %endif
 BuildRequires: /usr/bin/pod2man
 BuildRequires: intltool
+%if %{with_govirt}
+BuildRequires: libgovirt-devel >= 0.3.0
+%endif
+
+%if 0%{?fedora} >= 20
+Obsoletes: spice-client < 0.12.3-2
+%endif
+
 
 %description
 Virtual Machine Viewer provides a graphical console client for connecting
@@ -84,9 +91,6 @@ the display, and libvirt for looking up VNC/SPICE server details.
 
 %if 0%{?enable_autotools}
 autoreconf -if
-%endif
-%if %{with_govirt}
-BuildRequires: libgovirt-devel >= 0.0.3
 %endif
 
 %if %{with_spice}
@@ -105,7 +109,7 @@ BuildRequires: libgovirt-devel >= 0.0.3
 %define govirt_arg --with-ovirt
 %endif
 
-%configure %{spice_arg} %{gtk_arg} %{govirt_arg} --with-buildid=-%{release}
+%configure %{spice_arg} %{gtk_arg} %{govirt_arg} --with-buildid=-%{release} --disable-update-mimedb
 %__make %{?_smp_mflags}
 
 
@@ -125,6 +129,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_sbindir}/update-alternatives --install %{_libexecdir}/spice-xpi-client \
   spice-xpi-client %{_libexecdir}/spice-xpi-client-remote-viewer 25
 update-desktop-database -q %{_datadir}/applications
+%{_bindir}/update-mime-database %{_datadir}/mime &> /dev/null
 
 %postun
 if [ $1 -eq 0 ] ; then
@@ -133,6 +138,7 @@ if [ $1 -eq 0 ] ; then
   %{_sbindir}/update-alternatives --remove spice-xpi-client %{_libexecdir}/spice-xpi-client-remote-viewer
 fi
 update-desktop-database -q %{_datadir}/applications
+%{_bindir}/update-mime-database %{_datadir}/mime &> /dev/null
 
 %posttrans
 /usr/bin/gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
