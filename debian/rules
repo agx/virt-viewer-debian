@@ -1,6 +1,6 @@
 #!/usr/bin/make -f
 
-DEB_CONFIGURE_EXTRA_FLAGS := --with-gtk=3.0
+DEB_CONFIGURE_EXTRA_FLAGS := --disable-update-mimedb --with-gtk=3.0
 ifneq (,$(findstring $(DEB_HOST_ARCH), i386 amd64))
     DEB_CONFIGURE_EXTRA_FLAGS += --with-spice-gtk
     HAVE_SPICE := 1
