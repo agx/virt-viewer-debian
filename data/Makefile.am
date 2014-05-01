@@ -24,6 +24,12 @@ virt-viewer-$(VERSION).exe: virt-viewer.nsis deps.txt
 	makensis -NOCD -DDESTDIR=$$DESTDIR $< >/dev/null && \
 	rm -rf $$DESTDIR
 
+virt-viewer-debug-$(VERSION).exe: virt-viewer-debug.nsis
+	$(AM_V_GEN)DESTDIR=`mktemp -d` && \
+	make -C $(top_builddir) install DESTDIR=$$DESTDIR >/dev/null && \
+	makensis -NOCD -DDESTDIR=$$DESTDIR $< >/dev/null && \
+	rm -rf $$DESTDIR
+
 virt-viewer-$(WIXL_ARCH)-$(VERSION).msi: virt-viewer.wxs deps.txt
 	$(AM_V_GEN)DESTDIR=`mktemp -d` &&				\
 	make -C $(top_builddir) install DESTDIR=$$DESTDIR >/dev/null &&	\
@@ -56,6 +62,18 @@ MIMEFILES = virt-viewer-mime.xml.in
 mimedir = $(datadir)/mime/packages
 mime_DATA = virt-viewer-mime.xml
 @INTLTOOL_XML_RULE@
+
+install-data-hook:
+if ENABLE_UPDATE_MIMEDB
+	@if $(AM_V_P); then set -x; else echo "  INSTALL  update-mime-database"; fi; \
+	$(UPDATE_MIME_DATABASE) "$(DESTDIR)$(datadir)/mime";
+endif
+
+uninstall-hook:
+if ENABLE_UPDATE_MIMEDB
+	@if $(AM_V_P); then set -x; else echo "  UNINSTALL update-mime-database"; fi; \
+	$(UPDATE_MIME_DATABASE) "$(DESTDIR)$(datadir)/mime";
+endif
 
 CLEANFILES += $(mime_DATA) $(desktop_DATA)
 EXTRA_DIST += $(MIMEFILES) $(DESKTOPFILES)

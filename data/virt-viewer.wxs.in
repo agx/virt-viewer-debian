@@ -2,7 +2,7 @@
 
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
 
-  <?define Version = "@VERSION@"?>
+  <?define Version = "@WINDOWS_PRODUCTVERSION@"?>
   <?define Arch = "@WIXL_ARCH@"?>
   <?if $(var.Arch) = "x64"?>
       <?define GLIB_ARCH = "win64"?>
@@ -22,7 +22,7 @@
 
   <?define UpgradeCode = "5B027138-1A63-49E6-877E-055E5EEC1903"?>
   <Product Id="*"
-           Name="VirtViewer $(var.Version) ($(var.ArchString))"
+           Name="VirtViewer @VERSION@@BUILDID@ ($(var.ArchString))"
            Manufacturer="$(env.MANUFACTURER)"
            Version="$(var.Version)"
            UpgradeCode="$(var.UpgradeCode)"
@@ -76,6 +76,29 @@
       </Directory>
     </Directory>
 
+    <DirectoryRef Id="INSTALLDIR">
+      <Directory Id="DirShare" Name="share">
+        <Directory Id="DirHwdata" Name="hwdata">
+          <Component Id="CHwdataUSB" Guid="*">
+            <File Id="FHwdataUSB" KeyPath="yes" Source="/usr/share/hwdata/usb.ids"/>
+          </Component>
+        </Directory>
+
+        <Directory Id="DirIcons" Name="icons">
+          <Directory Id="DirIconsHi" Name="hicolor">
+            <Directory Id="DirIconsHi16x16" Name="16x16">
+              <Directory Id="DirIconsHi16x16Apps" Name="apps">
+                <Component Id="CIconsHi16x16Apps" Guid="*">
+                  <File Id="FIconskeyboardshortcuts" KeyPath="yes"
+                        Source="/usr/share/icons/gnome/16x16/apps/preferences-desktop-keyboard-shortcuts.png"/>
+                </Component>
+              </Directory>
+            </Directory>
+          </Directory>
+        </Directory>
+      </Directory>
+    </DirectoryRef>
+
     <DirectoryRef Id="MENUDIR">
       <Component Id="CShortcut" Guid="*">
         <Shortcut Id="ApplicationStartMenuShortcut"
@@ -97,6 +120,8 @@
       <ComponentRef Id="CShortcut"/>
       <ComponentRef Id="CRegistryEntries"/>
       <ComponentRef Id="CProgIds"/>
+      <ComponentRef Id="CIconsHi16x16Apps"/>
+      <ComponentRef Id="CHwdataUSB"/>
     </Feature>
 
     <InstallExecuteSequence>

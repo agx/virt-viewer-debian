@@ -28,6 +28,7 @@
 #include <glib/gi18n.h>
 
 #include <spice-option.h>
+#include <spice-util.h>
 #include <usb-device-widget.h>
 #include "virt-viewer-file.h"
 #include "virt-viewer-util.h"
@@ -51,6 +52,10 @@ struct _VirtViewerSessionSpicePrivate {
     SpiceMainChannel *main_channel;
     const SpiceAudio *audio;
     int channel_count;
+    int usbredir_channel_count;
+    gboolean has_sw_smartcard_reader;
+    guint pass_try;
+    gboolean did_auto_conf;
 };
 
 #define VIRT_VIEWER_SESSION_SPICE_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE((o), VIRT_VIEWER_TYPE_SESSION_SPICE, VirtViewerSessionSpicePrivate))
@@ -58,6 +63,7 @@ struct _VirtViewerSessionSpicePrivate {
 enum {
     PROP_0,
     PROP_SPICE_SESSION,
+    PROP_SW_SMARTCARD_READER,
 };
 
 
@@ -66,7 +72,6 @@ static gboolean virt_viewer_session_spice_open_fd(VirtViewerSession *session, in
 static gboolean virt_viewer_session_spice_open_host(VirtViewerSession *session, const gchar *host, const gchar *port, const gchar *tlsport);
 static gboolean virt_viewer_session_spice_open_uri(VirtViewerSession *session, const gchar *uri, GError **error);
 static gboolean virt_viewer_session_spice_channel_open_fd(VirtViewerSession *session, VirtViewerSessionChannel *channel, int fd);
-static gboolean virt_viewer_session_spice_has_usb(VirtViewerSession *session);
 static void virt_viewer_session_spice_usb_device_selection(VirtViewerSession *session, GtkWindow *parent);
 static void virt_viewer_session_spice_channel_new(SpiceSession *s,
                                                   SpiceChannel *channel,
@@ -77,6 +82,7 @@ static void virt_viewer_session_spice_channel_destroy(SpiceSession *s,
 static void virt_viewer_session_spice_smartcard_insert(VirtViewerSession *session);
 static void virt_viewer_session_spice_smartcard_remove(VirtViewerSession *session);
 static gboolean virt_viewer_session_spice_fullscreen_auto_conf(VirtViewerSessionSpice *self);
+static void virt_viewer_session_spice_apply_monitor_geometry(VirtViewerSession *self, GdkRectangle *monitors, guint nmonitors);
 
 static void
 virt_viewer_session_spice_get_property(GObject *object, guint property_id,
@@ -88,6 +94,9 @@ virt_viewer_session_spice_get_property(GObject *object, guint property_id,
     switch (property_id) {
     case PROP_SPICE_SESSION:
         g_value_set_object(value, priv->session);
+        break;
+    case PROP_SW_SMARTCARD_READER:
+        g_value_set_boolean(value, priv->has_sw_smartcard_reader);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -145,11 +154,11 @@ virt_viewer_session_spice_class_init(VirtViewerSessionSpiceClass *klass)
     dclass->open_host = virt_viewer_session_spice_open_host;
     dclass->open_uri = virt_viewer_session_spice_open_uri;
     dclass->channel_open_fd = virt_viewer_session_spice_channel_open_fd;
-    dclass->has_usb = virt_viewer_session_spice_has_usb;
     dclass->usb_device_selection = virt_viewer_session_spice_usb_device_selection;
     dclass->smartcard_insert = virt_viewer_session_spice_smartcard_insert;
     dclass->smartcard_remove = virt_viewer_session_spice_smartcard_remove;
     dclass->mime_type = virt_viewer_session_spice_mime_type;
+    dclass->apply_monitor_geometry = virt_viewer_session_spice_apply_monitor_geometry;
 
     g_type_class_add_private(klass, sizeof(VirtViewerSessionSpicePrivate));
 
@@ -161,6 +170,9 @@ virt_viewer_session_spice_class_init(VirtViewerSessionSpiceClass *klass)
                                                         SPICE_TYPE_SESSION,
                                                         G_PARAM_READABLE |
                                                         G_PARAM_STATIC_STRINGS));
+    g_object_class_override_property(oclass,
+                                     PROP_SW_SMARTCARD_READER,
+                                     "software-smartcard-reader");
 }
 
 static void
@@ -180,10 +192,46 @@ usb_connect_failed(GObject *object G_GNUC_UNUSED,
     g_signal_emit_by_name(self, "session-usb-failed", error->message);
 }
 
+static void virt_viewer_session_spice_set_has_sw_reader(VirtViewerSessionSpice *session,
+                                                        gboolean has_sw_reader)
+{
+    g_return_if_fail(VIRT_VIEWER_IS_SESSION_SPICE(session));
+
+    if (has_sw_reader != session->priv->has_sw_smartcard_reader) {
+        session->priv->has_sw_smartcard_reader = has_sw_reader;
+        g_object_notify(G_OBJECT(session), "software-smartcard-reader");
+    }
+}
+
+static void reader_added_cb(SpiceSmartcardManager *manager G_GNUC_UNUSED,
+                            SpiceSmartcardReader *reader,
+                            gpointer user_data)
+{
+    VirtViewerSessionSpice *session;
+
+    session = VIRT_VIEWER_SESSION_SPICE(user_data);
+    if (spice_smartcard_reader_is_software(reader)) {
+        virt_viewer_session_spice_set_has_sw_reader(session, TRUE);
+    }
+}
+
+static void reader_removed_cb(SpiceSmartcardManager *manager G_GNUC_UNUSED,
+                              SpiceSmartcardReader *reader,
+                              gpointer user_data)
+{
+    VirtViewerSessionSpice *session;
+
+    session = VIRT_VIEWER_SESSION_SPICE(user_data);
+    if (spice_smartcard_reader_is_software(reader)) {
+        virt_viewer_session_spice_set_has_sw_reader(session, FALSE);
+    }
+}
+
 static void
 create_spice_session(VirtViewerSessionSpice *self)
 {
-    SpiceUsbDeviceManager *manager;
+    SpiceUsbDeviceManager *usb_manager;
+    SpiceSmartcardManager *smartcard_manager;
 
     g_return_if_fail(self != NULL);
     g_return_if_fail(self->priv->session == NULL);
@@ -194,22 +242,41 @@ create_spice_session(VirtViewerSessionSpice *self)
     self->priv->gtk_session = spice_gtk_session_get(self->priv->session);
     g_object_set(self->priv->gtk_session, "auto-clipboard", TRUE, NULL);
 
-    g_signal_connect(self->priv->session, "channel-new",
-                     G_CALLBACK(virt_viewer_session_spice_channel_new), self);
-    g_signal_connect(self->priv->session, "channel-destroy",
-                     G_CALLBACK(virt_viewer_session_spice_channel_destroy), self);
+    virt_viewer_signal_connect_object(self->priv->session, "channel-new",
+        G_CALLBACK(virt_viewer_session_spice_channel_new), self, 0);
+    virt_viewer_signal_connect_object(self->priv->session, "channel-destroy",
+        G_CALLBACK(virt_viewer_session_spice_channel_destroy), self, 0);
 
-    manager = spice_usb_device_manager_get(self->priv->session, NULL);
-    if (manager) {
-        g_signal_connect(manager, "auto-connect-failed",
+    usb_manager = spice_usb_device_manager_get(self->priv->session, NULL);
+    if (usb_manager) {
+        g_signal_connect(usb_manager, "auto-connect-failed",
                          G_CALLBACK(usb_connect_failed), self);
-        g_signal_connect(manager, "device-error",
+        g_signal_connect(usb_manager, "device-error",
                          G_CALLBACK(usb_connect_failed), self);
     }
-
     g_object_bind_property(self, "auto-usbredir",
                            self->priv->gtk_session, "auto-usbredir",
                            G_BINDING_BIDIRECTIONAL | G_BINDING_SYNC_CREATE);
+
+    smartcard_manager = spice_smartcard_manager_get();
+    if (smartcard_manager) {
+        GList *readers;
+        GList *it;
+        g_signal_connect(smartcard_manager, "reader-added",
+                         (GCallback)reader_added_cb, self);
+        g_signal_connect(smartcard_manager, "reader-removed",
+                         (GCallback)reader_removed_cb, self);
+        readers = spice_smartcard_manager_get_readers(smartcard_manager);
+        for (it = readers; it != NULL; it = it->next) {
+            SpiceSmartcardReader *reader;
+            reader = (SpiceSmartcardReader *)it->data;
+            if (spice_smartcard_reader_is_software(reader)) {
+                virt_viewer_session_spice_set_has_sw_reader(self, TRUE);
+            }
+            g_boxed_free(SPICE_TYPE_SMARTCARD_READER, reader);
+        }
+        g_list_free(readers);
+    }
 }
 
 static void
@@ -426,6 +493,12 @@ virt_viewer_session_spice_main_channel_event(SpiceChannel *channel G_GNUC_UNUSED
         break;
     case SPICE_CHANNEL_ERROR_AUTH:
         DEBUG_LOG("main channel: auth failure (wrong password?)");
+
+        if (self->priv->pass_try > 0)
+            g_signal_emit_by_name(session, "session-auth-failed",
+                                  _("invalid password"));
+        self->priv->pass_try++;
+
         int ret = virt_viewer_auth_collect_credentials(self->priv->main_window,
                                                        "SPICE",
                                                        NULL,
@@ -459,17 +532,6 @@ virt_viewer_session_spice_main_channel_event(SpiceChannel *channel G_GNUC_UNUSED
     }
 
     g_free(password);
-}
-
-static gboolean
-virt_viewer_session_spice_has_usb(VirtViewerSession *session)
-{
-    VirtViewerSessionSpice *self = VIRT_VIEWER_SESSION_SPICE(session);
-    VirtViewerSessionSpicePrivate *priv = self->priv;
-
-    return spice_usb_device_manager_get(priv->session, NULL) &&
-        spice_session_has_channel_type(priv->session,
-                                       SPICE_CHANNEL_USBREDIR);
 }
 
 static void remove_cb(GtkContainer   *container G_GNUC_UNUSED,
@@ -521,8 +583,6 @@ agent_connected_changed(SpiceChannel *cmain G_GNUC_UNUSED,
 {
     // this will force refresh of application menu
     g_signal_emit_by_name(self, "session-display-updated");
-
-    virt_viewer_session_spice_fullscreen_auto_conf(self);
 }
 
 static void
@@ -571,7 +631,6 @@ virt_viewer_session_spice_display_monitors(SpiceChannel *channel,
             g_ptr_array_index(displays, i) = g_object_ref(display);
         }
 
-        g_object_freeze_notify(G_OBJECT(display));
         virt_viewer_session_add_display(VIRT_VIEWER_SESSION(self),
                                         VIRT_VIEWER_DISPLAY(display));
     }
@@ -581,16 +640,13 @@ virt_viewer_session_spice_display_monitors(SpiceChannel *channel,
         display = g_ptr_array_index(displays, monitor->id);
         g_return_if_fail(display != NULL);
 
-        if (monitor->width == 0 || monitor->width == 0)
+        if (monitor->width == 0 || monitor->height == 0)
             continue;
 
         virt_viewer_display_set_enabled(VIRT_VIEWER_DISPLAY(display), TRUE);
         virt_viewer_display_set_desktop_size(VIRT_VIEWER_DISPLAY(display),
                                              monitor->width, monitor->height);
     }
-
-    for (i = 0; i < monitors_max; i++)
-        g_object_thaw_notify(g_ptr_array_index(displays, i));
 
     g_clear_pointer(&monitors, g_array_unref);
 
@@ -621,9 +677,12 @@ virt_viewer_session_spice_channel_new(SpiceSession *s,
         g_signal_connect(channel, "channel-event",
                          G_CALLBACK(virt_viewer_session_spice_main_channel_event), self);
         self->priv->main_channel = SPICE_MAIN_CHANNEL(channel);
+        g_object_set(G_OBJECT(channel),
+                     "disable-display-position", FALSE,
+                     "disable-display-align", TRUE,
+                     NULL);
 
         g_signal_connect(channel, "notify::agent-connected", G_CALLBACK(agent_connected_changed), self);
-        virt_viewer_session_spice_fullscreen_auto_conf(self);
     }
 
     if (SPICE_IS_DISPLAY_CHANNEL(channel)) {
@@ -645,7 +704,22 @@ virt_viewer_session_spice_channel_new(SpiceSession *s,
             self->priv->audio = spice_audio_get(s, NULL);
     }
 
+    if (SPICE_IS_USBREDIR_CHANNEL(channel)) {
+        DEBUG_LOG("new usbredir channel");
+        self->priv->usbredir_channel_count++;
+        if (spice_usb_device_manager_get(self->priv->session, NULL))
+            virt_viewer_session_set_has_usbredir(session, TRUE);
+    }
+
     self->priv->channel_count++;
+}
+
+static void
+property_notify_do_auto_conf(GObject *gobject G_GNUC_UNUSED,
+                             GParamSpec *pspec G_GNUC_UNUSED,
+                             VirtViewerSessionSpice *self)
+{
+    virt_viewer_session_spice_fullscreen_auto_conf(self);
 }
 
 static gboolean
@@ -655,18 +729,20 @@ virt_viewer_session_spice_fullscreen_auto_conf(VirtViewerSessionSpice *self)
     SpiceMainChannel* cmain = virt_viewer_session_spice_get_main_channel(self);
     VirtViewerApp *app = NULL;
     GdkRectangle dest;
-    gboolean auto_conf, agent_connected;
+    gboolean agent_connected;
     gint i;
+    gsize ndisplays = 0;
+
+    /* only do auto-conf once at startup. Avoid repeating auto-conf later due to
+     * agent disconnection/re-connection, etc */
+    if (self->priv->did_auto_conf) {
+        DEBUG_LOG("Already did auto-conf, skipping");
+        return FALSE;
+    }
 
     app = virt_viewer_session_get_app(VIRT_VIEWER_SESSION(self));
     g_return_val_if_fail(VIRT_VIEWER_IS_APP(app), TRUE);
 
-    DEBUG_LOG("Checking full screen auto-conf");
-    g_object_get(app, "fullscreen-auto-conf", &auto_conf, NULL);
-    if (!auto_conf) {
-        DEBUG_LOG("auto-conf disabled");
-        return FALSE;
-    }
     if (!virt_viewer_app_get_fullscreen(app)) {
         DEBUG_LOG("app is not in full screen");
         return FALSE;
@@ -678,18 +754,18 @@ virt_viewer_session_spice_fullscreen_auto_conf(VirtViewerSessionSpice *self)
     g_object_get(cmain, "agent-connected", &agent_connected, NULL);
     if (!agent_connected) {
         DEBUG_LOG("Agent not connected, skipping autoconf");
+        g_signal_connect(cmain, "notify::agent-connected", G_CALLBACK(property_notify_do_auto_conf), self);
         return FALSE;
     }
 
-    DEBUG_LOG("Performing full screen auto-conf, %d host monitors",
-              gdk_screen_get_n_monitors(screen));
-    g_object_set(G_OBJECT(cmain),
-                 "disable-display-position", FALSE,
-                 "disable-display-align", TRUE,
-                 NULL);
     spice_main_set_display_enabled(cmain, -1, FALSE);
-    for (i = 0; i < gdk_screen_get_n_monitors(screen); i++) {
-        gdk_screen_get_monitor_geometry(screen, i, &dest);
+
+    ndisplays = virt_viewer_app_get_n_initial_displays(app);
+    DEBUG_LOG("Performing full screen auto-conf, %zd host monitors", ndisplays);
+
+    for (i = 0; i < ndisplays; i++) {
+        gint j = virt_viewer_app_get_initial_monitor_for_display(app, i);
+        gdk_screen_get_monitor_geometry(screen, j, &dest);
         DEBUG_LOG("Set SPICE display %d to (%d,%d)-(%dx%d)",
                   i, dest.x, dest.y, dest.width, dest.height);
         spice_main_set_display(cmain, i, dest.x, dest.y, dest.width, dest.height);
@@ -697,6 +773,7 @@ virt_viewer_session_spice_fullscreen_auto_conf(VirtViewerSessionSpice *self)
     }
 
     spice_main_send_monitor_config(cmain);
+    self->priv->did_auto_conf = TRUE;
     return TRUE;
 }
 
@@ -720,8 +797,8 @@ virt_viewer_session_spice_channel_destroy(G_GNUC_UNUSED SpiceSession *s,
     }
 
     if (SPICE_IS_DISPLAY_CHANNEL(channel)) {
-        VirtViewerDisplay *display = g_object_get_data(G_OBJECT(channel), "virt-viewer-display");
-        DEBUG_LOG("zap display channel (#%d, %p)", id, display);
+        DEBUG_LOG("zap display channel (#%d)", id);
+        g_object_set_data(G_OBJECT(channel), "virt-viewer-displays", NULL);
     }
 
     if (SPICE_IS_PLAYBACK_CHANNEL(channel) && self->priv->audio) {
@@ -729,16 +806,46 @@ virt_viewer_session_spice_channel_destroy(G_GNUC_UNUSED SpiceSession *s,
         self->priv->audio = NULL;
     }
 
+    if (SPICE_IS_USBREDIR_CHANNEL(channel)) {
+        DEBUG_LOG("zap usbredir channel");
+        self->priv->usbredir_channel_count--;
+        if (self->priv->usbredir_channel_count == 0)
+            virt_viewer_session_set_has_usbredir(session, FALSE);
+    }
+
     self->priv->channel_count--;
     if (self->priv->channel_count == 0)
         g_signal_emit_by_name(self, "session-disconnected");
 }
 
+#define UUID_LEN 16
 static void
-fullscreen_changed(GObject *gobject G_GNUC_UNUSED,
-                   GParamSpec *pspec G_GNUC_UNUSED,
-                   VirtViewerSessionSpice *self)
+uuid_changed(GObject *gobject G_GNUC_UNUSED,
+             GParamSpec *pspec G_GNUC_UNUSED,
+             VirtViewerSessionSpice *self)
 {
+    guint8* uuid = NULL;
+    VirtViewerApp* app = virt_viewer_session_get_app(VIRT_VIEWER_SESSION(self));
+
+    g_object_get(self->priv->session, "uuid", &uuid, NULL);
+    if (uuid) {
+        int i;
+        gboolean uuid_empty = TRUE;
+
+        for (i = 0; i < UUID_LEN; i++) {
+            if (uuid[i] != 0) {
+                uuid_empty = FALSE;
+                break;
+            }
+        }
+
+        if (!uuid_empty) {
+            gchar* uuid_str = spice_uuid_to_string(uuid);
+            virt_viewer_app_set_uuid_string(app, uuid_str);
+            g_free(uuid_str);
+        }
+    }
+
     virt_viewer_session_spice_fullscreen_auto_conf(self);
 }
 
@@ -752,7 +859,11 @@ virt_viewer_session_spice_new(VirtViewerApp *app, GtkWindow *main_window)
     create_spice_session(self);
     self->priv->main_window = g_object_ref(main_window);
 
-    g_signal_connect(app, "notify::fullscreen", G_CALLBACK(fullscreen_changed),  self);
+    g_signal_connect(app, "notify::fullscreen", G_CALLBACK(property_notify_do_auto_conf), self);
+
+    /* notify::uuid is guaranteed to be emitted during connection startup even
+     * if the server is too old to support sending uuid */
+    g_signal_connect(self->priv->session, "notify::uuid", G_CALLBACK(uuid_changed), self);
 
     return VIRT_VIEWER_SESSION(self);
 }
@@ -775,6 +886,20 @@ static void
 virt_viewer_session_spice_smartcard_remove(VirtViewerSession *session G_GNUC_UNUSED)
 {
     spice_smartcard_manager_remove_card(spice_smartcard_manager_get());
+}
+
+void
+virt_viewer_session_spice_apply_monitor_geometry(VirtViewerSession *session, GdkRectangle *monitors, guint nmonitors)
+{
+    guint i;
+    VirtViewerSessionSpice *self = VIRT_VIEWER_SESSION_SPICE(session);
+
+    for (i = 0; i < nmonitors; i++) {
+        GdkRectangle* rect = &monitors[i];
+
+        spice_main_set_display(self->priv->main_channel, i, rect->x,
+                               rect->y, rect->width, rect->height);
+    }
 }
 
 /*

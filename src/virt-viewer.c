@@ -65,8 +65,9 @@ G_DEFINE_TYPE (VirtViewer, virt_viewer, VIRT_VIEWER_TYPE_APP)
 
 static gboolean virt_viewer_initial_connect(VirtViewerApp *self, GError **error);
 static gboolean virt_viewer_open_connection(VirtViewerApp *self, int *fd);
-static void virt_viewer_deactivated(VirtViewerApp *self);
+static void virt_viewer_deactivated(VirtViewerApp *self, gboolean connect_error);
 static gboolean virt_viewer_start(VirtViewerApp *self);
+static void virt_viewer_dispose (GObject *object);
 
 static void
 virt_viewer_get_property (GObject *object, guint property_id,
@@ -86,18 +87,6 @@ virt_viewer_set_property (GObject *object, guint property_id,
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
     }
-}
-
-static void
-virt_viewer_dispose (GObject *object)
-{
-    VirtViewer *self = VIRT_VIEWER(object);
-    VirtViewerPrivate *priv = self->priv;
-    if (priv->dom)
-        virDomainFree(priv->dom);
-    if (priv->conn)
-        virConnectClose(priv->conn);
-    G_OBJECT_CLASS(virt_viewer_parent_class)->dispose (object);
 }
 
 static void
@@ -125,7 +114,7 @@ virt_viewer_init(VirtViewer *self)
 }
 
 static void
-virt_viewer_deactivated(VirtViewerApp *app)
+virt_viewer_deactivated(VirtViewerApp *app, gboolean connect_error)
 {
     VirtViewer *self = VIRT_VIEWER(app);
     VirtViewerPrivate *priv = self->priv;
@@ -144,7 +133,7 @@ virt_viewer_deactivated(VirtViewerApp *app)
         virt_viewer_app_show_status(app, _("Waiting for guest domain to re-start"));
         virt_viewer_app_trace(app, "Guest %s display has disconnected, waiting to reconnect", priv->domkey);
     } else {
-        VIRT_VIEWER_APP_CLASS(virt_viewer_parent_class)->deactivated(app);
+        VIRT_VIEWER_APP_CLASS(virt_viewer_parent_class)->deactivated(app, connect_error);
     }
 }
 
@@ -335,24 +324,24 @@ virt_viewer_extract_connect_info(VirtViewer *self,
         goto cleanup;
 
     xpath = g_strdup_printf("string(/domain/devices/graphics[@type='%s']/@port)", type);
-    if ((gport = virt_viewer_extract_xpath_string(xmldesc, xpath)) == NULL) {
-        free(xpath);
+    gport = virt_viewer_extract_xpath_string(xmldesc, xpath);
+    g_free(xpath);
+    if (g_str_equal(type, "spice")) {
+        xpath = g_strdup_printf("string(/domain/devices/graphics[@type='%s']/@tlsPort)", type);
+        gtlsport = virt_viewer_extract_xpath_string(xmldesc, xpath);
+        g_free(xpath);
+    }
+
+    if (gport || gtlsport) {
+        xpath = g_strdup_printf("string(/domain/devices/graphics[@type='%s']/@listen)", type);
+        ghost = virt_viewer_extract_xpath_string(xmldesc, xpath);
+    } else {
         xpath = g_strdup_printf("string(/domain/devices/graphics[@type='%s']/@socket)", type);
         if ((unixsock = virt_viewer_extract_xpath_string(xmldesc, xpath)) == NULL) {
             virt_viewer_app_simple_message_dialog(app, _("Cannot determine the graphic address for the guest %s"),
                                                   priv->domkey);
             goto cleanup;
         }
-    } else {
-        if (g_str_equal(type, "spice")) {
-            free(xpath);
-            xpath = g_strdup_printf("string(/domain/devices/graphics[@type='%s']/@tlsPort)", type);
-            gtlsport = virt_viewer_extract_xpath_string(xmldesc, xpath);
-        }
-
-        free(xpath);
-        xpath = g_strdup_printf("string(/domain/devices/graphics[@type='%s']/@listen)", type);
-        ghost = virt_viewer_extract_xpath_string(xmldesc, xpath);
     }
 
     if (ghost && gport)
@@ -513,6 +502,24 @@ virt_viewer_conn_event(virConnectPtr conn G_GNUC_UNUSED,
     virt_viewer_app_start_reconnect_poll(app);
 }
 
+static void
+virt_viewer_dispose (GObject *object)
+{
+    VirtViewer *self = VIRT_VIEWER(object);
+    VirtViewerPrivate *priv = self->priv;
+
+    if (priv->withEvents)
+        virConnectDomainEventDeregister(priv->conn,
+                                        virt_viewer_domain_event);
+    virConnectUnregisterCloseCallback(priv->conn,
+                                      virt_viewer_conn_event);
+    if (priv->dom)
+        virDomainFree(priv->dom);
+    if (priv->conn)
+        virConnectClose(priv->conn);
+    G_OBJECT_CLASS(virt_viewer_parent_class)->dispose (object);
+}
+
 static int virt_viewer_connect(VirtViewerApp *app);
 
 static gboolean
@@ -523,6 +530,7 @@ virt_viewer_initial_connect(VirtViewerApp *app, GError **error)
     gboolean ret = FALSE;
     VirtViewer *self = VIRT_VIEWER(app);
     VirtViewerPrivate *priv = self->priv;
+    char uuid_string[VIR_UUID_STRING_BUFLEN];
 
     DEBUG_LOG("initial connect");
 
@@ -546,6 +554,12 @@ virt_viewer_initial_connect(VirtViewerApp *app, GError **error)
             DEBUG_LOG("Cannot find guest %s", priv->domkey);
             goto cleanup;
         }
+    }
+
+    if (virDomainGetUUIDString(dom, uuid_string) < 0) {
+        DEBUG_LOG("Couldn't get uuid from libvirt");
+    } else {
+        virt_viewer_app_set_uuid_string(app, uuid_string);
     }
 
     virt_viewer_app_show_status(app, _("Checking guest domain status"));
@@ -683,7 +697,7 @@ virt_viewer_connect(VirtViewerApp *app)
 
     if (!virt_viewer_app_initial_connect(app, &error)) {
         if (error)
-            g_warning(error->message);
+            g_warning("%s", error->message);
         g_clear_error(&error);
         return -1;
     }
@@ -728,21 +742,16 @@ virt_viewer_start(VirtViewerApp *app)
 VirtViewer *
 virt_viewer_new(const char *uri,
                 const char *name,
-                gint zoom,
                 gboolean direct,
                 gboolean attach,
                 gboolean waitvm,
-                gboolean reconnect,
-                gboolean verbose,
-                GtkWidget *container)
+                gboolean reconnect)
 {
     VirtViewer *self;
     VirtViewerApp *app;
     VirtViewerPrivate *priv;
 
     self = g_object_new(VIRT_VIEWER_TYPE,
-                        "container", container,
-                        "verbose", verbose,
                         "guest-name", name,
                         NULL);
     app = VIRT_VIEWER_APP(self);
@@ -752,7 +761,6 @@ virt_viewer_new(const char *uri,
      * UUID, or NAME string. To be replaced with the real guest name later
      */
     g_object_set(app, "title", name, NULL);
-    virt_viewer_window_set_zoom_level(virt_viewer_app_get_main_window(app), zoom);
     virt_viewer_app_set_direct(app, direct);
     virt_viewer_app_set_attach(app, attach);
 

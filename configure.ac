@@ -1,5 +1,5 @@
 
-AC_INIT([virt-viewer],[0.5.6])
+AC_INIT([virt-viewer],[0.6.0])
 AC_CONFIG_SRCDIR(src/virt-viewer-main.c)
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([build-aux])
@@ -19,8 +19,20 @@ GTK2_REQUIRED="2.18.0"
 GTK3_REQUIRED="3.0"
 GTK_VNC1_REQUIRED="0.3.8"
 GTK_VNC2_REQUIRED="0.4.0"
-SPICE_GTK_REQUIRED="0.16.26"
+SPICE_GTK_REQUIRED="0.22"
 SPICE_PROTOCOL_REQUIRED="0.10.1"
+GOVIRT_REQUIRED="0.3.0"
+
+AC_SUBST([GLIB2_REQUIRED])
+AC_SUBST([LIBXML2_REQUIRED])
+AC_SUBST([LIBVIRT_REQUIRED])
+AC_SUBST([GTK2_REQUIRED])
+AC_SUBST([GTK3_REQUIRED])
+AC_SUBST([GTK_VNC1_REQUIRED])
+AC_SUBST([GTK_VNC2_REQUIRED])
+AC_SUBST([SPICE_GTK_REQUIRED])
+AC_SUBST([SPICE_PROTOCOL_REQUIRED])
+AC_SUBST([GOVIRT_REQUIRED])
 
 AC_MSG_CHECKING([for native Win32])
 case "$host_os" in
@@ -107,12 +119,12 @@ AM_CONDITIONAL([HAVE_LIBVIRT], [test "x$have_libvirt" = "xyes"])
 
 AC_MSG_CHECKING([which gtk+ version to compile against])
 AC_ARG_WITH([gtk],
-  [AS_HELP_STRING([--with-gtk=2.0|3.0],[which gtk+ version to compile against (default: 2.0)])],
+  [AS_HELP_STRING([--with-gtk=2.0|3.0],[which gtk+ version to compile against (default: 3.0)])],
   [case "$with_gtk" in
      2.0|3.0) ;;
      *) AC_MSG_ERROR([invalid gtk version specified]) ;;
    esac],
-  [with_gtk=2.0])
+  [with_gtk=3.0])
 AC_MSG_RESULT([$with_gtk])
 
 case "$with_gtk" in
@@ -178,7 +190,7 @@ AC_ARG_WITH([ovirt],
     AS_HELP_STRING([--without-ovirt], [Ignore presence of librest and disable oVirt support]))
 
 AS_IF([test "x$with_ovirt" != "xno"],
-      [PKG_CHECK_MODULES([OVIRT], [govirt-1.0],
+      [PKG_CHECK_MODULES([OVIRT], [govirt-1.0 >= $GOVIRT_REQUIRED],
                          [have_ovirt=yes], [have_ovirt=no])],
       [have_ovirt=no])
 
@@ -201,6 +213,30 @@ fi
 AC_ARG_WITH([buildid],
     AS_HELP_STRING([--with-buildid=id], [Set additional build version details]))
 AC_DEFINE_UNQUOTED([BUILDID], "$with_buildid", [Build version details])
+if test "x$with_buildid" != x; then
+    AC_SUBST([BUILDID], "-$with_buildid")
+fi
+
+major=`echo $PACKAGE_VERSION | cut -d. -f1`
+minor=`echo $PACKAGE_VERSION | cut -d. -f2`
+micro=`echo $PACKAGE_VERSION | cut -d. -f3`
+buildid=`echo $with_buildid | cut -d. -f1`
+if test "x$buildid" = x; then
+   buildid=0
+fi
+build=`expr $micro \* 256 + $buildid`
+WINDOWS_PRODUCTVERSION="$major.$minor.$build"
+AC_SUBST([WINDOWS_PRODUCTVERSION])
+
+
+AC_PATH_PROG(UPDATE_MIME_DATABASE, update-mime-database, no)
+
+AC_ARG_ENABLE(update-mimedb,
+   AS_HELP_STRING([--disable-update-mimedb],
+                   [disable the update-mime-database after install [default=no]]),,
+    enable_update_mimedb=yes)
+AM_CONDITIONAL(ENABLE_UPDATE_MIMEDB, test x$enable_update_mimedb = xyes)
+
 
 AC_CONFIG_FILES([
     Makefile

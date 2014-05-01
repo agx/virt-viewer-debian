@@ -5,7 +5,7 @@ virt-viewer - display the graphical console for a virtual machine
 
 =head1 SYNOPSIS
 
-B<virt-viewer> [OPTIONS] DOMAIN-NAME|ID|UUID
+B<virt-viewer> [OPTIONS] -- DOMAIN-NAME|ID|UUID
 
 =head1 DESCRIPTION
 
@@ -13,7 +13,7 @@ B<virt-viewer> is a minimal tool for displaying the graphical console
 of a virtual machine. The console is accessed using the VNC or SPICE
 protocol. The guest can be referred to based on its name, ID, or
 UUID. If the guest is not already running, then the viewer can be told
-to wait until is starts before attempting to connect to the console
+to wait until it starts before attempting to connect to the console
 The viewer can connect to remote hosts to lookup the console
 information and then also connect to the remote console using the same
 network transport.
@@ -72,19 +72,45 @@ Start with the window maximised to fullscreen
 
 Print debugging information
 
-=item -h HOTKEYS, --hotkeys HOTKEYS
+=item -H HOTKEYS, --hotkeys HOTKEYS
 
-Override the default hotkey bindings with B<HOTKEYS>. Where B<HOTKEYS> is
-<action1>=<key1>[+<key2>][,<action2>=<key3>[+<key4>]]. Key-names are
-case-insensitive, valid actions are: toggle-fullscreen, release-cursor,
-smartcard-insert and smartcard-remove. Examples:
+Set global hotkey bindings. By default, keyboard shortcuts only work when the
+guest display widget does not have focus.  Any actions specified in B<HOTKEYS>
+will be effective even when the guest display widget has input focus. The format
+for B<HOTKEYS> is <action1>=<key1>[+<key2>][,<action2>=<key3>[+<key4>]].
+Key-names are case-insensitive. Valid actions are: toggle-fullscreen,
+release-cursor, secure-attention, smartcard-insert and smartcard-remove.  The
+C<secure-attention> action sends a secure attention sequence (Ctrl+Alt+Del) to
+the guest. Examples:
 
   --hotkeys=toggle-fullscreen=shift+f11,release-cursor=shift+f12
 
   --hotkeys=release-cursor=ctrl+alt
 
-Note that hotkeys for which no binding is given are disabled, specifying an
-empty string disables all hotkeys.
+Note that hotkeys for which no binding is given are disabled. Although the
+hotkeys specified here are handled by the client, it is still possible to send
+these key combinations to the guest via a menu item.
+
+=item -k, --kiosk
+
+Start in kiosk mode. In this mode, the application will start in
+fullscreen with minimal UI. It will prevent the user from quitting or
+performing any interaction outside of usage of the remote desktop
+session.
+
+Note that it can't offer a complete secure solution by itself. Your
+kiosk system must have additional configuration and security settings
+to lock down the OS. In particular, you must configure or disable the
+window manager, limit the session capabilities, use some
+restart/watchdog mechanism, disable VT switching etc.
+
+=item --kiosk-quit <never|on-disconnect>
+
+By default, when kiosk mode is enabled, virt-viewer will remain open
+when the connection to the remote server is terminated. By setting
+kiosk-quit option to "on-disconnect" value, virt-viewer will quit
+instead. Please note that --reconnect takes precedence over this
+option, and will attempt to do a reconnection before it quits.
 
 =back
 

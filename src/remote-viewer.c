@@ -56,65 +56,32 @@ struct _RemoteViewerPrivate {
 #endif
     GtkWidget *controller_menu;
     GtkWidget *foreign_menu;
+    gboolean open_recent_dialog;
+
+    gboolean default_title; /* Whether the window title was set by the user, or
+                               is the default one (URI we are connecting to) */
+
 };
 
 G_DEFINE_TYPE (RemoteViewer, remote_viewer, VIRT_VIEWER_TYPE_APP)
 #define GET_PRIVATE(o)                                                        \
     (G_TYPE_INSTANCE_GET_PRIVATE ((o), REMOTE_VIEWER_TYPE, RemoteViewerPrivate))
 
-#ifdef HAVE_SPICE_GTK
 enum {
     PROP_0,
+#ifdef HAVE_SPICE_GTK
     PROP_CONTROLLER,
     PROP_CTRL_FOREIGN_MENU,
-};
 #endif
+    PROP_OPEN_RECENT_DIALOG
+};
 
 static gboolean remote_viewer_start(VirtViewerApp *self);
 #ifdef HAVE_SPICE_GTK
 static gboolean remote_viewer_activate(VirtViewerApp *self, GError **error);
 static void remote_viewer_window_added(VirtViewerApp *self, VirtViewerWindow *win);
 static void spice_foreign_menu_updated(RemoteViewer *self);
-
-static void
-remote_viewer_get_property (GObject *object, guint property_id,
-                            GValue *value, GParamSpec *pspec)
-{
-    RemoteViewer *self = REMOTE_VIEWER(object);
-    RemoteViewerPrivate *priv = self->priv;
-
-    switch (property_id) {
-    case PROP_CONTROLLER:
-        g_value_set_object(value, priv->controller);
-        break;
-    case PROP_CTRL_FOREIGN_MENU:
-        g_value_set_object(value, priv->ctrl_foreign_menu);
-        break;
-    default:
-        G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
-    }
-}
-
-static void
-remote_viewer_set_property (GObject *object, guint property_id,
-                            const GValue *value, GParamSpec *pspec)
-{
-    RemoteViewer *self = REMOTE_VIEWER(object);
-    RemoteViewerPrivate *priv = self->priv;
-
-    switch (property_id) {
-    case PROP_CONTROLLER:
-        g_return_if_fail(priv->controller == NULL);
-        priv->controller = g_value_dup_object(value);
-        break;
-    case PROP_CTRL_FOREIGN_MENU:
-        g_return_if_fail(priv->ctrl_foreign_menu == NULL);
-        priv->ctrl_foreign_menu = g_value_dup_object(value);
-        break;
-    default:
-        G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
-    }
-}
+static gint connect_dialog(gchar **uri);
 
 static void
 remote_viewer_dispose (GObject *object)
@@ -137,23 +104,85 @@ remote_viewer_dispose (GObject *object)
 #endif
 
 static void
+remote_viewer_get_property (GObject *object, guint property_id,
+                            GValue *value, GParamSpec *pspec)
+{
+    RemoteViewer *self = REMOTE_VIEWER(object);
+    RemoteViewerPrivate *priv = self->priv;
+
+    switch (property_id) {
+#ifdef HAVE_SPICE_GTK
+    case PROP_CONTROLLER:
+        g_value_set_object(value, priv->controller);
+        break;
+    case PROP_CTRL_FOREIGN_MENU:
+        g_value_set_object(value, priv->ctrl_foreign_menu);
+        break;
+#endif
+    case PROP_OPEN_RECENT_DIALOG:
+        g_value_set_boolean(value, priv->open_recent_dialog);
+        break;
+    default:
+        G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
+    }
+}
+
+static void
+remote_viewer_set_property (GObject *object, guint property_id,
+                            const GValue *value, GParamSpec *pspec)
+{
+    RemoteViewer *self = REMOTE_VIEWER(object);
+    RemoteViewerPrivate *priv = self->priv;
+
+    switch (property_id) {
+#ifdef HAVE_SPICE_GTK
+    case PROP_CONTROLLER:
+        g_return_if_fail(priv->controller == NULL);
+        priv->controller = g_value_dup_object(value);
+        break;
+    case PROP_CTRL_FOREIGN_MENU:
+        g_return_if_fail(priv->ctrl_foreign_menu == NULL);
+        priv->ctrl_foreign_menu = g_value_dup_object(value);
+        break;
+#endif
+    case PROP_OPEN_RECENT_DIALOG:
+        priv->open_recent_dialog = g_value_get_boolean(value);
+        break;
+    default:
+        G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
+    }
+}
+
+static void
+remote_viewer_deactivated(VirtViewerApp *app, gboolean connect_error)
+{
+    RemoteViewer *self = REMOTE_VIEWER(app);
+    RemoteViewerPrivate *priv = self->priv;
+
+    if (connect_error && priv->open_recent_dialog) {
+        if (virt_viewer_app_start(app)) {
+            return;
+        }
+    }
+
+    VIRT_VIEWER_APP_CLASS(remote_viewer_parent_class)->deactivated(app, connect_error);
+}
+
+static void
 remote_viewer_class_init (RemoteViewerClass *klass)
 {
-#ifdef HAVE_SPICE_GTK
     GObjectClass *object_class = G_OBJECT_CLASS (klass);
-#endif
     VirtViewerAppClass *app_class = VIRT_VIEWER_APP_CLASS (klass);
 
     g_type_class_add_private (klass, sizeof (RemoteViewerPrivate));
 
-#ifdef HAVE_SPICE_GTK
     object_class->get_property = remote_viewer_get_property;
     object_class->set_property = remote_viewer_set_property;
-    object_class->dispose = remote_viewer_dispose;
-#endif
 
     app_class->start = remote_viewer_start;
+    app_class->deactivated = remote_viewer_deactivated;
 #ifdef HAVE_SPICE_GTK
+    object_class->dispose = remote_viewer_dispose;
     app_class->activate = remote_viewer_activate;
     app_class->window_added = remote_viewer_window_added;
 #endif
@@ -178,6 +207,15 @@ remote_viewer_class_init (RemoteViewerClass *klass)
                                                         G_PARAM_CONSTRUCT_ONLY |
                                                         G_PARAM_STATIC_STRINGS));
 #endif
+    g_object_class_install_property(object_class,
+                                    PROP_OPEN_RECENT_DIALOG,
+                                    g_param_spec_boolean("open-recent-dialog",
+                                                         "Open recent dialog",
+                                                         "Open recent dialog",
+                                                         FALSE,
+                                                         G_PARAM_READWRITE |
+                                                         G_PARAM_CONSTRUCT_ONLY |
+                                                         G_PARAM_STATIC_STRINGS));
 }
 
 static void
@@ -187,12 +225,12 @@ remote_viewer_init(RemoteViewer *self)
 }
 
 RemoteViewer *
-remote_viewer_new(const gchar *uri, const gchar *title, gboolean verbose)
+remote_viewer_new(const gchar *uri, const gchar *title)
 {
     return g_object_new(REMOTE_VIEWER_TYPE,
                         "guri", uri,
-                        "verbose", verbose,
                         "title", title,
+                        "open-recent-dialog", uri == NULL,
                         NULL);
 }
 
@@ -216,7 +254,7 @@ foreign_menu_title_changed(SpiceCtrlForeignMenu *menu G_GNUC_UNUSED,
 }
 
 RemoteViewer *
-remote_viewer_new_with_controller(gboolean verbose)
+remote_viewer_new_with_controller(void)
 {
     RemoteViewer *self;
     SpiceCtrlController *ctrl = spice_ctrl_controller_new();
@@ -225,7 +263,6 @@ remote_viewer_new_with_controller(gboolean verbose)
     self =  g_object_new(REMOTE_VIEWER_TYPE,
                          "controller", ctrl,
                          "foreign-menu", menu,
-                         "verbose", verbose,
                          NULL);
     g_signal_connect(menu, "notify::title",
                      G_CALLBACK(foreign_menu_title_changed),
@@ -513,11 +550,8 @@ spice_ctrl_notified(SpiceCtrlController *ctrl,
         virt_viewer_app_set_title(app, g_value_get_string(&value));
     } else if (g_str_equal(pspec->name, "display-flags")) {
         guint flags = g_value_get_uint(&value);
-        gboolean fullscreen = flags & CONTROLLER_SET_FULL_SCREEN;
-        gboolean auto_res = flags & CONTROLLER_AUTO_DISPLAY_RES;
+        gboolean fullscreen = !!(flags & (CONTROLLER_SET_FULL_SCREEN | CONTROLLER_AUTO_DISPLAY_RES));
         g_object_set(G_OBJECT(self), "fullscreen", fullscreen, NULL);
-        g_debug("unimplemented resize-guest %d", auto_res);
-        /* g_object_set(G_OBJECT(self), "resize-guest", auto_res, NULL); */
     } else if (g_str_equal(pspec->name, "menu")) {
         spice_ctrl_menu_updated(self);
     } else if (g_str_equal(pspec->name, "hotkeys")) {
@@ -681,6 +715,8 @@ static gboolean
 create_ovirt_session(VirtViewerApp *app, const char *uri)
 {
     OvirtProxy *proxy = NULL;
+    OvirtApi *api = NULL;
+    OvirtCollection *vms;
     OvirtVm *vm = NULL;
     OvirtVmDisplay *display = NULL;
     OvirtVmState state;
@@ -697,6 +733,7 @@ create_ovirt_session(VirtViewerApp *app, const char *uri)
     gchar *gtlsport = NULL;
     gchar *ghost = NULL;
     gchar *ticket = NULL;
+    gchar *host_subject = NULL;
 
     g_return_val_if_fail(VIRT_VIEWER_IS_APP(app), FALSE);
 
@@ -705,22 +742,22 @@ create_ovirt_session(VirtViewerApp *app, const char *uri)
     proxy = ovirt_proxy_new(rest_uri);
     if (proxy == NULL)
         goto error;
+    ovirt_set_proxy_options(proxy);
     g_signal_connect(G_OBJECT(proxy), "authenticate",
                      G_CALLBACK(authenticate_cb), app);
 
-    ovirt_proxy_fetch_ca_certificate(proxy, &error);
+    api = ovirt_proxy_fetch_api(proxy, &error);
     if (error != NULL) {
-        g_debug("failed to get CA certificate: %s", error->message);
+        g_debug("failed to get oVirt 'api' collection: %s", error->message);
         goto error;
     }
-
-    ovirt_proxy_fetch_vms(proxy, &error);
+    vms = ovirt_api_get_vms(api);
+    ovirt_collection_fetch(vms, proxy, &error);
     if (error != NULL) {
         g_debug("failed to lookup %s: %s", vm_name, error->message);
         goto error;
     }
-
-    vm = ovirt_proxy_lookup_vm(proxy, vm_name);
+    vm = OVIRT_VM(ovirt_collection_lookup_resource(vms, vm_name));
     g_return_val_if_fail(vm != NULL, FALSE);
     g_object_get(G_OBJECT(vm), "state", &state, NULL);
     if (state != OVIRT_VM_STATE_UP) {
@@ -744,6 +781,7 @@ create_ovirt_session(VirtViewerApp *app, const char *uri)
                  "port", &port,
                  "secure-port", &secure_port,
                  "ticket", &ticket,
+                 "host-subject", &host_subject,
                  NULL);
     gport = g_strdup_printf("%d", port);
     gtlsport = g_strdup_printf("%d", secure_port);
@@ -768,13 +806,18 @@ create_ovirt_session(VirtViewerApp *app, const char *uri)
         SpiceSession *session;
         GByteArray *ca_cert;
 
-        g_object_get(G_OBJECT(proxy), "ca-cert", &ca_cert, NULL);
         session = remote_viewer_get_spice_session(REMOTE_VIEWER(app));
         g_object_set(G_OBJECT(session),
-                     "ca", ca_cert,
                      "password", ticket,
+                     "cert-subject", host_subject,
                      NULL);
-        g_byte_array_unref(ca_cert);
+        g_object_get(G_OBJECT(proxy), "ca-cert", &ca_cert, NULL);
+        if (ca_cert != NULL) {
+            g_object_set(G_OBJECT(session),
+                    "ca", ca_cert,
+                    NULL);
+            g_byte_array_unref(ca_cert);
+        }
     }
 #endif
 
@@ -787,6 +830,7 @@ error:
     g_free(gport);
     g_free(gtlsport);
     g_free(ghost);
+    g_free(host_subject);
 
     if (error != NULL)
         g_error_free(error);
@@ -794,6 +838,8 @@ error:
         g_object_unref(display);
     if (vm != NULL)
         g_object_unref(vm);
+    if (api != NULL)
+        g_object_unref(api);
     if (proxy != NULL)
         g_object_unref(proxy);
 
@@ -802,15 +848,105 @@ error:
 
 #endif
 
+static void
+recent_selection_changed_dialog_cb(GtkRecentChooser *chooser, gpointer data)
+{
+    GtkRecentInfo *info;
+    GtkWidget *entry = data;
+    const gchar *uri;
+
+    info = gtk_recent_chooser_get_current_item(chooser);
+    if (info == NULL)
+        return;
+
+    uri = gtk_recent_info_get_uri(info);
+    g_return_if_fail(uri != NULL);
+
+    gtk_entry_set_text(GTK_ENTRY(entry), uri);
+
+    gtk_recent_info_unref(info);
+}
+
+static void
+recent_item_activated_dialog_cb(GtkRecentChooser *chooser G_GNUC_UNUSED, gpointer data)
+{
+   gtk_dialog_response(GTK_DIALOG (data), GTK_RESPONSE_ACCEPT);
+}
+
+static gint
+connect_dialog(gchar **uri)
+{
+    GtkWidget *dialog, *area, *label, *entry, *recent;
+    GtkRecentFilter *rfilter;
+    GtkTable *table;
+    gint retval;
+
+    /* Create the widgets */
+    dialog = gtk_dialog_new_with_buttons(_("Connection details"),
+                                         NULL,
+                                         GTK_DIALOG_DESTROY_WITH_PARENT,
+                                         GTK_STOCK_CANCEL,
+                                         GTK_RESPONSE_REJECT,
+                                         GTK_STOCK_CONNECT,
+                                         GTK_RESPONSE_ACCEPT,
+                                         NULL);
+    gtk_dialog_set_default_response(GTK_DIALOG(dialog), GTK_RESPONSE_ACCEPT);
+    area = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+    table = GTK_TABLE(gtk_table_new(1, 2, 0));
+    gtk_box_pack_start(GTK_BOX(area), GTK_WIDGET(table), TRUE, TRUE, 0);
+    gtk_table_set_row_spacings(table, 5);
+    gtk_table_set_col_spacings(table, 5);
+
+    label = gtk_label_new(_("URL:"));
+    gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);
+    gtk_table_attach_defaults(table, label, 0, 1, 0, 1);
+    entry = GTK_WIDGET(gtk_entry_new());
+    gtk_entry_set_activates_default(GTK_ENTRY(entry), TRUE);
+    g_object_set(entry, "width-request", 200, NULL);
+    gtk_table_attach_defaults(table, entry, 1, 2, 0, 1);
+
+    label = gtk_label_new(_("Recent connections:"));
+    gtk_box_pack_start(GTK_BOX(area), label, TRUE, TRUE, 0);
+    gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);
+
+    recent = GTK_WIDGET(gtk_recent_chooser_widget_new());
+    gtk_recent_chooser_set_show_icons(GTK_RECENT_CHOOSER(recent), FALSE);
+    gtk_recent_chooser_set_sort_type(GTK_RECENT_CHOOSER(recent), GTK_RECENT_SORT_MRU);
+    gtk_box_pack_start(GTK_BOX(area), recent, TRUE, TRUE, 0);
+
+    rfilter = gtk_recent_filter_new();
+    gtk_recent_filter_add_mime_type(rfilter, "application/x-spice");
+    gtk_recent_filter_add_mime_type(rfilter, "application/x-vnc");
+    gtk_recent_filter_add_mime_type(rfilter, "application/x-virt-viewer");
+    gtk_recent_chooser_set_filter(GTK_RECENT_CHOOSER(recent), rfilter);
+    gtk_recent_chooser_set_local_only(GTK_RECENT_CHOOSER(recent), FALSE);
+    g_signal_connect(recent, "selection-changed",
+                     G_CALLBACK(recent_selection_changed_dialog_cb), entry);
+    g_signal_connect(recent, "item-activated",
+                     G_CALLBACK(recent_item_activated_dialog_cb), dialog);
+
+    /* show and wait for response */
+    gtk_widget_show_all(dialog);
+    if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT) {
+        *uri = g_strdup(gtk_entry_get_text(GTK_ENTRY(entry)));
+        g_strstrip(*uri);
+        retval = 0;
+    } else {
+        *uri = NULL;
+        retval = -1;
+    }
+    gtk_widget_destroy(dialog);
+
+    return retval;
+}
+
 static gboolean
 remote_viewer_start(VirtViewerApp *app)
 {
     g_return_val_if_fail(REMOTE_VIEWER_IS(app), FALSE);
 
-#ifdef HAVE_SPICE_GTK
     RemoteViewer *self = REMOTE_VIEWER(app);
     RemoteViewerPrivate *priv = self->priv;
-#endif
     GFile *file = NULL;
     VirtViewerFile *vvfile = NULL;
     gboolean ret = FALSE;
@@ -840,12 +976,21 @@ remote_viewer_start(VirtViewerApp *app)
         virt_viewer_app_show_status(VIRT_VIEWER_APP(self), _("Setting up Spice session..."));
     } else {
 #endif
-        g_object_get(app, "guri", &guri, NULL);
+retry_dialog:
+        if (priv->open_recent_dialog) {
+            if (connect_dialog(&guri) != 0)
+                return FALSE;
+            g_object_set(app, "guri", guri, NULL);
+        } else
+            g_object_get(app, "guri", &guri, NULL);
+
         g_return_val_if_fail(guri != NULL, FALSE);
 
         DEBUG_LOG("Opening display to %s", guri);
-        if (virt_viewer_app_get_title(app) == NULL)
+        if ((virt_viewer_app_get_title(app) == NULL) || priv->default_title) {
+            priv->default_title = TRUE;
             virt_viewer_app_set_title(app, guri);
+        }
 
         file = g_file_new_for_commandline_arg(guri);
         if (g_file_query_exists(file, NULL)) {
@@ -899,6 +1044,11 @@ cleanup:
     g_clear_object(&vvfile);
     g_free(guri);
     g_free(type);
+
+    if (!ret && priv->open_recent_dialog) {
+        goto retry_dialog;
+    }
+
     return ret;
 }
 
