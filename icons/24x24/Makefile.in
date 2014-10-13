@@ -138,8 +138,9 @@ am__uninstall_files_from_dir = { \
     || { echo " ( cd '$$dir' && rm -f" $$files ")"; \
          $(am__cd) "$$dir" && rm -f $$files; }; \
   }
-am__installdirs = "$(DESTDIR)$(icondir)"
-DATA = $(icon_DATA)
+am__installdirs = "$(DESTDIR)$(apps_icondir)" \
+	"$(DESTDIR)$(devices_icondir)"
+DATA = $(apps_icon_DATA) $(devices_icon_DATA)
 am__tagged_files = $(HEADERS) $(SOURCES) $(TAGS_FILES) $(LISP)
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
@@ -327,10 +328,12 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
+EXTRA_DIST = $(apps_icon_DATA) $(devices_icon_DATA)
 size = $(notdir $(PWD))
-icondir = $(datadir)/icons/hicolor/$(size)/apps/
-icon_DATA = $(PACKAGE).png
-EXTRA_DIST = $(icon_DATA)
+apps_icondir = $(datadir)/icons/hicolor/$(size)/apps/
+apps_icon_DATA = $(PACKAGE).png
+devices_icondir = $(datadir)/icons/hicolor/$(size)/devices/
+devices_icon_DATA = virt-viewer-usb.svg
 all: all-am
 
 .SUFFIXES:
@@ -370,27 +373,48 @@ mostlyclean-libtool:
 
 clean-libtool:
 	-rm -rf .libs _libs
-install-iconDATA: $(icon_DATA)
+install-apps_iconDATA: $(apps_icon_DATA)
 	@$(NORMAL_INSTALL)
-	@list='$(icon_DATA)'; test -n "$(icondir)" || list=; \
+	@list='$(apps_icon_DATA)'; test -n "$(apps_icondir)" || list=; \
 	if test -n "$$list"; then \
-	  echo " $(MKDIR_P) '$(DESTDIR)$(icondir)'"; \
-	  $(MKDIR_P) "$(DESTDIR)$(icondir)" || exit 1; \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(apps_icondir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(apps_icondir)" || exit 1; \
 	fi; \
 	for p in $$list; do \
 	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
 	  echo "$$d$$p"; \
 	done | $(am__base_list) | \
 	while read files; do \
-	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(icondir)'"; \
-	  $(INSTALL_DATA) $$files "$(DESTDIR)$(icondir)" || exit $$?; \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(apps_icondir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(apps_icondir)" || exit $$?; \
 	done
 
-uninstall-iconDATA:
+uninstall-apps_iconDATA:
 	@$(NORMAL_UNINSTALL)
-	@list='$(icon_DATA)'; test -n "$(icondir)" || list=; \
+	@list='$(apps_icon_DATA)'; test -n "$(apps_icondir)" || list=; \
 	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
-	dir='$(DESTDIR)$(icondir)'; $(am__uninstall_files_from_dir)
+	dir='$(DESTDIR)$(apps_icondir)'; $(am__uninstall_files_from_dir)
+install-devices_iconDATA: $(devices_icon_DATA)
+	@$(NORMAL_INSTALL)
+	@list='$(devices_icon_DATA)'; test -n "$(devices_icondir)" || list=; \
+	if test -n "$$list"; then \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(devices_icondir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(devices_icondir)" || exit 1; \
+	fi; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(devices_icondir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(devices_icondir)" || exit $$?; \
+	done
+
+uninstall-devices_iconDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(devices_icon_DATA)'; test -n "$(devices_icondir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	dir='$(DESTDIR)$(devices_icondir)'; $(am__uninstall_files_from_dir)
 tags TAGS:
 
 ctags CTAGS:
@@ -432,7 +456,7 @@ check-am: all-am
 check: check-am
 all-am: Makefile $(DATA)
 installdirs:
-	for dir in "$(DESTDIR)$(icondir)"; do \
+	for dir in "$(DESTDIR)$(apps_icondir)" "$(DESTDIR)$(devices_icondir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -485,7 +509,7 @@ info: info-am
 
 info-am:
 
-install-data-am: install-iconDATA
+install-data-am: install-apps_iconDATA install-devices_iconDATA
 
 install-dvi: install-dvi-am
 
@@ -529,21 +553,23 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-iconDATA
+uninstall-am: uninstall-apps_iconDATA uninstall-devices_iconDATA
 
 .MAKE: install-am install-strip
 
 .PHONY: all all-am check check-am clean clean-generic clean-libtool \
 	cscopelist-am ctags-am distclean distclean-generic \
 	distclean-libtool distdir dvi dvi-am html html-am info info-am \
-	install install-am install-data install-data-am install-dvi \
+	install install-am install-apps_iconDATA install-data \
+	install-data-am install-devices_iconDATA install-dvi \
 	install-dvi-am install-exec install-exec-am install-html \
-	install-html-am install-iconDATA install-info install-info-am \
-	install-man install-pdf install-pdf-am install-ps \
-	install-ps-am install-strip installcheck installcheck-am \
-	installdirs maintainer-clean maintainer-clean-generic \
-	mostlyclean mostlyclean-generic mostlyclean-libtool pdf pdf-am \
-	ps ps-am tags-am uninstall uninstall-am uninstall-iconDATA
+	install-html-am install-info install-info-am install-man \
+	install-pdf install-pdf-am install-ps install-ps-am \
+	install-strip installcheck installcheck-am installdirs \
+	maintainer-clean maintainer-clean-generic mostlyclean \
+	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
+	tags-am uninstall uninstall-am uninstall-apps_iconDATA \
+	uninstall-devices_iconDATA
 
 
 -include $(top_srcdir)/git.mk

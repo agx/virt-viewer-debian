@@ -1,3 +1,635 @@
+2014-07-21  Daniel P. Berrange  <berrange@redhat.com>
+
+	Update NEWS for 1.0 release
+
+	Refresh translations from transifex
+
+2014-07-08  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	Make ctrl-[+-] zoom in/out in fullscreen
+	Make ctrl-[+-] zoom in/out in fullscreen
+	with mouse over the control bar.
+
+	https://bugzilla.redhat.com/show_bug.cgi?id=987549
+
+	app: report disconnection error details
+	It may be useful to provide more detailed reason for disconnection.
+
+	https://bugzilla.redhat.com/show_bug.cgi?id=1115986
+
+	app: add virt_viewer_app_make_dialog()
+	Add a function to create an application dialog. In the following
+	commit, we will add more details for connection failures.
+
+2014-07-02  Jonathon Jongsma  <jjongsma@redhat.com>
+
+	Use GOptionGroup for VirtViewerApp options
+	Encapsulate things a bit better by adding
+	virt_viewer_app_get_option_group() which provides a GOptionGroup rather
+	than exposing an array of options.  This option is then set as the main
+	option group, and additional options can be added by subclasses, so the
+	effect to the user should be equivalent.
+
+2014-07-01  Jonathon Jongsma  <jjongsma@redhat.com>
+
+	Set help output summary correctly
+	Use g_option_context_set_summary() to provide a brief description of the
+	executable instead of tacking the summary onto the end of the
+	commandline.
+
+	remote-viewer: mention vv-file in help output
+	The man page already has a description of the vv-file format, but the
+	--help output didn't mention it how to use it.
+
+	References: rhbz#970825
+
+2014-06-26  Christophe Fergeau  <cfergeau@redhat.com>
+
+	build-sys: Use automake 'subdir-objects' option
+	This silences an automake 1.14 warning:
+
+	src/Makefile.am:35: warning: source file 'view/autoDrawer.c' is in a
+	subdirectory,
+	src/Makefile.am:35: but option 'subdir-objects' is disabled
+	automake: warning: possible forward-incompatibility.
+	automake: At least a source file is in a subdirectory, but the
+	'subdir-objects'
+	automake: automake option hasn't been enabled.  For now, the
+	corresponding output
+	automake: object file(s) will be placed in the top-level directory.
+	However,
+	automake: this behaviour will change in future Automake versions: they
+	will
+	automake: unconditionally cause object files to be placed in the same
+	subdirectory
+	automake: of the corresponding sources.
+	automake: You are advised to start using 'subdir-objects' option
+	throughout your
+	automake: project, to avoid future incompatibilities.
+
+	Don't use C99 for loops
+	Declaring a local variable as part as a for loop
+	such as 'for (unsigned int i; i < N; i++)' is a C99 specific feature.
+	Running configure with --enable-compile-warnings=minimal does not add
+	-std=c99 to the compile flags, so it's better if the codebase does not
+	require C99 support from the compiler.
+
+2014-06-23  Jonathon Jongsma  <jjongsma@redhat.com>
+
+	rhbz#1111514: Fix un-shrinkable displays on windows guests
+	Commit 6edde5786 introduced a regression wrt shrinking windows on windows
+	guests. This seems to be because resizing a display often causes the notebook
+	widget to switch to the status page temporarily (often so quickly that it's not
+	noticeable to the eye). This causes a quick 'unmap' and 'map' event sequence on
+	the display widget. Apparently the timing of these events varies enough between
+	linux and windows guests that it is only noticeable on windows gueststhe timing
+	of these events varies enough between linux and windows guests that it is only
+	noticeable on windows guests. The exact sequence that causes the bug appears to
+	be as follows:
+
+	1 user resizes window smaller
+	2 display widget gets a new allocation, which causes it to send a display
+	  reconfiguration to the guest
+	3 client receives a new show-hint for the display which causes it to switch
+	  temporarily to the 'status' notebook page
+	4 display widget gets unmapped
+	5 Client receives another new show-hint, which causes the display widget to get
+	  re- mapped, which causes client to send a display reconfiguration to the guest
+	  (using the old size)
+	6 client receives new (smaller, from step 2) display size and temporarily
+	  changes to the new size
+	7 client receives new (larger, from step 5) display size and changes back to
+	  original size.
+
+	To fix the issue, we only explicitly request a resize in response to the very
+	first map event, and for any subsequent map events, we simply call
+	_make_resizable() as before.
+
+2014-06-23  Daniel P. Berrange  <berrange@redhat.com>
+
+	Bump version 1.0 to simplify Windows MSI versioning
+	The Windows MSI product version is restricted to a 3 component
+	version number, whose fields are a max value of 255.255.65536
+
+	Since the main virt-viewer version takes up 3 components already,
+	we have the munge the micro version together with the first
+	component of the release version. eg we have
+
+	   $VERSION[0].$VERSION[1].($VERSION[2] << 8 + $RELEASE[0])
+
+	This causes problems for RHEL which needs to have 2-component
+	release versions to deal with z-stream builds.  eg a RHEL
+	version might be virt-viewer-0.5.6-2.el6_4.3 and we've
+	no easy way of adding the final '.3' to the Windows product
+	version.
+
+	If we reduce the primary virt-viewer version to just 2 components,
+	then we can leave the 3rd component for exclusive use by the RPM
+	release number. eg so we'd make product version up using
+
+	   $VERSION[0].$VERSION[1].($RELEASE[0] << 8 + $RELEASE[1])
+
+	In course of normal development, we'd increase the $VERSION[0]
+	for each release. ie next release is 1.0, then 2.0, then 3.0.
+	This means we retain the ability to put out "stable" branch
+	releases for any historical version by doing 1.1, 1.2 instead
+	of having to re-add a 3rd component.
+
+2014-06-20  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	man: fix zoom level range
+	https://bugzilla.redhat.com/show_bug.cgi?id=1111428
+
+2014-06-16  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	Fix a floating display warning
+	You can reproduce the error by starting the client in kiosk and shuting
+	down the guest.
+
+	 #0  0x000000317e432915 in raise (sig=6) at
+	 ../nptl/sysdeps/unix/sysv/linux/raise.c:64
+	 #1  0x000000317e4340f5 in abort () at abort.c:92
+	 #2  0x000000317fc4a98a in g_logv (log_domain=0x318730e657 "Gtk",
+	 log_level=<value optimized out>, format=
+	     0x31873a50a8 "A floating object was finalized. This means that
+	     someone\ncalled g_object_unref() on an object that had only a
+	     floating\nreference; the initial floating reference is not owned by
+	     anyone\nand must be remo"..., args1=0x7fffffffd5f0)
+	     at gmessages.c:557
+	 #3  0x000000317fc4aa23 in g_log (log_domain=<value optimized out>,
+	 log_level=<value optimized out>,
+	     format=<value optimized out>) at gmessages.c:577
+	 #4  0x000000318717ba72 in ?? () from /usr/lib64/libgtk-x11-2.0.so.0
+	 #5  0x0000000000426eb5 in
+	 virt_viewer_display_spice_finalize (obj=0x6fec20
+	 [VirtViewerDisplaySpice])
+	     at virt-viewer-display-spice.c:67
+	 #6  0x0000003180c106a4 in g_object_unref (_object=0x6fec20) at
+	 gobject.c:2712
+	 #7  0x0000000000425b5d in destroy_display (data=0x6fec20) at
+	 virt-viewer-session-spice.c:596
+	 #8  0x000000317fc1667b in g_ptr_array_foreach (array=0x74a040,
+	 func=0x425ae7 <destroy_display>, user_data=0x0)
+	     at garray.c:1306
+	 #9  0x000000317fc16e7b in g_ptr_array_free (farray=0x74a040,
+	 free_segment=1) at garray.c:938
+	 #10 0x000000317fc2906a in g_data_set_internal (datalist=<value optimized
+	 out>, key_id=1297, data=0x0, destroy_func=0)
+	     at gdataset.c:351
+	 #11 g_datalist_id_set_data_full (datalist=<value optimized out>,
+	 key_id=1297, data=0x0, destroy_func=0) at gdataset.c:598
+	 #12 0x00000000004268d0 in
+	 virt_viewer_session_spice_channel_destroy (s=0x800000 [SpiceSession],
+	 channel=
+
+	kiosk: remove invalid unref
+	This unref doesn't seem to be related to any reference, although it
+	was probably introduced in the first place to clear the floating ref,
+	wrongly. See following commit for a working solution.
+
+2014-06-12  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	util: fix glib_check_version() condition
+	glib_check_version() returns NULL if version is higher or equal.
+
+2014-06-11  Jonathon Jongsma  <jjongsma@redhat.com>
+
+	Fix tiny window when resetting zoom factor in gtk2 build
+	rhbz#1104064 had a couple of symptoms. The first was fixed in
+	6edde57862ac30e74ce6412c93a2fa925ae4ea67.
+
+	The second symptom is that displays could also become tiny when clicking 'View >
+	Zoom > Normal Size'. This was because VirtViewerDisplay returned early from
+	_display_set_zoom_level() if the zoom level was being set to the current zoom
+	setting. However, the calling function (_window_set_zoom_level()) also tries to
+	queue a resize event for itself after setting the zoom level on the display. If
+	the display doesn't queue a resize event for itself, its size request will only
+	be 50x50 during the window resize negotiation. This causes the display to become
+	tiny and zoomed out. Queueing a resize on the display widget ensures that it
+	will request the proper size during the next allocation.
+
+2014-06-11  Marc-André Lureau  <marcandre.lureau@redhat.com>
+
+	window: take zoom-level into account for display limits
+	Fixes guest can not be resized to expected window size after zoom out.
+
+	https://bugzilla.redhat.com/show_bug.cgi?id=1105528
+
+2014-06-10  Jonathon Jongsma  <jjongsma@redhat.com>
+
+	Fix tiny windows for secondary displays in gtk2 build
+	When enabling a new display on linux guests, the new window would be tiny
+	(50x50) and zoomed way out. This was caused by the fact that when the display
+	widget received the 'map' event, it unconditionally cleared the 'dirty' flag,
+	which meant that it would only request 50x50 size. This behavior was intended to
+	fix a bug on the windows client which wprevented windows from resized smaller
+	than the guest display resolution. Unfortunately, due to the timing of the 'map'
+	and allocate events, the widget became very small.
+
+	Instead of clearing the 'dirty' flag directly when a widget is mapped, we
+	now queue a resize event, which will guarantee that the widget attains its
+	desired size and will then clear its dirty flag (allowing it to be resized).
+	Testing on windows indicates that this fix still solves the 'unshrinkable
+	window' problem while also preventing the tiny secondary display bug.
+
+	Resolves: rhbz#1104064
+
+2014-06-10  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	util: get rid of ARRAY_CARDINALITY
+
+	Use a custom log handler to silence debug messages
+	On RHEL6, with old glib, all g_log messages are printed.
+	Filter the messages with a custom handler instead.
+
+	https://bugzilla.redhat.com/show_bug.cgi?id=1107518
+
+2014-06-10  Marc-André Lureau  <marcandre.lureau@redhat.com>
+
+	kiosk: don't attempt to hide windows when disconnecting
+	Get rid of the following warning:
+	(virt-viewer:7262): virt-viewer-WARNING **: Can't hide windows in kiosk mode
+
+	https://bugzilla.redhat.com/show_bug.cgi?id=1107518
+
+	Replace DEBUG_LOG with g_debug
+	https://bugzilla.redhat.com/show_bug.cgi?id=1107518
+
+	Remove warning when removing display
+	Some display have no associated window (for ex, if it doesn't fit
+	on client monitors).
+
+	(remote-viewer:22275): remote-viewer-CRITICAL **: virt_viewer_window_set_display: assertion `VIRT_VIEWER_IS_WINDOW(self)' failed
+
+	(remote-viewer:22275): remote-viewer-CRITICAL **: virt_viewer_app_remove_nth_window: assertion `win != NULL' failed
+
+	https://bugzilla.redhat.com/show_bug.cgi?id=1107518
+
+2014-06-10  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	msi: move up micro version in x.x.build productversion
+	This allows 12 bits to form a buildid, ex in RHEVM builds:
+	--with-buildid=$(release << 4 + zrelease)
+
+	https://bugzilla.redhat.com/show_bug.cgi?id=1105650
+
+2014-06-10  Christophe Fergeau  <cfergeau@redhat.com>
+
+	Don't connect to localhost when using --direct
+	Trying to connect to a remote virtual machine using
+	virt-viewer -c qemu+ssh://example.com/system --direct $vm_name
+	will currently fail with an error message saying it's not possible to
+	localhost. This happens with VMs which listen on a wildcard address (eg
+	'0.0.0.0').
+	This was introduced by commit 74b1b62 which changes the host to connect to
+	to 'localhost' when trying to connect through ssh to a VM listening on a
+	wildcard address. This is only valid when using a ssh tunnel, and should
+	not be done with --direct. The fallback code which uses the hostname from
+	the libvirt URI is what makes the most sense in this situation (wildcard
+	listen address + --direct).
+	This commit introduces a virt_viewer_app_get_direct() so that this can be
+	implemented.
+
+	Fixes https://bugzilla.redhat.com/show_bug.cgi?id=1079211
+
+	Fix 'title' leak in virt_viewer_file_fill_app()
+	virt_viewer_file_get_title() returns a newly allocated string.
+
+2014-06-03  Jonathon Jongsma  <jjongsma@redhat.com>
+
+	Set freed variables to NULL in remote_viewer_start()
+	Coverity warns that 'type' can sometimes be used or free after already having
+	been freed.  This can happen when open_recent_dialog is true and we jump back up
+	to the retry_dialog label.  To prevent this, make sure the freed variables are
+	set to NULL after freeing.
+
+	Improve remote-viewer connection dialog
+	Based on the new design for the 'connect to server' dialog from Nautilus.
+
+2014-04-17  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	Fix race with metacity in fullscreen
+	To avoid some races with metacity, the window should be placed as
+	early as possible, before it is (re)allocated & mapped (rhbz#809546).
+
+	build-sys: man Makefile.am misc improvements
+	Make it silent.
+	Ship man files in tarball.
+	Use maintainer-clean instead of distclean (which is for files generated
+	by configure in general).
+
+	man: remove Perl header
+	Remove "User Contributed Perl Documentation" header.
+
+2014-04-08  Jonathon Jongsma  <jjongsma@redhat.com>
+
+	Fix gtk2 build
+	Previous commit accidentally broke gtk2 build by using
+	gtk_widget_get_preferred_size().  We can't simply use gtk_widget_size_request()
+	for the gtk2 build since this will generally return 50x50 whenever we're not in
+	the middle of a resize, so we need to add a compatibility function.
+
+2014-04-07  Christophe Fergeau  <cfergeau@redhat.com>
+
+	man: Use nicer link to GPLv2
+	As pointed out by Eric Blake,
+	https://www.gnu.org/licenses/gpl-2.0.html and
+	https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+	both point to the same location, with the former being nicer to read.
+
+2014-04-04  Christophe Fergeau  <cfergeau@redhat.com>
+
+	man: Fix 'concatonated' typo
+	This also removes an extra 'are' in the same sentence.
+
+	man: Fix link to GPLv2 text
+	The unversionned http links point to the GLPv3 text while virt-viewer is
+	still licensed under the GPLv2.
+
+	man: Add missing '.' at end of one sentence
+
+	Update user-visible copyright information
+	Years in copyright notices in the about dialog and man pages is at most
+	2012, let's set it to 2014
+
+	build-sys: Always prepend '-' to build id
+	When using the --with-buildid configure paramater, the build id which is
+	substituted in the MSI wxs file is automatically prepended by a '-', but
+	the build id which is used in the C files does not get this '-'
+	automatically.
+
+	Currently, the linux and mingw spec files prepend a '-' on their own to the
+	--with-buildid argument, but this causes the MSI installer to show 2 '-'
+	during installation: "Please wait while Windows configures VirtViewer
+	0.6.0--1"
+
+	This commit always prepends a '-' to the buildid strings, and removes the
+	'-' from the spec files. This is to ensure the separator between version
+	number and buildid is not forgotten, which could give a confusing version
+	number.
+
+2014-03-27  Jonathon Jongsma  <jjongsma@redhat.com>
+
+	Fix regression with enabling additional displays
+	Commit 8fa942 broke enabling of additional displays. We don't want to send down
+	display re-configurations due to events that happen while setting up windows for
+	enabled displays that we recieve from the server. However, by ignoring
+	allocations on unmapped windows, we fail to send display configurations for new
+	displays that a user is attempting to enable via the window menu. To
+	discriminate between these two cases, we check whether the display is in the
+	'ready' state or not.
+	- Unmapped displays with the 'ready' hint set can be assumed to be displays
+	  that are enabled on the server that we are attempting to create windows for on
+	  the client. In this case, we should *not* send a display configuration to the
+	  server
+	- Unmapped displays with the 'ready' hint cleared can be assumed to be displays
+	  that are not yet enabled on the server that we are trying to enable in the
+	  client. In this case, we *should* send a display configuration to the server
+
+2014-03-14  Martin Kletzander  <mkletzan@redhat.com>
+
+	Fix building with older spice-gtk
+	Due to spice-gtk-0.23 missing SPICE_GTK_CHECK_VERSION macro, the
+	condition:
+
+	causes the following error:
+
+	virt-viewer-session-spice.c: In function 'virt_viewer_session_spice_main_channel_event':
+	virt-viewer-session-spice.c:525:64: error: missing binary operator before token "("
+	 #if defined(SPICE_GTK_CHECK_VERSION) && SPICE_GTK_CHECK_VERSION(0, 23, 21)
+	                                                                ^
+	Also one more warning is fixed in this patch:
+
+	virt-viewer-session-spice.c:476:19: warning: unused variable 'error'
+	[-Wunused-variable] const GError *error;
+	                                  ^
+
+2014-03-14  Christophe Fergeau  <cfergeau@redhat.com>
+
+	Fix 'silentely' typo in remote-viewer man page
+
+	Don't show 'do you want to quit' dialog in kiosk mode
+	In some situation, (for example, guest without vdagent running), it's
+	possible to pass key combinations to virt-viewer. When using alt+f4,
+	this can cause the 'do you want to quit?' dialog to show while it's
+	non-functional.
+	This commit moves the check for kiosk mode to before we show this dialog.
+
+2014-03-13  Jonathon Jongsma  <jjongsma@redhat.com>
+
+	Fix broken 'release-cursor' accel when not specified in --hotkeys
+	When the --hotkeys option is given, all hotkeys that are not explicitly
+	specified are disabled.  The method used to disable hotkeys is to change the
+	accel map entry to key=0, mods=0. However, when we decide whether to set a grab
+	sequence on the spice dispay widget, we simply use the return value for
+	gtk_accel_map_lookup_entry and assume that a TRUE value returned from this
+	function means that the hotkey is enabled.  In reality, this function will
+	return TRUE for disabled hotkeys, but the 'key' variable will be set to key=0,
+	mods=0. The result is that if I start virt-viewer like this:
+
+	    virt-viewer --hotkeys secure-attention=ctrl+alt+end ...
+
+	and the guest that I'm attached to uses server mouse mode, it will be impossible
+	to release the grab on the spice widget.  Because we will explicitly disable the
+	grab keys in the spice widget and handle the 'release-cursor' hotkey in
+	virt-viewer, but the hotkey is an empty accel key.
+
+	Instead of simply checking the return value of gtk_accel_map_lookup_entry, we
+	have to inspect the return value for 'key' and check whether any keys are
+	actually assigned.
+
+	Don't create new windows at startup when kiosk mode is false
+	virt_viewer_app_set_kiosk creates a new window at startup for each client
+	monitor (regardless of whether the guest supports more than one display).  This
+	seems unnecessary.  Only do this if kiosk mode is actually enabled.
+
+	Remove special-case for getting window n=0
+	virt_viewer_app_get_nth_window() will return the proper window when passed 0 for
+	the 'nth' argument, so there's no need to avoid calling it in this case.  It
+	just complicates the code logic.
+
+	Don't resize guest display on zoom change
+	When the zoom level is changed, the virt-viewer window gets resized. But we
+	don't want this to trigger a resize of the guest display. But occasionally
+	rounding errors cause the guest display to be reconfigured when zooming out.  To
+	fix this, we first check whether the current size is the preferred size.  If it
+	is, we don't send down a resize command to the guest.
+
+	In addition to preventing guest resizes in response to zooming, it also improves
+	the behavior when the guest display resolution is changed from within the guest.
+	Before this change, we'd have the following behavior:
+	    A. guest changes display to WxH
+	    B. client gets notified of change and resizes the window to WxH
+	    C. client responds to window resize by sending a new monitor config command to the guest
+
+	With this change, the extra step C will be avoided because we're already at the
+	preferred size.
+
+	Resolves: rhbz#1004051
+
+2014-03-13  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	Use a USB icon in the fullscreen toolbar
+	Replace the generic GTK_STOCK_PREFERENCES with a more appropriate USB icon.
+
+	The icon was provided by Jakub Steiner <jsteiner@redhat.com>
+
+	https://bugzilla.redhat.com/show_bug.cgi?id=804184
+
+	Remove "Automatically resize" menu
+	Remove "Automatically resize" menu item (always enabled for Spice
+	display now)
+
+	https://bugzilla.redhat.com/show_bug.cgi?id=1007649
+
+	Silence a message about missing configuration file
+	Do not print a g_debug() error when the configuration file is missing,
+	unless given the --debug option.
+
+	https://bugzilla.redhat.com/show_bug.cgi?id=1006737
+
+2014-03-12  Daniel P. Berrange  <berrange@redhat.com>
+
+	Fix scaling of window upon resize
+	The code to determine scaling of windows was incorrectly
+	using the original desktop size instead of the host screen
+	size. The 128 pixel fudge factor was also causing windows
+	to be scaled when there was no need for them to be.
+
+2014-03-06  Jonathon Jongsma  <jjongsma@redhat.com>
+
+	Revert "Don't resize guest display on zoom change"
+	This reverts commit 895ef8029e794e7b74a45f27c7c741d1332bc02b.
+
+2014-02-27  Christophe Fergeau  <cfergeau@redhat.com>
+
+	spec: Don't disable spice support on some archs
+	Nowadays spice-gtk no longer has an ExclusiveArch: x86 x86_64 %{arm}
+	virt-viewer can be built with spice-gtk support on all arches.
+
+2014-02-26  Jonathon Jongsma  <jjongsma@redhat.com>
+
+	Don't resize guest display on zoom change
+	When the zoom level is changed, the virt-viewer window gets resized. But we
+	don't want this to trigger a resize of the guest display. But occasionally
+	rounding errors cause the guest display to be reconfigured when zooming out.  To
+	fix this, we first check whether the current size is the preferred size.  If it
+	is, we don't send down a resize command to the guest.
+
+	In addition to preventing guest resizes in response to zooming, it also improves
+	the behavior when the guest display resolution is changed from within the guest.
+	Before this change, we'd have the following behavior:
+	    A. guest changes display to WxH
+	    B. client gets notified of change and resizes the window to WxH
+	    C. client responds to window resize by sending a new monitor config command to the guest
+
+	With this change, the extra step C will be avoided because we're already at the
+	preferred size.
+
+	Resolves: rhbz#1004051
+
+2014-02-26  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	spice: do not open in fullscreen with CONTROLLER_AUTO_DISPLAY_RES
+	This flag is always set when using the rhevm user portal. Best is
+	probably to ignore it, now that fullscreen has simplified unique
+	behaviour.
+
+2014-02-24  Marc-André Lureau  <marcandre.lureau@redhat.com>
+
+	spice: ask credentials for proxy
+	If Spice proxy requires authentication, ask credentials and try
+	connecting again.
+
+2014-02-24  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	Fix a gcc warning when compiling with mingw32
+
+2014-02-24  Daniel P. Berrange  <berrange@redhat.com>
+
+	Fix german translation of send key
+
+	Improve docs for --attach flag in virt-viewer
+	People seem to have a hard time understanding the --attach flag.
+	Rewrite the docs in the hope that people figure it out this time.
+
+2014-02-13  Jonathon Jongsma  <jjongsma@redhat.com>
+
+	rhbz#1007306 - Don't free session if we're re-trying auth
+	deactivate() is called in response to a failed authentication attempt. If the
+	session is cleared here, when a user attempts to re-authenticate, it will issue
+	a warning and will not actually work. So only clear the session here if we're
+	not going to re-try authentication.
+
+	Don't set VNC display to ready until vnc is initialized
+	We were setting the show_hint to READY as soon as we got the vnc-connected
+	signal.  But there may be an authentication step between vnc-connected and
+	vnc-initialized.  In this case, we switch to an empty black display during the
+	authentication step instead of showing the 'waiting for display N' status.
+
+	Don't hide the main window when disconnecting
+	The main window (display #1) is treated a bit differently from other windows,
+	since it is opened at app start and displays status messages while we attempt to
+	connect to the remote guest.  As such, it should really stay open as long as the
+	app is running.
+
+	The impetus for this change is the following:
+	- user attempts to connect to a remote VNC display with a password
+	- user types the wrong password
+	- A dialog pops up indicating that authentication failed and asking if the user
+	  would like to try to re-connect.
+	- User clicks 'Yes'
+	- Because the connection was disconnected, all windows are closed
+	- remote-viewer tries to reconnect again, at which point a new display window is
+	  opened, and the window gets placed by the window manager (possibly on another
+	  monitor altogether).
+
+	As a user, I expect the program to simply re-use the existing window when trying
+	to re-authenticate, instead of having the window disappear and then re-appear at
+	a different location.  This patch accomplishes that.
+
+	Move vnc-specific auth logic to VirtViewerSessionVnc
+
+2014-02-11  Jonathon Jongsma  <jjongsma@redhat.com>
+
+	Improve window title when connected to newer spice-server
+	Recent spice servers send the guest vm name and uuid to the client.  We can use
+	these values to display the proper vm name in the window title if a title is not
+	specified on the commandline. We can also be smarter about the title in
+	virt-viewer as well.
+
+	If a title is specified on the comamndline (-t/--title=foo), we use that.  If not,
+	we fall back to the vm name.  If that is empty, we fall back to the uri of the
+	connection.
+
+	Comparison between old behavior and new behavior
+
+	Using new spice-server
+	Command                                     Old title                   New title
+	-------                                     ---------                   ---------
+	remote-viewer -t xyz spice://host:port      xyz                         xyz
+	remote-viewer spice://host:port             spice://host:port           <vmname>
+	virt-viewer <vmname>                        <vmname>                    <vmname>
+	virt-viewer <uuid>                          <uuid>                      <vmname>
+
+	Using old spice-server
+	Command                                     Old title                   New title
+	-------                                     ---------                   ---------
+	remote-viewer -t xyz spice://host:port      xyz                         xyz
+	remote-viewer spice://host:port             spice://host:port           spice://host:port
+	virt-viewer <vmname>                        <vmname>                    <vmname>
+	virt-viewer <uuid>                          <uuid>                      <vmname>
+
+	Display warning if UI file fails
+	When trying to load ui files, we try to find the file in several directories.
+	If a file is not found in one directory, try to load it from the next directory.
+	However, if a file is found in a directory but we are not able to load it (e.g.
+	due to unsupported versions of glade used to generate it, etc), we should print
+	a warning to the terminal to help the developer debug the issue.
+
+	This is an unexpected failure (whereas not finding the file in that directory at
+	all is an 'expected' failure).
+
 2014-01-24  Daniel P. Berrange  <berrange@redhat.com>
 
 	Update for 0.6.0 release

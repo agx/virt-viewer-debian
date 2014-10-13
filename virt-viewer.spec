@@ -20,13 +20,8 @@
 %define with_govirt 1
 %endif
 
-# spice-gtk is x86 x86_64 arm only currently:
-%ifnarch %{ix86} x86_64 %{arm}
-%define with_spice 0
-%endif
-
 Name: virt-viewer
-Version: 0.6.0
+Version: 1.0
 Release: 1%{?dist}%{?extra_release}
 Summary: Virtual Machine Viewer
 Group: Applications/System
@@ -109,7 +104,7 @@ autoreconf -if
 %define govirt_arg --with-ovirt
 %endif
 
-%configure %{spice_arg} %{gtk_arg} %{govirt_arg} --with-buildid=-%{release} --disable-update-mimedb
+%configure %{spice_arg} %{gtk_arg} %{govirt_arg} --with-buildid=%{release} --disable-update-mimedb
 %__make %{?_smp_mflags}
 
 
@@ -154,6 +149,7 @@ update-desktop-database -q %{_datadir}/applications
 %{_datadir}/%{name}/ui/virt-viewer-auth.xml
 %{_datadir}/%{name}/ui/virt-viewer-about.xml
 %{_datadir}/icons/hicolor/*/apps/*
+%{_datadir}/icons/hicolor/*/devices/*
 %{_datadir}/applications/remote-viewer.desktop
 %{_datadir}/mime/packages/virt-viewer-mime.xml
 %ghost %{_libexecdir}/spice-xpi-client

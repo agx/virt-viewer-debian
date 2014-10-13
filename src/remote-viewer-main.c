@@ -104,16 +104,19 @@ main(int argc, char **argv)
           N_("Open connection using Spice controller communication"), NULL },
 #endif
         { G_OPTION_REMAINING, '\0', 0, G_OPTION_ARG_STRING_ARRAY, &args,
-          NULL, "-- URI" },
+          NULL, "URI|VV-FILE" },
         { NULL, 0, 0, G_OPTION_ARG_NONE, NULL, NULL, NULL }
     };
+    GOptionGroup *app_options = NULL;
 
     virt_viewer_util_init(_("Remote Viewer"));
 
     /* Setup command line options */
-    context = g_option_context_new (_("- Remote viewer client"));
-    g_option_context_add_main_entries (context, virt_viewer_app_get_options(), NULL);
-    g_option_context_add_main_entries (context, options, NULL);
+    context = g_option_context_new (NULL);
+    g_option_context_set_summary(context, _("Remote viewer client"));
+    app_options = virt_viewer_app_get_option_group();
+    g_option_group_add_entries (app_options, options);
+    g_option_context_set_main_group (context, app_options);
     g_option_context_add_group (context, gtk_get_option_group (TRUE));
 #ifdef HAVE_GTK_VNC
     g_option_context_add_group (context, vnc_display_get_option_group ());
@@ -160,8 +163,9 @@ main(int argc, char **argv)
         g_object_set(viewer, "guest-name", "defined by Spice controller", NULL);
     } else {
 #endif
-        viewer = remote_viewer_new(uri, title);
-        g_object_set(viewer, "guest-name", uri, NULL);
+        viewer = remote_viewer_new(uri);
+        if (title)
+            g_object_set(viewer, "title", title, NULL);
 #ifdef HAVE_SPICE_GTK
     }
 #endif

@@ -147,6 +147,7 @@ am__remote_viewer_SOURCES_DIST = virt-viewer-enums.h \
 am__objects_1 =
 am__objects_2 = remote_viewer-virt-viewer-enums.$(OBJEXT) \
 	$(am__objects_1)
+am__dirstamp = $(am__leading_dot)dirstamp
 @HAVE_GTK_VNC_TRUE@am__objects_3 = remote_viewer-virt-viewer-session-vnc.$(OBJEXT) \
 @HAVE_GTK_VNC_TRUE@	remote_viewer-virt-viewer-display-vnc.$(OBJEXT) \
 @HAVE_GTK_VNC_TRUE@	$(am__objects_1)
@@ -163,9 +164,10 @@ am__objects_5 = $(am__objects_2) \
 	remote_viewer-virt-viewer-display.$(OBJEXT) \
 	remote_viewer-virt-viewer-notebook.$(OBJEXT) \
 	remote_viewer-virt-viewer-window.$(OBJEXT) \
-	remote_viewer-autoDrawer.$(OBJEXT) \
-	remote_viewer-drawer.$(OBJEXT) remote_viewer-ovBox.$(OBJEXT) \
-	$(am__objects_1) $(am__objects_3) $(am__objects_4)
+	view/remote_viewer-autoDrawer.$(OBJEXT) \
+	view/remote_viewer-drawer.$(OBJEXT) \
+	view/remote_viewer-ovBox.$(OBJEXT) $(am__objects_1) \
+	$(am__objects_3) $(am__objects_4)
 am_remote_viewer_OBJECTS = $(am__objects_5) \
 	remote_viewer-remote-viewer.$(OBJEXT) \
 	remote_viewer-remote-viewer-main.$(OBJEXT) $(am__objects_1)
@@ -209,9 +211,10 @@ am__objects_9 = $(am__objects_6) \
 	virt_viewer-virt-viewer-display.$(OBJEXT) \
 	virt_viewer-virt-viewer-notebook.$(OBJEXT) \
 	virt_viewer-virt-viewer-window.$(OBJEXT) \
-	virt_viewer-autoDrawer.$(OBJEXT) virt_viewer-drawer.$(OBJEXT) \
-	virt_viewer-ovBox.$(OBJEXT) $(am__objects_1) $(am__objects_7) \
-	$(am__objects_8)
+	view/virt_viewer-autoDrawer.$(OBJEXT) \
+	view/virt_viewer-drawer.$(OBJEXT) \
+	view/virt_viewer-ovBox.$(OBJEXT) $(am__objects_1) \
+	$(am__objects_7) $(am__objects_8)
 @HAVE_LIBVIRT_TRUE@am_virt_viewer_OBJECTS = $(am__objects_9) \
 @HAVE_LIBVIRT_TRUE@	virt_viewer-virt-viewer-events.$(OBJEXT) \
 @HAVE_LIBVIRT_TRUE@	virt_viewer-virt-viewer.$(OBJEXT) \
@@ -697,10 +700,28 @@ clean-binPROGRAMS:
 debug-helper$(EXEEXT): $(debug_helper_OBJECTS) $(debug_helper_DEPENDENCIES) $(EXTRA_debug_helper_DEPENDENCIES) 
 	@rm -f debug-helper$(EXEEXT)
 	$(AM_V_CCLD)$(debug_helper_LINK) $(debug_helper_OBJECTS) $(debug_helper_LDADD) $(LIBS)
+view/$(am__dirstamp):
+	@$(MKDIR_P) view
+	@: > view/$(am__dirstamp)
+view/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) view/$(DEPDIR)
+	@: > view/$(DEPDIR)/$(am__dirstamp)
+view/remote_viewer-autoDrawer.$(OBJEXT): view/$(am__dirstamp) \
+	view/$(DEPDIR)/$(am__dirstamp)
+view/remote_viewer-drawer.$(OBJEXT): view/$(am__dirstamp) \
+	view/$(DEPDIR)/$(am__dirstamp)
+view/remote_viewer-ovBox.$(OBJEXT): view/$(am__dirstamp) \
+	view/$(DEPDIR)/$(am__dirstamp)
 
 remote-viewer$(EXEEXT): $(remote_viewer_OBJECTS) $(remote_viewer_DEPENDENCIES) $(EXTRA_remote_viewer_DEPENDENCIES) 
 	@rm -f remote-viewer$(EXEEXT)
 	$(AM_V_CCLD)$(remote_viewer_LINK) $(remote_viewer_OBJECTS) $(remote_viewer_LDADD) $(LIBS)
+view/virt_viewer-autoDrawer.$(OBJEXT): view/$(am__dirstamp) \
+	view/$(DEPDIR)/$(am__dirstamp)
+view/virt_viewer-drawer.$(OBJEXT): view/$(am__dirstamp) \
+	view/$(DEPDIR)/$(am__dirstamp)
+view/virt_viewer-ovBox.$(OBJEXT): view/$(am__dirstamp) \
+	view/$(DEPDIR)/$(am__dirstamp)
 
 virt-viewer$(EXEEXT): $(virt_viewer_OBJECTS) $(virt_viewer_DEPENDENCIES) $(EXTRA_virt_viewer_DEPENDENCIES) 
 	@rm -f virt-viewer$(EXEEXT)
@@ -712,14 +733,12 @@ windows-cmdline-wrapper$(EXEEXT): $(windows_cmdline_wrapper_OBJECTS) $(windows_c
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
+	-rm -f view/*.$(OBJEXT)
 
 distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/debug_helper-debug-helper.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/remote_viewer-autoDrawer.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/remote_viewer-drawer.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/remote_viewer-ovBox.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/remote_viewer-remote-viewer-main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/remote_viewer-remote-viewer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/remote_viewer-virt-glib-compat.Po@am__quote@
@@ -736,9 +755,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/remote_viewer-virt-viewer-session.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/remote_viewer-virt-viewer-util.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/remote_viewer-virt-viewer-window.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/virt_viewer-autoDrawer.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/virt_viewer-drawer.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/virt_viewer-ovBox.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/virt_viewer-virt-glib-compat.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/virt_viewer-virt-viewer-app.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/virt_viewer-virt-viewer-auth.Po@am__quote@
@@ -757,24 +773,33 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/virt_viewer-virt-viewer-window.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/virt_viewer-virt-viewer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/windows-cmdline-wrapper.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@view/$(DEPDIR)/remote_viewer-autoDrawer.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@view/$(DEPDIR)/remote_viewer-drawer.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@view/$(DEPDIR)/remote_viewer-ovBox.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@view/$(DEPDIR)/virt_viewer-autoDrawer.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@view/$(DEPDIR)/virt_viewer-drawer.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@view/$(DEPDIR)/virt_viewer-ovBox.Po@am__quote@
 
 .c.o:
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
+@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
+@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c $<
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c -o $@ $<
 
 .c.obj:
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.obj$$||'`;\
+@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ `$(CYGPATH_W) '$<'` &&\
+@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c `$(CYGPATH_W) '$<'`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
 
 .c.lo:
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LTCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Plo
+@am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.lo$$||'`;\
+@am__fastdepCC_TRUE@	$(LTCOMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
+@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Plo
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
@@ -933,47 +958,47 @@ remote_viewer-virt-viewer-window.obj: virt-viewer-window.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(remote_viewer_CFLAGS) $(CFLAGS) -c -o remote_viewer-virt-viewer-window.obj `if test -f 'virt-viewer-window.c'; then $(CYGPATH_W) 'virt-viewer-window.c'; else $(CYGPATH_W) '$(srcdir)/virt-viewer-window.c'; fi`
 
-remote_viewer-autoDrawer.o: view/autoDrawer.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(remote_viewer_CFLAGS) $(CFLAGS) -MT remote_viewer-autoDrawer.o -MD -MP -MF $(DEPDIR)/remote_viewer-autoDrawer.Tpo -c -o remote_viewer-autoDrawer.o `test -f 'view/autoDrawer.c' || echo '$(srcdir)/'`view/autoDrawer.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/remote_viewer-autoDrawer.Tpo $(DEPDIR)/remote_viewer-autoDrawer.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='view/autoDrawer.c' object='remote_viewer-autoDrawer.o' libtool=no @AMDEPBACKSLASH@
+view/remote_viewer-autoDrawer.o: view/autoDrawer.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(remote_viewer_CFLAGS) $(CFLAGS) -MT view/remote_viewer-autoDrawer.o -MD -MP -MF view/$(DEPDIR)/remote_viewer-autoDrawer.Tpo -c -o view/remote_viewer-autoDrawer.o `test -f 'view/autoDrawer.c' || echo '$(srcdir)/'`view/autoDrawer.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) view/$(DEPDIR)/remote_viewer-autoDrawer.Tpo view/$(DEPDIR)/remote_viewer-autoDrawer.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='view/autoDrawer.c' object='view/remote_viewer-autoDrawer.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(remote_viewer_CFLAGS) $(CFLAGS) -c -o remote_viewer-autoDrawer.o `test -f 'view/autoDrawer.c' || echo '$(srcdir)/'`view/autoDrawer.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(remote_viewer_CFLAGS) $(CFLAGS) -c -o view/remote_viewer-autoDrawer.o `test -f 'view/autoDrawer.c' || echo '$(srcdir)/'`view/autoDrawer.c
 
-remote_viewer-autoDrawer.obj: view/autoDrawer.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(remote_viewer_CFLAGS) $(CFLAGS) -MT remote_viewer-autoDrawer.obj -MD -MP -MF $(DEPDIR)/remote_viewer-autoDrawer.Tpo -c -o remote_viewer-autoDrawer.obj `if test -f 'view/autoDrawer.c'; then $(CYGPATH_W) 'view/autoDrawer.c'; else $(CYGPATH_W) '$(srcdir)/view/autoDrawer.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/remote_viewer-autoDrawer.Tpo $(DEPDIR)/remote_viewer-autoDrawer.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='view/autoDrawer.c' object='remote_viewer-autoDrawer.obj' libtool=no @AMDEPBACKSLASH@
+view/remote_viewer-autoDrawer.obj: view/autoDrawer.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(remote_viewer_CFLAGS) $(CFLAGS) -MT view/remote_viewer-autoDrawer.obj -MD -MP -MF view/$(DEPDIR)/remote_viewer-autoDrawer.Tpo -c -o view/remote_viewer-autoDrawer.obj `if test -f 'view/autoDrawer.c'; then $(CYGPATH_W) 'view/autoDrawer.c'; else $(CYGPATH_W) '$(srcdir)/view/autoDrawer.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) view/$(DEPDIR)/remote_viewer-autoDrawer.Tpo view/$(DEPDIR)/remote_viewer-autoDrawer.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='view/autoDrawer.c' object='view/remote_viewer-autoDrawer.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(remote_viewer_CFLAGS) $(CFLAGS) -c -o remote_viewer-autoDrawer.obj `if test -f 'view/autoDrawer.c'; then $(CYGPATH_W) 'view/autoDrawer.c'; else $(CYGPATH_W) '$(srcdir)/view/autoDrawer.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(remote_viewer_CFLAGS) $(CFLAGS) -c -o view/remote_viewer-autoDrawer.obj `if test -f 'view/autoDrawer.c'; then $(CYGPATH_W) 'view/autoDrawer.c'; else $(CYGPATH_W) '$(srcdir)/view/autoDrawer.c'; fi`
 
-remote_viewer-drawer.o: view/drawer.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(remote_viewer_CFLAGS) $(CFLAGS) -MT remote_viewer-drawer.o -MD -MP -MF $(DEPDIR)/remote_viewer-drawer.Tpo -c -o remote_viewer-drawer.o `test -f 'view/drawer.c' || echo '$(srcdir)/'`view/drawer.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/remote_viewer-drawer.Tpo $(DEPDIR)/remote_viewer-drawer.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='view/drawer.c' object='remote_viewer-drawer.o' libtool=no @AMDEPBACKSLASH@
+view/remote_viewer-drawer.o: view/drawer.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(remote_viewer_CFLAGS) $(CFLAGS) -MT view/remote_viewer-drawer.o -MD -MP -MF view/$(DEPDIR)/remote_viewer-drawer.Tpo -c -o view/remote_viewer-drawer.o `test -f 'view/drawer.c' || echo '$(srcdir)/'`view/drawer.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) view/$(DEPDIR)/remote_viewer-drawer.Tpo view/$(DEPDIR)/remote_viewer-drawer.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='view/drawer.c' object='view/remote_viewer-drawer.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(remote_viewer_CFLAGS) $(CFLAGS) -c -o remote_viewer-drawer.o `test -f 'view/drawer.c' || echo '$(srcdir)/'`view/drawer.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(remote_viewer_CFLAGS) $(CFLAGS) -c -o view/remote_viewer-drawer.o `test -f 'view/drawer.c' || echo '$(srcdir)/'`view/drawer.c
 
-remote_viewer-drawer.obj: view/drawer.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(remote_viewer_CFLAGS) $(CFLAGS) -MT remote_viewer-drawer.obj -MD -MP -MF $(DEPDIR)/remote_viewer-drawer.Tpo -c -o remote_viewer-drawer.obj `if test -f 'view/drawer.c'; then $(CYGPATH_W) 'view/drawer.c'; else $(CYGPATH_W) '$(srcdir)/view/drawer.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/remote_viewer-drawer.Tpo $(DEPDIR)/remote_viewer-drawer.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='view/drawer.c' object='remote_viewer-drawer.obj' libtool=no @AMDEPBACKSLASH@
+view/remote_viewer-drawer.obj: view/drawer.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(remote_viewer_CFLAGS) $(CFLAGS) -MT view/remote_viewer-drawer.obj -MD -MP -MF view/$(DEPDIR)/remote_viewer-drawer.Tpo -c -o view/remote_viewer-drawer.obj `if test -f 'view/drawer.c'; then $(CYGPATH_W) 'view/drawer.c'; else $(CYGPATH_W) '$(srcdir)/view/drawer.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) view/$(DEPDIR)/remote_viewer-drawer.Tpo view/$(DEPDIR)/remote_viewer-drawer.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='view/drawer.c' object='view/remote_viewer-drawer.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(remote_viewer_CFLAGS) $(CFLAGS) -c -o remote_viewer-drawer.obj `if test -f 'view/drawer.c'; then $(CYGPATH_W) 'view/drawer.c'; else $(CYGPATH_W) '$(srcdir)/view/drawer.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(remote_viewer_CFLAGS) $(CFLAGS) -c -o view/remote_viewer-drawer.obj `if test -f 'view/drawer.c'; then $(CYGPATH_W) 'view/drawer.c'; else $(CYGPATH_W) '$(srcdir)/view/drawer.c'; fi`
 
-remote_viewer-ovBox.o: view/ovBox.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(remote_viewer_CFLAGS) $(CFLAGS) -MT remote_viewer-ovBox.o -MD -MP -MF $(DEPDIR)/remote_viewer-ovBox.Tpo -c -o remote_viewer-ovBox.o `test -f 'view/ovBox.c' || echo '$(srcdir)/'`view/ovBox.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/remote_viewer-ovBox.Tpo $(DEPDIR)/remote_viewer-ovBox.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='view/ovBox.c' object='remote_viewer-ovBox.o' libtool=no @AMDEPBACKSLASH@
+view/remote_viewer-ovBox.o: view/ovBox.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(remote_viewer_CFLAGS) $(CFLAGS) -MT view/remote_viewer-ovBox.o -MD -MP -MF view/$(DEPDIR)/remote_viewer-ovBox.Tpo -c -o view/remote_viewer-ovBox.o `test -f 'view/ovBox.c' || echo '$(srcdir)/'`view/ovBox.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) view/$(DEPDIR)/remote_viewer-ovBox.Tpo view/$(DEPDIR)/remote_viewer-ovBox.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='view/ovBox.c' object='view/remote_viewer-ovBox.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(remote_viewer_CFLAGS) $(CFLAGS) -c -o remote_viewer-ovBox.o `test -f 'view/ovBox.c' || echo '$(srcdir)/'`view/ovBox.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(remote_viewer_CFLAGS) $(CFLAGS) -c -o view/remote_viewer-ovBox.o `test -f 'view/ovBox.c' || echo '$(srcdir)/'`view/ovBox.c
 
-remote_viewer-ovBox.obj: view/ovBox.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(remote_viewer_CFLAGS) $(CFLAGS) -MT remote_viewer-ovBox.obj -MD -MP -MF $(DEPDIR)/remote_viewer-ovBox.Tpo -c -o remote_viewer-ovBox.obj `if test -f 'view/ovBox.c'; then $(CYGPATH_W) 'view/ovBox.c'; else $(CYGPATH_W) '$(srcdir)/view/ovBox.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/remote_viewer-ovBox.Tpo $(DEPDIR)/remote_viewer-ovBox.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='view/ovBox.c' object='remote_viewer-ovBox.obj' libtool=no @AMDEPBACKSLASH@
+view/remote_viewer-ovBox.obj: view/ovBox.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(remote_viewer_CFLAGS) $(CFLAGS) -MT view/remote_viewer-ovBox.obj -MD -MP -MF view/$(DEPDIR)/remote_viewer-ovBox.Tpo -c -o view/remote_viewer-ovBox.obj `if test -f 'view/ovBox.c'; then $(CYGPATH_W) 'view/ovBox.c'; else $(CYGPATH_W) '$(srcdir)/view/ovBox.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) view/$(DEPDIR)/remote_viewer-ovBox.Tpo view/$(DEPDIR)/remote_viewer-ovBox.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='view/ovBox.c' object='view/remote_viewer-ovBox.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(remote_viewer_CFLAGS) $(CFLAGS) -c -o remote_viewer-ovBox.obj `if test -f 'view/ovBox.c'; then $(CYGPATH_W) 'view/ovBox.c'; else $(CYGPATH_W) '$(srcdir)/view/ovBox.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(remote_viewer_CFLAGS) $(CFLAGS) -c -o view/remote_viewer-ovBox.obj `if test -f 'view/ovBox.c'; then $(CYGPATH_W) 'view/ovBox.c'; else $(CYGPATH_W) '$(srcdir)/view/ovBox.c'; fi`
 
 remote_viewer-virt-viewer-session-vnc.o: virt-viewer-session-vnc.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(remote_viewer_CFLAGS) $(CFLAGS) -MT remote_viewer-virt-viewer-session-vnc.o -MD -MP -MF $(DEPDIR)/remote_viewer-virt-viewer-session-vnc.Tpo -c -o remote_viewer-virt-viewer-session-vnc.o `test -f 'virt-viewer-session-vnc.c' || echo '$(srcdir)/'`virt-viewer-session-vnc.c
@@ -1199,47 +1224,47 @@ virt_viewer-virt-viewer-window.obj: virt-viewer-window.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-virt-viewer-window.obj `if test -f 'virt-viewer-window.c'; then $(CYGPATH_W) 'virt-viewer-window.c'; else $(CYGPATH_W) '$(srcdir)/virt-viewer-window.c'; fi`
 
-virt_viewer-autoDrawer.o: view/autoDrawer.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-autoDrawer.o -MD -MP -MF $(DEPDIR)/virt_viewer-autoDrawer.Tpo -c -o virt_viewer-autoDrawer.o `test -f 'view/autoDrawer.c' || echo '$(srcdir)/'`view/autoDrawer.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer-autoDrawer.Tpo $(DEPDIR)/virt_viewer-autoDrawer.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='view/autoDrawer.c' object='virt_viewer-autoDrawer.o' libtool=no @AMDEPBACKSLASH@
+view/virt_viewer-autoDrawer.o: view/autoDrawer.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT view/virt_viewer-autoDrawer.o -MD -MP -MF view/$(DEPDIR)/virt_viewer-autoDrawer.Tpo -c -o view/virt_viewer-autoDrawer.o `test -f 'view/autoDrawer.c' || echo '$(srcdir)/'`view/autoDrawer.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) view/$(DEPDIR)/virt_viewer-autoDrawer.Tpo view/$(DEPDIR)/virt_viewer-autoDrawer.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='view/autoDrawer.c' object='view/virt_viewer-autoDrawer.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-autoDrawer.o `test -f 'view/autoDrawer.c' || echo '$(srcdir)/'`view/autoDrawer.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o view/virt_viewer-autoDrawer.o `test -f 'view/autoDrawer.c' || echo '$(srcdir)/'`view/autoDrawer.c
 
-virt_viewer-autoDrawer.obj: view/autoDrawer.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-autoDrawer.obj -MD -MP -MF $(DEPDIR)/virt_viewer-autoDrawer.Tpo -c -o virt_viewer-autoDrawer.obj `if test -f 'view/autoDrawer.c'; then $(CYGPATH_W) 'view/autoDrawer.c'; else $(CYGPATH_W) '$(srcdir)/view/autoDrawer.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer-autoDrawer.Tpo $(DEPDIR)/virt_viewer-autoDrawer.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='view/autoDrawer.c' object='virt_viewer-autoDrawer.obj' libtool=no @AMDEPBACKSLASH@
+view/virt_viewer-autoDrawer.obj: view/autoDrawer.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT view/virt_viewer-autoDrawer.obj -MD -MP -MF view/$(DEPDIR)/virt_viewer-autoDrawer.Tpo -c -o view/virt_viewer-autoDrawer.obj `if test -f 'view/autoDrawer.c'; then $(CYGPATH_W) 'view/autoDrawer.c'; else $(CYGPATH_W) '$(srcdir)/view/autoDrawer.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) view/$(DEPDIR)/virt_viewer-autoDrawer.Tpo view/$(DEPDIR)/virt_viewer-autoDrawer.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='view/autoDrawer.c' object='view/virt_viewer-autoDrawer.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-autoDrawer.obj `if test -f 'view/autoDrawer.c'; then $(CYGPATH_W) 'view/autoDrawer.c'; else $(CYGPATH_W) '$(srcdir)/view/autoDrawer.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o view/virt_viewer-autoDrawer.obj `if test -f 'view/autoDrawer.c'; then $(CYGPATH_W) 'view/autoDrawer.c'; else $(CYGPATH_W) '$(srcdir)/view/autoDrawer.c'; fi`
 
-virt_viewer-drawer.o: view/drawer.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-drawer.o -MD -MP -MF $(DEPDIR)/virt_viewer-drawer.Tpo -c -o virt_viewer-drawer.o `test -f 'view/drawer.c' || echo '$(srcdir)/'`view/drawer.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer-drawer.Tpo $(DEPDIR)/virt_viewer-drawer.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='view/drawer.c' object='virt_viewer-drawer.o' libtool=no @AMDEPBACKSLASH@
+view/virt_viewer-drawer.o: view/drawer.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT view/virt_viewer-drawer.o -MD -MP -MF view/$(DEPDIR)/virt_viewer-drawer.Tpo -c -o view/virt_viewer-drawer.o `test -f 'view/drawer.c' || echo '$(srcdir)/'`view/drawer.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) view/$(DEPDIR)/virt_viewer-drawer.Tpo view/$(DEPDIR)/virt_viewer-drawer.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='view/drawer.c' object='view/virt_viewer-drawer.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-drawer.o `test -f 'view/drawer.c' || echo '$(srcdir)/'`view/drawer.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o view/virt_viewer-drawer.o `test -f 'view/drawer.c' || echo '$(srcdir)/'`view/drawer.c
 
-virt_viewer-drawer.obj: view/drawer.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-drawer.obj -MD -MP -MF $(DEPDIR)/virt_viewer-drawer.Tpo -c -o virt_viewer-drawer.obj `if test -f 'view/drawer.c'; then $(CYGPATH_W) 'view/drawer.c'; else $(CYGPATH_W) '$(srcdir)/view/drawer.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer-drawer.Tpo $(DEPDIR)/virt_viewer-drawer.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='view/drawer.c' object='virt_viewer-drawer.obj' libtool=no @AMDEPBACKSLASH@
+view/virt_viewer-drawer.obj: view/drawer.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT view/virt_viewer-drawer.obj -MD -MP -MF view/$(DEPDIR)/virt_viewer-drawer.Tpo -c -o view/virt_viewer-drawer.obj `if test -f 'view/drawer.c'; then $(CYGPATH_W) 'view/drawer.c'; else $(CYGPATH_W) '$(srcdir)/view/drawer.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) view/$(DEPDIR)/virt_viewer-drawer.Tpo view/$(DEPDIR)/virt_viewer-drawer.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='view/drawer.c' object='view/virt_viewer-drawer.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-drawer.obj `if test -f 'view/drawer.c'; then $(CYGPATH_W) 'view/drawer.c'; else $(CYGPATH_W) '$(srcdir)/view/drawer.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o view/virt_viewer-drawer.obj `if test -f 'view/drawer.c'; then $(CYGPATH_W) 'view/drawer.c'; else $(CYGPATH_W) '$(srcdir)/view/drawer.c'; fi`
 
-virt_viewer-ovBox.o: view/ovBox.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-ovBox.o -MD -MP -MF $(DEPDIR)/virt_viewer-ovBox.Tpo -c -o virt_viewer-ovBox.o `test -f 'view/ovBox.c' || echo '$(srcdir)/'`view/ovBox.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer-ovBox.Tpo $(DEPDIR)/virt_viewer-ovBox.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='view/ovBox.c' object='virt_viewer-ovBox.o' libtool=no @AMDEPBACKSLASH@
+view/virt_viewer-ovBox.o: view/ovBox.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT view/virt_viewer-ovBox.o -MD -MP -MF view/$(DEPDIR)/virt_viewer-ovBox.Tpo -c -o view/virt_viewer-ovBox.o `test -f 'view/ovBox.c' || echo '$(srcdir)/'`view/ovBox.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) view/$(DEPDIR)/virt_viewer-ovBox.Tpo view/$(DEPDIR)/virt_viewer-ovBox.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='view/ovBox.c' object='view/virt_viewer-ovBox.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-ovBox.o `test -f 'view/ovBox.c' || echo '$(srcdir)/'`view/ovBox.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o view/virt_viewer-ovBox.o `test -f 'view/ovBox.c' || echo '$(srcdir)/'`view/ovBox.c
 
-virt_viewer-ovBox.obj: view/ovBox.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-ovBox.obj -MD -MP -MF $(DEPDIR)/virt_viewer-ovBox.Tpo -c -o virt_viewer-ovBox.obj `if test -f 'view/ovBox.c'; then $(CYGPATH_W) 'view/ovBox.c'; else $(CYGPATH_W) '$(srcdir)/view/ovBox.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/virt_viewer-ovBox.Tpo $(DEPDIR)/virt_viewer-ovBox.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='view/ovBox.c' object='virt_viewer-ovBox.obj' libtool=no @AMDEPBACKSLASH@
+view/virt_viewer-ovBox.obj: view/ovBox.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT view/virt_viewer-ovBox.obj -MD -MP -MF view/$(DEPDIR)/virt_viewer-ovBox.Tpo -c -o view/virt_viewer-ovBox.obj `if test -f 'view/ovBox.c'; then $(CYGPATH_W) 'view/ovBox.c'; else $(CYGPATH_W) '$(srcdir)/view/ovBox.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) view/$(DEPDIR)/virt_viewer-ovBox.Tpo view/$(DEPDIR)/virt_viewer-ovBox.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='view/ovBox.c' object='view/virt_viewer-ovBox.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o virt_viewer-ovBox.obj `if test -f 'view/ovBox.c'; then $(CYGPATH_W) 'view/ovBox.c'; else $(CYGPATH_W) '$(srcdir)/view/ovBox.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -c -o view/virt_viewer-ovBox.obj `if test -f 'view/ovBox.c'; then $(CYGPATH_W) 'view/ovBox.c'; else $(CYGPATH_W) '$(srcdir)/view/ovBox.c'; fi`
 
 virt_viewer-virt-viewer-session-vnc.o: virt-viewer-session-vnc.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(virt_viewer_CFLAGS) $(CFLAGS) -MT virt_viewer-virt-viewer-session-vnc.o -MD -MP -MF $(DEPDIR)/virt_viewer-virt-viewer-session-vnc.Tpo -c -o virt_viewer-virt-viewer-session-vnc.o `test -f 'virt-viewer-session-vnc.c' || echo '$(srcdir)/'`virt-viewer-session-vnc.c
@@ -1483,6 +1508,8 @@ clean-generic:
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
 	-test . = "$(srcdir)" || test -z "$(CONFIG_CLEAN_VPATH_FILES)" || rm -f $(CONFIG_CLEAN_VPATH_FILES)
+	-rm -f view/$(DEPDIR)/$(am__dirstamp)
+	-rm -f view/$(am__dirstamp)
 
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
@@ -1494,7 +1521,7 @@ clean: clean-am
 clean-am: clean-binPROGRAMS clean-generic clean-libtool mostlyclean-am
 
 distclean: distclean-am
-	-rm -rf ./$(DEPDIR)
+	-rm -rf ./$(DEPDIR) view/$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -1540,7 +1567,7 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-	-rm -rf ./$(DEPDIR)
+	-rm -rf ./$(DEPDIR) view/$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

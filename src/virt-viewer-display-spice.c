@@ -97,12 +97,7 @@ get_main(VirtViewerDisplay *self)
 static void
 virt_viewer_display_spice_monitor_geometry_changed(VirtViewerDisplaySpice *self)
 {
-
-    if (virt_viewer_display_get_auto_resize(VIRT_VIEWER_DISPLAY(self)) == FALSE)
-        return;
-
     g_signal_emit_by_name(self, "monitor-geometry-changed", NULL);
-
 }
 
 static void
@@ -190,9 +185,32 @@ virt_viewer_display_spice_mouse_grab(SpiceDisplay *display G_GNUC_UNUSED,
 
 static void
 virt_viewer_display_spice_size_allocate(VirtViewerDisplaySpice *self,
-                                        GtkAllocation *allocation G_GNUC_UNUSED,
+                                        GtkAllocation *allocation,
                                         gpointer data G_GNUC_UNUSED)
 {
+    GtkRequisition preferred;
+    guint hint = virt_viewer_display_get_show_hint(VIRT_VIEWER_DISPLAY(self));
+
+    if (hint & VIRT_VIEWER_DISPLAY_SHOW_HINT_READY)
+    {
+        /* ignore all allocations before the widget gets mapped to screen since we
+         * only want to trigger guest resizing due to user actions
+         */
+        if (!gtk_widget_get_mapped(GTK_WIDGET(self)))
+            return;
+
+        /* when the window gets resized due to a change in zoom level, we don't want
+         * to re-size the guest display.  So if we get an allocation event that
+         * resizes the window to the size it already wants to be (based on desktop
+         * size and zoom level), just return early
+         */
+        virt_viewer_display_get_preferred_size(VIRT_VIEWER_DISPLAY(self), &preferred);
+        if (preferred.width == allocation->width
+            && preferred.height == allocation->height) {
+            return;
+        }
+    }
+
     if (self->priv->auto_resize != AUTO_RESIZE_NEVER)
         virt_viewer_display_spice_monitor_geometry_changed(self);
 
@@ -216,8 +234,11 @@ enable_accel_changed(VirtViewerApp *app,
                      GParamSpec *pspec G_GNUC_UNUSED,
                      VirtViewerDisplaySpice *self)
 {
-    if (virt_viewer_app_get_enable_accel(app)
-            && gtk_accel_map_lookup_entry("<virt-viewer>/view/release-cursor", NULL)) {
+    GtkAccelKey key = { 0 };
+    if (virt_viewer_app_get_enable_accel(app))
+        gtk_accel_map_lookup_entry("<virt-viewer>/view/release-cursor", &key);
+
+    if (key.accel_key || key.accel_mods) {
         SpiceGrabSequence *seq = spice_grab_sequence_new(0, NULL);
         /* disable default grab sequence */
         spice_display_set_grab_keys(self->priv->display, seq);
