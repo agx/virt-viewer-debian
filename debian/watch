@@ -1,3 +1,4 @@
 version=3
 
-http://virt-manager.et.redhat.com/download/sources/virt-viewer/virt-viewer-(.*)\.tar\.gz
+opts="pgpsigurlmangle=s/$/.asc/" \
+    http://fedorahosted.org/released/virt-viewer/virt-viewer-(.*)\.tar\.gz
