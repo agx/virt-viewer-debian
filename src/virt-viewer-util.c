@@ -58,7 +58,12 @@ GtkBuilder *virt_viewer_util_load_ui(const char *name)
         gtk_builder_add_from_file(builder, name, &error);
     } else {
         gchar *path = g_build_filename(PACKAGE_DATADIR, "ui", name, NULL);
-        gboolean success = (gtk_builder_add_from_file(builder, path, NULL) != 0);
+        gboolean success = (gtk_builder_add_from_file(builder, path, &error) != 0);
+        if (error) {
+            if (!(error->domain == G_FILE_ERROR && error->code == G_FILE_ERROR_NOENT))
+                g_warning("Failed to add ui file '%s': %s", path, error->message);
+            g_clear_error(&error);
+        }
         g_free(path);
 
         if (!success) {
@@ -273,6 +278,18 @@ gulong virt_viewer_signal_connect_object(gpointer instance,
     return ctx->handler_id;
 }
 
+static void log_handler(const gchar *log_domain,
+                        GLogLevelFlags log_level,
+                        const gchar *message,
+                        gpointer unused_data)
+{
+    if (glib_check_version(2, 32, 0) != NULL)
+        if (log_level >= G_LOG_LEVEL_DEBUG && !doDebug)
+            return;
+
+    g_log_default_handler(log_domain, log_level, message, unused_data);
+}
+
 void virt_viewer_util_init(const char *appname)
 {
 #ifdef G_OS_WIN32
@@ -305,6 +322,8 @@ void virt_viewer_util_init(const char *appname)
     textdomain(GETTEXT_PACKAGE);
 
     g_set_application_name(appname);
+
+    g_log_set_default_handler(log_handler, NULL);
 }
 
 static gchar *

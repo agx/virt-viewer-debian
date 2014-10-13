@@ -13,7 +13,7 @@ B<virt-viewer> is a minimal tool for displaying the graphical console
 of a virtual machine. The console is accessed using the VNC or SPICE
 protocol. The guest can be referred to based on its name, ID, or
 UUID. If the guest is not already running, then the viewer can be told
-to wait until it starts before attempting to connect to the console
+to wait until it starts before attempting to connect to the console.
 The viewer can connect to remote hosts to lookup the console
 information and then also connect to the remote console using the same
 network transport.
@@ -50,7 +50,7 @@ Automatically reconnect to the domain if it shuts down and restarts
 
 =item -z PCT, --zoom=PCT
 
-Zoom level of the display window in percentage. Range 10-200.
+Zoom level of the display window in percentage. Range 10-400.
 
 =item -d, --direct
 
@@ -59,10 +59,13 @@ used SSH.
 
 =item -a, --attach
 
-Use libvirt to directly attach to a local display, instead of making a
-TCP/UNIX socket connection. This avoids the need to authentication with
-the remote display, if authentication with libvirt is already allowed.
-This option does not work with remote displays.
+Instead of making a direct TCP/UNIX socket connection to the remote display,
+ask libvirt to provide a pre-connected socket for the display. This avoids
+the need to authenticate with the remote display server directly. This option
+will only work when connecting to a guest that is running on the same host
+as the virt-viewer program. If attaching to the guest via libvirt fails,
+virt-viewer will automatically fallback to trying a regular direct TCP/UNIX
+socket connection.
 
 =item -f, --full-screen
 
@@ -148,10 +151,10 @@ Report bugs to the mailing list C<http://www.redhat.com/mailman/listinfo/virt-to
 
 =head1 COPYRIGHT
 
-Copyright (C) 2007-2008 Red Hat, Inc., and various contributors.
+Copyright (C) 2007-2014 Red Hat, Inc., and various contributors.
 This is free software. You may redistribute copies of it under the terms of the GNU General
-Public License C<http://www.gnu.org/licenses/gpl.html>. There is NO WARRANTY, to the extent
-permitted by law.
+Public License C<https://www.gnu.org/licenses/gpl-2.0.html>. There is NO WARRANTY,
+to the extent permitted by law.
 
 =head1 SEE ALSO
 

@@ -60,8 +60,6 @@ typedef struct {
 
 GType virt_viewer_app_get_type (void);
 
-const char *virt_viewer_app_get_title(VirtViewerApp *app);
-void virt_viewer_app_set_title(VirtViewerApp *app, const char *title);
 void virt_viewer_app_set_debug(gboolean debug);
 gboolean virt_viewer_app_start(VirtViewerApp *app);
 void virt_viewer_app_maybe_quit(VirtViewerApp *self, VirtViewerWindow *window);
@@ -75,6 +73,7 @@ gboolean virt_viewer_app_activate(VirtViewerApp *self, GError **error);
 gboolean virt_viewer_app_initial_connect(VirtViewerApp *self, GError **error);
 void virt_viewer_app_start_reconnect_poll(VirtViewerApp *self);
 void virt_viewer_app_set_zoom_level(VirtViewerApp *self, gint zoom_level);
+gboolean virt_viewer_app_get_direct(VirtViewerApp *self);
 void virt_viewer_app_set_direct(VirtViewerApp *self, gboolean direct);
 void virt_viewer_app_set_hotkeys(VirtViewerApp *self, const gchar *hotkeys);
 void virt_viewer_app_set_attach(VirtViewerApp *self, gboolean attach);
@@ -97,7 +96,7 @@ GHashTable* virt_viewer_app_get_windows(VirtViewerApp *self);
 gboolean virt_viewer_app_get_enable_accel(VirtViewerApp *self);
 VirtViewerSession* virt_viewer_app_get_session(VirtViewerApp *self);
 gboolean virt_viewer_app_get_fullscreen(VirtViewerApp *app);
-const GOptionEntry* virt_viewer_app_get_options(void);
+GOptionGroup* virt_viewer_app_get_option_group(void);
 void virt_viewer_app_clear_hotkeys(VirtViewerApp *app);
 gint virt_viewer_app_get_n_initial_displays(VirtViewerApp* self);
 gint virt_viewer_app_get_initial_monitor_for_display(VirtViewerApp* self, gint display);

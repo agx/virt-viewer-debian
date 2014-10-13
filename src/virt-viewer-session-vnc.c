@@ -100,8 +100,6 @@ virt_viewer_session_vnc_connected(VncDisplay *vnc G_GNUC_UNUSED,
 {
     GtkWidget *display = virt_viewer_display_vnc_new(session->priv->vnc);
     g_signal_emit_by_name(session, "session-connected");
-    virt_viewer_display_set_show_hint(VIRT_VIEWER_DISPLAY(display),
-                                      VIRT_VIEWER_DISPLAY_SHOW_HINT_READY, TRUE);
     virt_viewer_session_add_display(VIRT_VIEWER_SESSION(session),
                                     VIRT_VIEWER_DISPLAY(display));
 }
@@ -114,8 +112,8 @@ virt_viewer_session_vnc_disconnected(VncDisplay *vnc G_GNUC_UNUSED,
 
     virt_viewer_session_clear_displays(VIRT_VIEWER_SESSION(session));
     display = virt_viewer_display_vnc_new(session->priv->vnc);
-    DEBUG_LOG("Disconnected");
-    g_signal_emit_by_name(session, "session-disconnected");
+    g_debug("Disconnected");
+    g_signal_emit_by_name(session, "session-disconnected", NULL);
     virt_viewer_display_set_show_hint(VIRT_VIEWER_DISPLAY(display),
                                       VIRT_VIEWER_DISPLAY_SHOW_HINT_READY, FALSE);
 }
@@ -254,17 +252,97 @@ virt_viewer_session_vnc_open_uri(VirtViewerSession* session,
 
 
 static void
-virt_viewer_session_vnc_auth_credential(GtkWidget *src,
+virt_viewer_session_vnc_auth_credential(GtkWidget *src G_GNUC_UNUSED,
                                         GValueArray *credList,
                                         VirtViewerSession *session)
 {
     VirtViewerSessionVnc *self = VIRT_VIEWER_SESSION_VNC(session);
+    char *username = NULL, *password = NULL;
+    gboolean wantPassword = FALSE, wantUsername = FALSE;
+    int i;
 
-    virt_viewer_auth_vnc_credentials(session,
-                                     self->priv->main_window,
-                                     src,
-                                     credList,
-                                     NULL);
+    g_debug("Got VNC credential request for %d credential(s)", credList->n_values);
+
+    for (i = 0 ; i < credList->n_values ; i++) {
+        GValue *cred = g_value_array_get_nth(credList, i);
+        switch (g_value_get_enum(cred)) {
+        case VNC_DISPLAY_CREDENTIAL_USERNAME:
+            wantUsername = TRUE;
+            break;
+        case VNC_DISPLAY_CREDENTIAL_PASSWORD:
+            wantPassword = TRUE;
+            break;
+        case VNC_DISPLAY_CREDENTIAL_CLIENTNAME:
+            break;
+        default:
+            g_debug("Unsupported credential type %d", g_value_get_enum(cred));
+            vnc_display_close(self->priv->vnc);
+            goto cleanup;
+        }
+    }
+
+    VirtViewerFile *file = virt_viewer_session_get_file(VIRT_VIEWER_SESSION(self));
+    if (file != NULL) {
+        if (wantUsername && virt_viewer_file_is_set(file, "username")) {
+            username = virt_viewer_file_get_username(file);
+            wantUsername = FALSE;
+        }
+        if (wantPassword && virt_viewer_file_is_set(file, "password")) {
+            password = virt_viewer_file_get_password(file);
+            wantPassword = FALSE;
+        }
+    }
+
+    if (wantUsername || wantPassword) {
+        int ret = virt_viewer_auth_collect_credentials(self->priv->main_window,
+                                                       "VNC", NULL,
+                                                       wantUsername ? &username : NULL,
+                                                       wantPassword ? &password : NULL);
+
+        if (ret < 0) {
+            vnc_display_close(self->priv->vnc);
+            goto cleanup;
+        }
+    }
+
+    for (i = 0 ; i < credList->n_values ; i++) {
+        GValue *cred = g_value_array_get_nth(credList, i);
+        switch (g_value_get_enum(cred)) {
+        case VNC_DISPLAY_CREDENTIAL_USERNAME:
+            if (!username ||
+                vnc_display_set_credential(self->priv->vnc,
+                                           g_value_get_enum(cred),
+                                           username)) {
+                g_debug("Failed to set credential type %d", g_value_get_enum(cred));
+                vnc_display_close(self->priv->vnc);
+            }
+            break;
+        case VNC_DISPLAY_CREDENTIAL_PASSWORD:
+            if (!password ||
+                vnc_display_set_credential(self->priv->vnc,
+                                           g_value_get_enum(cred),
+                                           password)) {
+                g_debug("Failed to set credential type %d", g_value_get_enum(cred));
+                vnc_display_close(self->priv->vnc);
+            }
+            break;
+        case VNC_DISPLAY_CREDENTIAL_CLIENTNAME:
+            if (vnc_display_set_credential(self->priv->vnc,
+                                           g_value_get_enum(cred),
+                                           "libvirt")) {
+                g_debug("Failed to set credential type %d", g_value_get_enum(cred));
+                vnc_display_close(self->priv->vnc);
+            }
+            break;
+        default:
+            g_debug("Unsupported credential type %d", g_value_get_enum(cred));
+            vnc_display_close(self->priv->vnc);
+        }
+    }
+
+ cleanup:
+    g_free(username);
+    g_free(password);
 }
 
 
@@ -275,7 +353,7 @@ virt_viewer_session_vnc_close(VirtViewerSession* session)
 
     g_return_if_fail(self != NULL);
 
-    DEBUG_LOG("close vnc=%p", self->priv->vnc);
+    g_debug("close vnc=%p", self->priv->vnc);
     if (self->priv->vnc != NULL) {
         virt_viewer_session_clear_displays(session);
         vnc_display_close(self->priv->vnc);

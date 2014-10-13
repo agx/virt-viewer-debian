@@ -631,9 +631,11 @@ virt_viewer_file_fill_app(VirtViewerFile* self, VirtViewerApp *app, GError **err
         g_free(val);
     }
 
-    if (virt_viewer_file_is_set(self, "title"))
-        virt_viewer_app_set_title(app, virt_viewer_file_get_title(self));
-
+    if (virt_viewer_file_is_set(self, "title")) {
+        char *title = virt_viewer_file_get_title(self);
+        g_object_set(app, "title", title, NULL);
+        g_free(title);
+    }
 
     virt_viewer_app_clear_hotkeys(app);
 
