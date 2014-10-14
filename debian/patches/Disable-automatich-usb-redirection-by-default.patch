@@ -1,0 +1,22 @@
+From: =?utf-8?q?Guido_G=C3=BCnther?= <agx@sigxcpu.org>
+Date: Tue, 14 Oct 2014 19:05:38 +0200
+Subject: Disable automatich usb redirection by default
+
+Closes: #765016
+---
+ src/virt-viewer-session.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/virt-viewer-session.c b/src/virt-viewer-session.c
+index c432719..ee287e9 100644
+--- a/src/virt-viewer-session.c
++++ b/src/virt-viewer-session.c
+@@ -153,7 +153,7 @@ virt_viewer_session_class_init(VirtViewerSessionClass *class)
+                                     g_param_spec_boolean("auto-usbredir",
+                                                          "USB redirection",
+                                                          "USB redirection",
+-                                                         TRUE,
++                                                         FALSE,
+                                                          G_PARAM_READWRITE |
+                                                          G_PARAM_CONSTRUCT |
+                                                          G_PARAM_STATIC_STRINGS));
