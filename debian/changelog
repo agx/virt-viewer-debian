@@ -1,3 +1,11 @@
+virt-viewer (1.0-1) unstable; urgency=medium
+
+  * [4b49b82] Fix uscan url and verify tarball signatures
+  * [de8f760] New upstream version 1.0
+  * [3195708] Disable automatich usb redirection by default (Closes: #765016)
+
+ -- Guido Günther <agx@sigxcpu.org>  Tue, 14 Oct 2014 19:17:14 +0200
+
 virt-viewer (0.6.0-1) unstable; urgency=medium
 
   * [0d29721] Imported Upstream version 0.6.0
