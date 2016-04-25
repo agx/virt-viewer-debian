@@ -1,3 +1,13 @@
+virt-viewer (3.1-1) unstable; urgency=medium
+
+  * [6cb2e48] New upstream version 3.1
+  * [561a3cb] Add gbp.conf and README.source
+  * [c3d3653] Bump standards version, no source changes
+  * [72b3a65] Bump debhelper compat level to 9
+  * [032624b] Use https URLs for the vcs fields
+
+ -- Guido Günther <agx@sigxcpu.org>  Mon, 25 Apr 2016 08:21:46 +0200
+
 virt-viewer (1.0-1) unstable; urgency=medium
 
   * [4b49b82] Fix uscan url and verify tarball signatures
