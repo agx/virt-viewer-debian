@@ -4,7 +4,7 @@ Priority: extra
 Maintainer: Debian Libvirt Maintainers <pkg-libvirt-maintainers@lists.alioth.debian.org>
 Uploaders: Guido Günther <agx@sigxcpu.org>, Laurent Léonard <laurent@open-minds.org>
 Build-Depends:
- debhelper (>= 7),
+ debhelper (>= 9~),
  autotools-dev,
  libvirt-dev (>= 0.10),
  libgtk-vnc-2.0-dev,
