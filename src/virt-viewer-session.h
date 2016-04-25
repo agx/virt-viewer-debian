@@ -80,7 +80,7 @@ struct _VirtViewerSessionClass {
     void (*session_initialized)(VirtViewerSession *session);
     void (*session_disconnected)(VirtViewerSession *session, const gchar *msg);
     void (*session_auth_refused)(VirtViewerSession *session, const gchar *msg);
-    void (*session_auth_failed)(VirtViewerSession *session, const gchar *msg);
+    void (*session_auth_unsupported)(VirtViewerSession *session, const gchar *msg);
     void (*session_usb_failed)(VirtViewerSession *session, const gchar *msg);
 
     void (*session_channel_open)(VirtViewerSession *session, VirtViewerSessionChannel *channel);
@@ -94,7 +94,10 @@ struct _VirtViewerSessionClass {
     void (*session_cut_text)(VirtViewerSession *session, const gchar *str);
     void (*session_bell)(VirtViewerSession *session);
     void (*session_cancelled)(VirtViewerSession *session);
-    void (*apply_monitor_geometry)(VirtViewerSession *session, GdkRectangle* monitors, guint nmonitors);
+    /* monitors = GHashTable<int, GdkRectangle*> */
+    void (*apply_monitor_geometry)(VirtViewerSession *session, GHashTable* monitors);
+    gboolean (*can_share_folder)(VirtViewerSession *session);
+    gboolean (*can_retry_auth)(VirtViewerSession *session);
 };
 
 GType virt_viewer_session_get_type(void);
@@ -107,6 +110,7 @@ void virt_viewer_session_add_display(VirtViewerSession *session,
 void virt_viewer_session_remove_display(VirtViewerSession *session,
                                         VirtViewerDisplay *display);
 void virt_viewer_session_clear_displays(VirtViewerSession *session);
+void virt_viewer_session_update_displays_geometry(VirtViewerSession *session);
 
 void virt_viewer_session_close(VirtViewerSession* session);
 gboolean virt_viewer_session_open_fd(VirtViewerSession* session, int fd);
@@ -129,6 +133,8 @@ VirtViewerApp* virt_viewer_session_get_app(VirtViewerSession *self);
 gchar* virt_viewer_session_get_uri(VirtViewerSession *self);
 void virt_viewer_session_set_file(VirtViewerSession *self, VirtViewerFile *file);
 VirtViewerFile* virt_viewer_session_get_file(VirtViewerSession *self);
+gboolean virt_viewer_session_can_share_folder(VirtViewerSession *self);
+gboolean virt_viewer_session_can_retry_auth(VirtViewerSession *self);
 
 G_END_DECLS
 

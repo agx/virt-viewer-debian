@@ -21,7 +21,7 @@
 %endif
 
 Name: virt-viewer
-Version: 1.0
+Version: 3.1
 Release: 1%{?dist}%{?extra_release}
 Summary: Virtual Machine Viewer
 Group: Applications/System
@@ -57,16 +57,16 @@ BuildRequires: gtk-vnc-devel >= 0.3.8
 %endif
 %if %{with_spice}
 %if %{with_gtk3}
-BuildRequires: spice-gtk3-devel >= 0.22
+BuildRequires: spice-gtk3-devel >= 0.30
 %else
-BuildRequires: spice-gtk-devel >= 0.22
+BuildRequires: spice-gtk-devel >= 0.30
 %endif
-BuildRequires: spice-protocol >= 0.10.1
+BuildRequires: spice-protocol >= 0.12.7
 %endif
 BuildRequires: /usr/bin/pod2man
 BuildRequires: intltool
 %if %{with_govirt}
-BuildRequires: libgovirt-devel >= 0.3.0
+BuildRequires: libgovirt-devel >= 0.3.2
 %endif
 
 %if 0%{?fedora} >= 20
@@ -121,22 +121,23 @@ rm -rf $RPM_BUILD_ROOT
 
 %post
 /bin/touch --no-create %{_datadir}/icons/hicolor &>/dev/null || :
+/bin/touch --no-create %{_datadir}/mime/packages &> /dev/null || :
 %{_sbindir}/update-alternatives --install %{_libexecdir}/spice-xpi-client \
   spice-xpi-client %{_libexecdir}/spice-xpi-client-remote-viewer 25
-update-desktop-database -q %{_datadir}/applications
-%{_bindir}/update-mime-database %{_datadir}/mime &> /dev/null
+/usr/bin/update-desktop-database -q %{_datadir}/applications
 
 %postun
 if [ $1 -eq 0 ] ; then
   /bin/touch --no-create %{_datadir}/icons/hicolor &>/dev/null
   /usr/bin/gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
+  /usr/bin/update-mime-database %{_datadir}/mime &> /dev/null || :
   %{_sbindir}/update-alternatives --remove spice-xpi-client %{_libexecdir}/spice-xpi-client-remote-viewer
 fi
-update-desktop-database -q %{_datadir}/applications
-%{_bindir}/update-mime-database %{_datadir}/mime &> /dev/null
+/usr/bin/update-desktop-database -q %{_datadir}/applications
 
 %posttrans
 /usr/bin/gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
+/usr/bin/update-mime-database %{?fedora:-n} %{_datadir}/mime &> /dev/null || :
 
 %files -f %{name}.lang
 %defattr(-,root,root,-)
@@ -148,6 +149,10 @@ update-desktop-database -q %{_datadir}/applications
 %{_datadir}/%{name}/ui/virt-viewer.xml
 %{_datadir}/%{name}/ui/virt-viewer-auth.xml
 %{_datadir}/%{name}/ui/virt-viewer-about.xml
+%{_datadir}/%{name}/ui/virt-viewer-guest-details.xml
+%{_datadir}/%{name}/ui/virt-viewer-vm-connection.xml
+%{_datadir}/%{name}/ui/virt-viewer-preferences.xml
+%{_datadir}/%{name}/ui/remote-viewer-connect.xml
 %{_datadir}/icons/hicolor/*/apps/*
 %{_datadir}/icons/hicolor/*/devices/*
 %{_datadir}/applications/remote-viewer.desktop

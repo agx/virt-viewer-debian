@@ -4,6 +4,7 @@ MANUFACTURER = Virt Manager Project
 
 EXTRA_DIST =					\
 	spice-xpi-client-remote-viewer		\
+	adwaita-icons-needed.wxi.in		\
 	virt-viewer.wxs.in			\
 	virt-viewer.nsis.in			\
 	virt-viewer-debug.nsis.in		\
@@ -11,9 +12,33 @@ EXTRA_DIST =					\
 
 # this make sure those files are regenerated when they change
 # (in maintainer-mode)
-all-local: virt-viewer.wxs virt-viewer.nsis virt-viewer-debug.nsis
+all-local: adwaita-icons-needed.wxi virt-viewer.wxs virt-viewer.nsis virt-viewer-debug.nsis
 
 if OS_WIN32
+
+if HAVE_LIBVIRT
+HaveLibvirt = True
+else
+HaveLibvirt = False
+endif
+
+if HAVE_OVIRT
+HaveOVirt = True
+else
+HaveOVirt = False
+endif
+
+if HAVE_SPICE_GTK
+HaveSpiceGtk = True
+else
+HaveSpiceGtk = False
+endif
+
+if HAVE_GTK_VNC
+HaveGtkVnc = True
+else
+HaveGtkVnc = False
+endif
 
 deps.txt:
 	$(AM_V_GEN)rpm -qa | grep $(host_os) | sort | unix2dos > $@
@@ -21,7 +46,13 @@ deps.txt:
 virt-viewer-$(VERSION).exe: virt-viewer.nsis deps.txt
 	$(AM_V_GEN)DESTDIR=`mktemp -d` && \
 	make -C $(top_builddir) install DESTDIR=$$DESTDIR >/dev/null && \
-	makensis -NOCD -DDESTDIR=$$DESTDIR $< >/dev/null && \
+	makensis -NOCD							\
+             -DDESTDIR=$$DESTDIR					\
+             -DHaveSpiceGtk=$(HaveSpiceGtk)				\
+             -DHaveGtkVnc=$(HaveGtkVnc)					\
+             -DHaveLibvirt=$(HaveLibvirt)				\
+             -DHaveOVirt=$(HaveOVirt)					\
+             $< >/dev/null &&						\
 	rm -rf $$DESTDIR
 
 virt-viewer-debug-$(VERSION).exe: virt-viewer-debug.nsis
@@ -38,6 +69,10 @@ virt-viewer-$(WIXL_ARCH)-$(VERSION).msi: virt-viewer.wxs deps.txt
 	    --directory-ref=INSTALLDIR > virt-viewer-files.wxs &&	\
 	MANUFACTURER="$(MANUFACTURER)" wixl -D SourceDir=$(prefix)	\
              -D DESTDIR=$$DESTDIR$(prefix)				\
+             -D HaveSpiceGtk=$(HaveSpiceGtk)				\
+             -D HaveGtkVnc=$(HaveGtkVnc)				\
+             -D HaveLibvirt=$(HaveLibvirt)				\
+             -D HaveOVirt=$(HaveOVirt)					\
              --arch $(WIXL_ARCH)					\
              -o $@							\
 	     $< virt-viewer-files.wxs &&				\

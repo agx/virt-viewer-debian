@@ -22,6 +22,7 @@
 
 #include <config.h>
 
+#include <inttypes.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -32,13 +33,16 @@
 #include <libvirt/libvirt.h>
 
 #include "virt-viewer-events.h"
+#include "virt-glib-compat.h"
+
+static GMutex *eventlock = NULL;
 
 struct virt_viewer_events_handle
 {
     int watch;
     int fd;
     int events;
-    int enabled;
+    int removed;
     GIOChannel *channel;
     guint source;
     virEventHandleCallback cb;
@@ -47,8 +51,7 @@ struct virt_viewer_events_handle
 };
 
 static int nextwatch = 1;
-static unsigned int nhandles = 0;
-static struct virt_viewer_events_handle **handles = NULL;
+static GPtrArray *handles;
 
 static gboolean
 virt_viewer_events_dispatch_handle(GIOChannel *source G_GNUC_UNUSED,
@@ -84,10 +87,11 @@ int virt_viewer_events_add_handle(int fd,
 {
     struct virt_viewer_events_handle *data;
     GIOCondition cond = 0;
+    int ret;
 
-    handles = g_realloc(handles, sizeof(*handles)*(nhandles+1));
-    data = g_malloc(sizeof(*data));
-    memset(data, 0, sizeof(*data));
+    g_mutex_lock(eventlock);
+
+    data = g_new0(struct virt_viewer_events_handle, 1);
 
     if (events & VIR_EVENT_HANDLE_READABLE)
         cond |= G_IO_IN;
@@ -100,7 +104,7 @@ int virt_viewer_events_add_handle(int fd,
     data->cb = cb;
     data->opaque = opaque;
 #ifdef G_OS_WIN32
-    g_debug("Converted fd %d to handle %d", fd, _get_osfhandle(fd));
+    g_debug("Converted fd %d to handle %"PRIiPTR, fd, _get_osfhandle(fd));
     data->channel = g_io_channel_win32_new_socket(_get_osfhandle(fd));
 #else
     data->channel = g_io_channel_unix_new(fd);
@@ -109,23 +113,39 @@ int virt_viewer_events_add_handle(int fd,
 
     g_debug("Add handle %d %d %p", data->fd, events, data->opaque);
 
-    data->source = g_io_add_watch(data->channel,
-                                  cond,
-                                  virt_viewer_events_dispatch_handle,
-                                  data);
+    if (events != 0) {
+        data->source = g_io_add_watch(data->channel,
+                                      cond,
+                                      virt_viewer_events_dispatch_handle,
+                                      data);
+    }
 
-    handles[nhandles++] = data;
+    g_ptr_array_add(handles, data);
 
-    return data->watch;
+    ret = data->watch;
+
+    g_mutex_unlock(eventlock);
+
+    return ret;
 }
 
 static struct virt_viewer_events_handle *
 virt_viewer_events_find_handle(int watch)
 {
-    unsigned int i;
-    for (i = 0 ; i < nhandles ; i++)
-        if (handles[i]->watch == watch)
-            return handles[i];
+    guint i;
+
+    for (i = 0 ; i < handles->len ; i++) {
+        struct virt_viewer_events_handle *h = g_ptr_array_index(handles, i);
+
+        if (h == NULL) {
+            g_warn_if_reached ();
+            continue;
+        }
+
+        if ((h->watch == watch) && !h->removed) {
+            return h;
+        }
+    }
 
     return NULL;
 }
@@ -134,17 +154,21 @@ static void
 virt_viewer_events_update_handle(int watch,
                                  int events)
 {
-    struct virt_viewer_events_handle *data = virt_viewer_events_find_handle(watch);
+    struct virt_viewer_events_handle *data;
+
+    g_mutex_lock(eventlock);
+
+    data = virt_viewer_events_find_handle(watch);
 
     if (!data) {
         g_debug("Update for missing handle watch %d", watch);
-        return;
+        goto cleanup;
     }
 
     if (events) {
         GIOCondition cond = 0;
         if (events == data->events)
-            return;
+            goto cleanup;
 
         if (data->source)
             g_source_remove(data->source);
@@ -161,12 +185,15 @@ virt_viewer_events_update_handle(int watch,
         data->events = events;
     } else {
         if (!data->source)
-            return;
+            goto cleanup;
 
         g_source_remove(data->source);
         data->source = 0;
         data->events = 0;
     }
+
+cleanup:
+    g_mutex_unlock(eventlock);
 }
 
 
@@ -181,7 +208,10 @@ virt_viewer_events_cleanup_handle(gpointer user_data)
     if (data->ff)
         (data->ff)(data->opaque);
 
-    free(data);
+    g_mutex_lock(eventlock);
+    g_ptr_array_remove_fast(handles, data);
+    g_mutex_unlock(eventlock);
+
     return FALSE;
 }
 
@@ -189,30 +219,48 @@ virt_viewer_events_cleanup_handle(gpointer user_data)
 static int
 virt_viewer_events_remove_handle(int watch)
 {
-    struct virt_viewer_events_handle *data = virt_viewer_events_find_handle(watch);
+    struct virt_viewer_events_handle *data;
+    int ret = -1;
+
+    g_mutex_lock(eventlock);
+
+    data = virt_viewer_events_find_handle(watch);
 
     if (!data) {
         g_debug("Remove of missing watch %d", watch);
-        return -1;
+        goto cleanup;
     }
 
     g_debug("Remove handle %d %d", watch, data->fd);
 
-    if (!data->source)
-        return -1;
+    if (data->source != 0) {
+        g_source_remove(data->source);
+        data->source = 0;
+        data->events = 0;
+    }
 
-    g_source_remove(data->source);
-    data->source = 0;
-    data->events = 0;
+    g_warn_if_fail(data->channel != NULL);
+    g_io_channel_unref(data->channel);
+    data->channel = NULL;
 
+    /* since the actual watch deletion is done asynchronously, a update_handle call may
+     * reschedule the watch before it's fully deleted, that's why we need to mark it as
+     * 'removed' to prevent reuse
+     */
+    data->removed = TRUE;
     g_idle_add(virt_viewer_events_cleanup_handle, data);
-    return 0;
+    ret = 0;
+
+cleanup:
+    g_mutex_unlock(eventlock);
+    return ret;
 }
 
 struct virt_viewer_events_timeout
 {
     int timer;
     int interval;
+    int removed;
     guint source;
     virEventTimeoutCallback cb;
     void *opaque;
@@ -221,8 +269,7 @@ struct virt_viewer_events_timeout
 
 
 static int nexttimer = 1;
-static unsigned int ntimeouts = 0;
-static struct virt_viewer_events_timeout **timeouts = NULL;
+static GPtrArray *timeouts;
 
 static gboolean
 virt_viewer_events_dispatch_timeout(void *opaque)
@@ -241,10 +288,11 @@ virt_viewer_events_add_timeout(int interval,
                                virFreeCallback ff)
 {
     struct virt_viewer_events_timeout *data;
+    int ret;
 
-    timeouts = g_realloc(timeouts, sizeof(*timeouts)*(ntimeouts+1));
-    data = g_malloc(sizeof(*data));
-    memset(data, 0, sizeof(*data));
+    g_mutex_lock(eventlock);
+
+    data = g_new0(struct virt_viewer_events_timeout, 1);
 
     data->timer = nexttimer++;
     data->interval = interval;
@@ -256,21 +304,37 @@ virt_viewer_events_add_timeout(int interval,
                                      virt_viewer_events_dispatch_timeout,
                                      data);
 
-    timeouts[ntimeouts++] = data;
+    g_ptr_array_add(timeouts, data);
 
     g_debug("Add timeout %p %d %p %p %d", data, interval, cb, opaque, data->timer);
 
-    return data->timer;
+    ret = data->timer;
+
+    g_mutex_unlock(eventlock);
+
+    return ret;
 }
 
 
 static struct virt_viewer_events_timeout *
 virt_viewer_events_find_timeout(int timer)
 {
-    unsigned int i;
-    for (i = 0 ; i < ntimeouts ; i++)
-        if (timeouts[i]->timer == timer)
-            return timeouts[i];
+    guint i;
+
+    g_return_val_if_fail(timeouts != NULL, NULL);
+
+    for (i = 0 ; i < timeouts->len ; i++) {
+        struct virt_viewer_events_timeout *t = g_ptr_array_index(timeouts, i);
+
+        if (t == NULL) {
+            g_warn_if_reached ();
+            continue;
+        }
+
+        if ((t->timer == timer) && !t->removed) {
+            return t;
+        }
+    }
 
     return NULL;
 }
@@ -280,18 +344,21 @@ static void
 virt_viewer_events_update_timeout(int timer,
                                   int interval)
 {
-    struct virt_viewer_events_timeout *data = virt_viewer_events_find_timeout(timer);
+    struct virt_viewer_events_timeout *data;
 
+    g_mutex_lock(eventlock);
+
+    data = virt_viewer_events_find_timeout(timer);
     if (!data) {
         g_debug("Update of missing timer %d", timer);
-        return;
+        goto cleanup;
     }
 
     g_debug("Update timeout %p %d %d", data, timer, interval);
 
     if (interval >= 0) {
         if (data->source)
-            return;
+            g_source_remove(data->source);
 
         data->interval = interval;
         data->source = g_timeout_add(data->interval,
@@ -299,11 +366,14 @@ virt_viewer_events_update_timeout(int timer,
                                      data);
     } else {
         if (!data->source)
-            return;
+            goto cleanup;
 
         g_source_remove(data->source);
         data->source = 0;
     }
+
+cleanup:
+    g_mutex_unlock(eventlock);
 }
 
 
@@ -318,7 +388,10 @@ virt_viewer_events_cleanup_timeout(gpointer user_data)
     if (data->ff)
         (data->ff)(data->opaque);
 
-    free(data);
+    g_mutex_lock(eventlock);
+    g_ptr_array_remove_fast(timeouts, data);
+    g_mutex_unlock(eventlock);
+
     return FALSE;
 }
 
@@ -326,33 +399,56 @@ virt_viewer_events_cleanup_timeout(gpointer user_data)
 static int
 virt_viewer_events_remove_timeout(int timer)
 {
-    struct virt_viewer_events_timeout *data = virt_viewer_events_find_timeout(timer);
+    struct virt_viewer_events_timeout *data;
+    int ret = -1;
 
+    g_mutex_lock(eventlock);
+
+    data = virt_viewer_events_find_timeout(timer);
     if (!data) {
         g_debug("Remove of missing timer %d", timer);
-        return -1;
+        goto cleanup;
     }
 
     g_debug("Remove timeout %p %d", data, timer);
 
-    if (!data->source)
-        return -1;
+    if (data->source != 0) {
+        g_source_remove(data->source);
+        data->source = 0;
+    }
 
-    g_source_remove(data->source);
-    data->source = 0;
-
+    /* since the actual timeout deletion is done asynchronously, a update_timeout call may
+     * reschedule the timeout before it's fully deleted, that's why we need to mark it as
+     * 'removed' to prevent reuse
+     */
+    data->removed = TRUE;
     g_idle_add(virt_viewer_events_cleanup_timeout, data);
-    return 0;
+    ret = 0;
+
+cleanup:
+    g_mutex_unlock(eventlock);
+    return ret;
 }
 
-
-void virt_viewer_events_register(void) {
+static gpointer event_register_once(gpointer data G_GNUC_UNUSED)
+{
+    eventlock = g_mutex_new();
+    timeouts = g_ptr_array_new_with_free_func(g_free);
+    handles = g_ptr_array_new_with_free_func(g_free);
     virEventRegisterImpl(virt_viewer_events_add_handle,
                          virt_viewer_events_update_handle,
                          virt_viewer_events_remove_handle,
                          virt_viewer_events_add_timeout,
                          virt_viewer_events_update_timeout,
                          virt_viewer_events_remove_timeout);
+
+    return NULL;
+}
+
+void virt_viewer_events_register(void) {
+    static GOnce once = G_ONCE_INIT;
+
+    g_once(&once, event_register_once, NULL);
 }
 
 /*

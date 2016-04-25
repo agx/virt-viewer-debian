@@ -1,4 +1,2578 @@
+2015-12-17  Daniel P. Berrange  <berrange@redhat.com>
+
+	Update for release 3.1
+
+	Refresh translations from zanata
+
+2015-12-07  Daniel P. Berrange  <berrange@redhat.com>
+
+	Refresh translations from zanata
+
+2015-12-03  Daniel P. Berrange  <berrange@redhat.com>
+
+	Update NEWS for release 3.0
+
+	Bump spice-gtk dep to 0.30.0 to avoid dep on git snapshot release
+
+	s/mingw62/mingw64/ in RPM spec file
+
+	Avoid macro in RPM comment
+
+2015-12-01  Fabiano Fidêncio  <fidencio@redhat.com>
+
+	autobuild: gtk2 has been dropped for windows
+	0a7fa73f is the commit that dropped support for gtk2 for the nsis
+	installer.
+	03c014cb is the commit that dropped support for gtk2 for the msi
+	installer.
+
+	specs: add remote-viewer-connect.xml
+	The file was introduced in commit 0571843d but never added to the spec
+	files.
+
+	nsis: add libbz2-1.dll
+	mingw-bzip2 seems to be a mingw-freetype dependency.
+
+	nsis: update nettle to 3.1.1
+	Use version 3.1.1, matching what currently is in f23.
+
+	nsis: update libgnutls to 3.4.7
+	Use version 3.4.7, matching what currently is in f23.
+
+	nsis: update pango to 1.38.1
+	Use version 1.38.1, matching what is in f23.
+	An important note is that the removed files were removed in
+	mingw-pango-1.37.1.
+
+	docs: fix "make syntaxcheck"
+
+2015-12-01  Jonathon Jongsma  <jjongsma@redhat.com>
+
+	Add some multimonitor documentation
+	These two files describe some of the behavior and requirements for
+	virt-viewer in fullscreen multimonitor mode
+
+2015-11-05  Daniel P. Berrange  <berrange@redhat.com>
+
+	autogen: Ensure m4 directory exists
+	We're telling autoconf to look in the m4/ directory for
+	files, but this directory doesn't exist in a clean checkout
+	until libtoolize has run. Older versions of autoconf consider
+	this to be a fatal error.
+
+	git.mk: fix copyright line and remove use of -o / -a
+	Any copyright line must use 'Copyright (C) <year> Red Hat'
+	per the syntax-check rule.
+
+	Use of -a / -o args to "test" is non-portable and should
+	instead be done with 'test ... || test ...'
+
+2015-11-04  Eduardo Lima (Etrunko)  <etrunko@redhat.com>
+
+	Remove useless {get,set}_property functions
+
+	Move declaration to the beginning of the file
+
+	Update MAINTAINERCLEANFILES variables
+	Makefile.am: Use helper variables from git.mk
+	man/Makefile.am: This should be $(dist_man_MANS) instead of $(man_MANS)
+
+	Update git.mk from latest upstream version
+
+	Call intltoolize after autoreconf
+	After removing m4/.gitignore file in previous patch, I started getting
+	the following error when running autogen.sh.
+
+	ln: failed to create symbolic link ‘m4/intltool.m4’: No such file or directory
+	cp: cannot create regular file ‘m4/intltool.m4’: No such file or directory
+	intltoolize: cannot copy '/usr/share/aclocal/intltool.m4' to 'm4/intltool.m4'
+
+	The problem is that intltoolize requires te m4/ directory to be present,
+	and this directory is actually created by running autoreconf, so it
+	should be called before intltoolize.
+
+	Remove m4/.gitignore file
+	All .gitignore files are handled by git.mk and should not be part of the
+	repository.
+
+2015-11-04  Pavel Grunt  <pgrunt@redhat.com>
+
+	session-spice: Disable extra displays in fullscreen mode
+	When running in fullscreen it is possible to end up in a situation
+	where we have more displays enabled than monitors. This can happen
+	if displays that were enabled in the previous connection to the guest
+	doesn't match displays requested when entering the fullscreen mode.
+
+	This commit solves the problem by disabling displays that should not be
+	enabled in the fullscreen mode.
+
+	Resolves: rhbz#1212802
+
+	app: Do not map display to non-existent monitor
+
+	app: Add helper for number of client monitors
+
+2015-10-21  Fabiano Fidêncio  <fidencio@redhat.com>
+
+	util: Fix the size of sorted_displays allocation
+	As sorted_displays is a vector containing all displays' order, its
+	allocation size must be the maximum display id + 1 instead of the
+	maximum display id. Also, fix the size used for sorting and iterating
+	the sorted_displays vector.
+
+	Valgrind log:
+	==15946== Invalid write of size 4
+	==15946==    at 0x4169C0: virt_viewer_align_monitors_linear (virt-viewer-util.c:581)
+	==15946==    by 0x42248B: virt_viewer_session_on_monitor_geometry_changed (virt-viewer-session.c:438)
+	==15946==    by 0xBB41F03: _g_closure_invoke_va (gclosure.c:831)
+	==15946==    by 0xBB5BC7C: g_signal_emit_valist (gsignal.c:3214)
+	==15946==    by 0xBB5C764: g_signal_emit_by_name (gsignal.c:3401)
+	==15946==    by 0x4328F3: virt_viewer_display_spice_monitor_geometry_changed (virt-viewer-display-spice.c:93)
+	==15946==    by 0x432D60: virt_viewer_display_spice_size_allocate (virt-viewer-display-spice.c:224)
+	==15946==    by 0xBB41CD4: g_closure_invoke (gclosure.c:768)
+	==15946==    by 0xBB53538: signal_emit_unlocked_R (gsignal.c:3549)
+	==15946==    by 0xBB5BEEF: g_signal_emit_valist (gsignal.c:3305)
+	==15946==    by 0xBB5C29E: g_signal_emit (gsignal.c:3361)
+	==15946==    by 0x637D6F6: gtk_widget_size_allocate_with_baseline (gtkwidget.c:6093)
+	==15946==  Address 0x18c79d4c is 0 bytes after a block of size 12 alloc'd
+	==15946==    at 0x4C2A9C7: calloc (in /usr/lib64/valgrind/vgpreload_memcheck-amd64-linux.so)
+	==15946==    by 0xBDD36D1: g_malloc0 (gmem.c:127)
+	==15946==    by 0x41698D: virt_viewer_align_monitors_linear (virt-viewer-util.c:577)
+	==15946==    by 0x42248B: virt_viewer_session_on_monitor_geometry_changed (virt-viewer-session.c:438)
+	==15946==    by 0xBB41F03: _g_closure_invoke_va (gclosure.c:831)
+	==15946==    by 0xBB5BC7C: g_signal_emit_valist (gsignal.c:3214)
+	==15946==    by 0xBB5C764: g_signal_emit_by_name (gsignal.c:3401)
+	==15946==    by 0x4328F3: virt_viewer_display_spice_monitor_geometry_changed (virt-viewer-display-spice.c:93)
+	==15946==    by 0x432D60: virt_viewer_display_spice_size_allocate (virt-viewer-display-spice.c:224)
+	==15946==    by 0xBB41CD4: g_closure_invoke (gclosure.c:768)
+	==15946==    by 0xBB53538: signal_emit_unlocked_R (gsignal.c:3549)
+	==15946==    by 0xBB5BEEF: g_signal_emit_valist (gsignal.c:3305)
+
+	Resolves: rhbz#1272650
+	Related: rhbz#1267184
+
+	session: Only create a hashtable if apply_monitor_geometry vfunc exists
+	Creating the monitors hashtable only after checking for the existence of
+	apply_monitor_geometry vfunc avoids leaking the hashtable in the case
+	where the vfunc doesn't exist.
+
+	Related: rhbz#1267184
+
+2015-10-21  Pavel Grunt  <pgrunt@redhat.com>
+
+	app: Use display id instead of 'this' in debug
+
+2015-10-20  Christophe Fergeau  <cfergeau@redhat.com>
+
+	Stop polling after reconnecting to libvirtd
+	When the connection to libvirtd is lost, virt-viewer starts polling for
+	libvirtd to come back. The polling mechanism is also used when
+	connecting to very old libvirtd which don't support
+	virConnectDomainEventDeregisterAny().
+
+	Currently, once we could reconnect to libvirtd, virt-viewer will keep
+	polling, thus behaving as if the libvirtd connection does not support
+	virConnectDomainEventDeregisterAny(). This commit makes sure we stop
+	polling once the new libvirtd connection is established.
+
+	This has the side-effect of preventing
+	https://bugzilla.redhat.com/show_bug.cgi?id=1271519 from occurring with
+	recent libvirt as it's caused by some race occurring when using the
+	polling code.
+
+2015-10-09  Jonathon Jongsma  <jjongsma@redhat.com>
+
+	Use the display ID to configure fullscreen monitors
+	When starting virt-viewer in fullscreen mode, we generally try to
+	arrange guest displays exactly the same as client monitors. So if a
+	client machine has two monitors, we'll try to enable display 0 and 1 on
+	the guest (in that order). However, when using the configuration file to
+	map fullscreen displays to different monitors, the guest displays may
+	not be sequential, or there may be displays missing. For example,
+	consider the following configuration:
+
+	monitor-mapping=1:2;2:1
+
+	In virt_viewer_session_spice_fullscreen_auto_conf(), we were building an
+	array of GdkRectangles for the initial monitors that we want to enable
+	on the guest. We then configured the guest displays using the index of
+	the array for the as the id of the guest display. But when displays
+	are sparse or are out-of-sequence, the array index will not match the
+	>ntended display ID. This created problems where displays were arranged
+	incorrectly. By changing the simple array into a GHashTable, we can keep
+	the display ID together with the GdkRectangle until we need to use it,
+	and things will be configured correctly.
+
+	This regression was introduced by c586dc8c.
+
+	Fixes: rhbz#1267184
+
+	SessionSpice: make main-window a property
+	Make "main-window" a construct-only property of VirtViewerSessionSpice.
+	This allows us to set it in the constructor and encapsulate all of the
+	setup within the gobject constructor rather than doing extra work in the
+	_new() function.
+
+2015-10-08  Fabiano Fidêncio  <fidencio@redhat.com>
+
+	msi: use the correct id for remote-viewer.exe
+	As, in theory, file ids are stables, seems that we have been using the
+	wrong id for remote-viewer.exe (not sure if since forever or if the path
+	changed).
+	That's what msidump shows:
+
+	ffidenci@cat ~/src/upstream/virt-viewer/dump $ grep "fil808B4A5BAB4ACD727D3823632E798743" File.idt
+	ffidenci@cat ~/src/upstream/virt-viewer/dump $ grep "fil808B4A5BAB4ACD727D3823632E798743" Registry.idt
+	reg29E29C5608128A0192FB9DC3C18562A6 0
+	VirtViewer.vvfile\shell\open\command
+	"[#fil808B4A5BAB4ACD727D3823632E798743]" "%1"   CProgIds
+	ffidenci@cat ~/src/upstream/virt-viewer/dump $ grep "remote-viewer.exe" File.idt
+	fil610DF9E49759B1DEC646290195F96F8A cmp7677A8696936707272DCA43B1BF26760
+	remote-viewer.exe   855735          512 837
+
+	So, let's use the correct id (fil610DF9E49759B1DEC646290195F96F8A) from
+	now on.
+
+	Related: rhbz#1146016
+
+2015-10-06  Fabiano Fidêncio  <fidencio@redhat.com>
+
+	msi: {virt,remote}-viewer depends on libxml2
+	Currently libxml2 is pulled as an indirect dependency when virt-viewer
+	is built with support to ovirt or libvirt (pulled by rest or libvirt,
+	respectively). However, {virt,remote}-viewer itself depends on libxml2
+	and not having it as an explicit dependency will cause errors on opening
+	remote-viewer when it is built without support to ovirt/libvirt.
+
+2015-09-10  Jonathon Jongsma  <jjongsma@redhat.com>
+
+	Add new functions to enable/disable a display
+	Previously, there was a single function for controlling the enabled
+	state of a display: virt_viewer_display_set_enabled(). Unfortunately,
+	this function is used for two slightly different things:
+
+	 A. It informs the local display widget that the display has become
+	    disabled or enabled on the server. In other words, it tries to
+	    synchronize the 'enabled' state of the local widget with the actual
+	    state of the remote display.
+
+	OR
+
+	 B. It tries to actively enable a currently-disabled display (or vice
+	    versa) due to some action by the user in the client application.
+	    This causes the client to send a new configuration down to the
+	    server. In other words, it tries to change the state of the remote
+	    display.
+
+	There is some conflict between these two scenarios. If the change is due
+	to a notification from the server, there is no need to send a new
+	configuration back down to the server, so this results in unnecessary
+	monitor configuration messages and can in fact cause issues that are a
+	little bit hard to track down. Because of this, I decided that it was
+	really necessary to have two separate functions for these two different
+	scenarios. so the existing _set_enabled() function will be used for
+	scenario A mentioned above. I added two new
+	functions (_enable() and _disable()) that are used to send new
+	configurations down to the server.
+
+2015-09-08  Jonathon Jongsma  <jjongsma@redhat.com>
+
+	Set enabled status of all displays when we get a monitor update
+	Previously, when we received a new monitors update from the server, we
+	only called virt_viewer_display_set_enabled() for the displays that were
+	enabled. We simply assumed that those that were not enabled were already
+	set to disabled. This assumption is currently valid, but I have some
+	changes in the pipeline where this is not true. This change ensures that
+	we update the enabled state of all monitors when we get an updated
+	monitors conifguration.
+
+	Don't emit 'monitor-geometry-changed' for disabled displays
+	When a display widget receives a new size allocation, we generally emit
+	a monitor-geometry-changed signal so that we can reconfigure the
+	displays. But if the widget for a *disabled* display is allocated,
+	there's no reason to send down a new configuration. We don't need to
+	emit this signal. This doesn't currently cause any problems, but I ran
+	into issues while testing some other uncommitted changes.
+
+2015-08-17  Fabiano Fidêncio  <fidencio@redhat.com>
+
+	coverity: result is not floating-point
+	Coverity says:
+	Result is not floating-point (UNINTENDED_INTEGER_DIVISION)
+	interger_division: Dividing integer expressions "preferred->width * 100"
+	and "zoom", and then converting the integer quotient to type double. Any
+	remainder, or fractional part of the quotient, is ignored.
+
+2015-08-13  Fabiano Fidêncio  <fidencio@redhat.com>
+
+	coverity: Copy into fixed sized buffer
+	Coverity says:
+	You might overrun the 108 byte fixed-size string "addr.sun_path" by
+	copying "unixsock" without checking the lenght.
+	Note: This detect has an elevated risk because the source argument is a
+	paramenter of the current function.
+
+2015-07-29  Pavel Grunt  <pgrunt@redhat.com>
+
+	session-spice: Use display id instead of monitor id in debug log
+	Windows guests have monitor id = 0, so the debug log is always the same:
+	"creating spice display (#:0)" for all the displays.
+
+	configure: Use default error message when package is missing
+	To make clear why configure failed - e.g.:
+	 Package requirements (spice-client-gtk-2.0 >= 0.28) were not met
+	 Requested 'spice-client-gtk-2.0 >= 0.28' but version of spice-client-gtk-2.0 is 0.25
+	instead of
+	 spice-gtk requested but not found
+
+	Related:
+	https://bugzilla.redhat.com/show_bug.cgi?id=1214577
+
+	configure: Enable spice-gtk when have all necessary spice packages
+	When neither --with-spice-gtk=yes nor --with-spice-gtk=no is used,
+	spice-gtk is supposed to be automatically enabled/disabled depending
+	on its availability. However, this is not perfectly working as once
+	spice-gtk has been detected as available, configure will fail if
+	spice-protocol or spice-controller are too old. In this case, spice-gtk
+	support should just be disabled rather than configure failing
+
+	virt-viewer-window: Change zoom with respect to real zoom
+	The zoom can be changed by resizing the window (VNC / Spice without
+	the agent). It is necessary to recalculate the zoom level before
+	changing it, otherwise zoom operations will not work correctly.
+
+	Resolves:
+	https://bugs.freedesktop.org/show_bug.cgi?id=90582
+
+	Show window after its default and preferred sizes are set
+	Under some circumstances (Xfce desktop environment, gtk3 client,  RHEL6
+	guest having two monitors running locally) it is possible to create
+	a loop of resizing windows. It is caused by size request like 1x1 sent
+	to the guest. These request are created because _window_queue_resize()
+	is called when the window is being shown.
+	To avoid the problem, call gtk_widget_show() after its preferred and
+	default sizes are set.
+
+	Resolves:
+	https://bugs.freedesktop.org/show_bug.cgi?id=91405
+
+2015-07-22  Fabiano Fidêncio  <fidencio@redhat.com>
+
+	events: don't leak GIOChannel when destroying IO handle
+	virt_viewer_events_add_handle() creates a GIOChannel in order to watch the
+	fd it was given for changes.
+	virt_viewer_events_remove_handle() is freeing all the resources allocated by
+	virt_viewer_events_add_handle() except for this GIOChannel. This commit adds
+	the needed g_io_channel_unref() call to virt_viewer_events_remove_handle()
+
+	Based on commit 8e95b8d25a3eee6316aff2f83b0c449aaf10984a from
+	libvirt-glib.
+	Original author: Christophe Fergeau <cfergeau@redhat.com>
+
+	Related to: rhbz#1243228
+
+	events: allow to remove disabled timers and handles
+	Trying to remove a disabled timer or handle will cause
+	virt_viewer_events_remove_{handle,timeout}() to return an error
+	rather than removing it.
+
+	Based on commit 79699d73e6e1b7218e3bd8349d176752f86128b9 from
+	libvirt-glib.
+	Original author: Christophe Fergeau <cfergeau@redhat.com>
+
+	Related to: rhbz#1243228
+
+	events: don't create glib IO watch for disabled handles
+	It's possible to create a handle to watch for file events which do not
+	watch for any file event. Such a handle can be enabled later with
+	virt_viewer_events_update_handle() by setting some conditions to watch for.
+
+	When a handle is disabled after it has been created,
+	virt_viewer_events_update_handle() makes sure it removes the corresponding
+	virt_viewer_events_handle::source IO watch if any was set.
+	virt_viewer_events_add_handle() will always create a
+	virt_viewer_events_handle::source IO watch even if the handle is not
+	watching for any events.
+
+	This commit makes consistent by only creating a watch with g_io_add_watch()
+	when the caller asked to watch for some events.
+
+	Based on commit d71c143936a35cd6c3f23ae0cbf7f3215d944051 from
+	libvirt-glib.
+	Original author: Christophe Fergeau <cfergeau@redhat.com>
+
+	Related to: rhbz#1243228
+
+	events: don't hold events lock when dispatching free callbacks
+	The _event_timeout_remove and _event_handle_remove methods
+	were holding onto the global lock when invoking the free
+	callback. This is a violation of the libvirt events API
+	contract which requires free callbacks to be invoked in
+	a re-entrant safe context.
+
+	Based on commit dd17c3cc587c73a8c915238f9d9a3e200e89c93f from
+	libvirt-glib.
+	Original author: Daniel P. Berrange <berrange@redhat.com>
+
+	Related to: rhbz#1243228
+
+	events: don't reschedule deleted timeouts/watches
+	The deletion of libvirt timeouts/watches is done in 2 steps:
+	- the first step is synchronous and unregisters the timeout/watch
+	  from glib mainloop
+	- the second step is asynchronous and triggered from the first step.
+	  It releases the memory used for bookkeeping for the timeout/watch
+	  being deleted
+
+	This is done this way to avoid some possible deadlocks when
+	reentering the sync callback while freeing the memory associated
+	with the timeout/watch.
+
+	However, it's possible to call gvir_event_update_handle after
+	gvir_event_remove_handle but before _event_handle_remove does
+	the final cleanup. When this happen, _update_handle will reregister
+	the handle with glib mainloop, and bad things will happen when
+	a glib callback is triggered for this event after _event_handle_remove
+	has freed the memory associated with this handle watch.
+
+	This commit marks the timeouts and watches as removed in the
+	synchronous _remove callback and makes sure removed timeouts/watches
+	are ignored in _update callbacks.
+
+	Based on commit 3e73e0cee977fb20dd29db3ccfe85b00cc386c43 from
+	libvirt-glib.
+	Original author: Christophe Fergeau <cfergeau@redhat.com>
+
+	Related to: rhbz#1243228
+
+	events: protect 'handles' and 'timeouts' against concurrent accesses
+	Timeout and watch deletion is done from an idle callback. However,
+	we cannot assume that all libvirt event calls (the callbacks passed
+	to virEventRegisterImpl) will be done from the mainloop thread. It's
+	thus possible that a libvirt event call will run a thread while
+	one of the idle deletion callbacks runs.
+	Given that the 'handles' and 'timeouts' arrays are shared among all
+	threads, we need to make sure we hold the 'eventlock' mutex before
+	modifying them.
+
+	Based on commit 924178f6b35735458b37d30303fe7bc753dde0b1 from
+	libvirt-glib.
+	Original author: Christophe Fergeau <cfergeau@redhat.com>
+
+	Related to: rhbz#1243228
+
+	events: remove unused virt_viewer_events_find_{handle,timeout} arg
+	Based on commit 1fb34633ef3b318ea678b775d5e47debc98d2184 from
+	libvirt-glib.
+	Original author: Christophe Fergeau <cfergeau@redhat.com>
+
+	Related to: rhbz#1243228
+
+	events: allow zero timeouts for timer
+	In libvirt, it's perfectly possible and widely used to have disabled
+	timers (timeout=-1) and fire them up 'randomly' with timeout=0.
+	However, with current mapping into glib mainloop it's not possible
+	and causing troubles.
+
+	Based on commit a40a1732e0d53fcc44b8d348cec97152dafd2b88 from
+	libvirt-glib.
+	Original author: Michal Privoznik <mprivozn@redhat.com>
+
+	Related to: rhbz#1243228
+
+	glib-compat: Use g_new0(GMutex, 1) if GLib >= 2.31
+	Since 2.31, g_mutex_new() is deprecated.
+
+	Based on commit 2dc7476d32a9e158e688486e8f184c719c53bb4c from
+	libvirt-glib.
+	Original author: Daniel P. Berrange <berrange@redhat.com>
+
+	Related to: rhbz#1243228
+
+	glib-compat: group definitions and functions
+	There is no need to have more than one glib version checking for the
+	same version, in the same file. Let's just group them all.
+
+	events: remove timeout and handle from arrays
+	Otherwise, it will crash next time it goes find()
+
+	Backtrace:
+	(gdb) where
+	 #0  0x00007efcae715095 in g_io_create_watch () from
+	 /lib64/libglib-2.0.so.0
+	 #1  0x00007efcae7150ef in g_io_add_watch_full () from
+	 /lib64/libglib-2.0.so.0
+	 #2  0x00000000004275ba in virt_viewer_events_update_handle
+	 (watch=<optimized out>, events=1) at
+	 virt-viewer-events.c:158
+	 #3  0x00007efcb1a62dce in virNetSocketUpdateIOCallback (sock=0x1e75c00,
+	 events=1) at rpc/virnetsocket.c:1981
+	 #4  0x00007efcb1a50113 in virNetClientIOUpdateCallback
+	 (client=<optimized out>, enableCallback=<optimized out>) at
+	 rpc/virnetclient.c:1639
+	 #5  0x00007efcb1a50f82 in virNetClientIO (thiscall=0x20e0170,
+	 client=0x1f2e060) at rpc/virnetclient.c:1793
+	 #6  virNetClientSendInternal (client=client@entry=0x1f2e060,
+	 msg=msg@entry=0x20e0100,
+	 expectReply=expectReply@entry=false, nonBlock=nonBlock@entry=true) at
+	 rpc/virnetclient.c:1962
+	 #7  0x00007efcb1a52413 in virNetClientSendNonBlock (client=0x1f2e060,
+	 msg=msg@entry=0x20e0100) at
+	 rpc/virnetclient.c:2036
+	 #8  0x00007efcb1a5243d in virNetClientKeepAliveSendCB (opaque=<optimized
+	 out>, msg=0x20e0100) at
+	 rpc/virnetclient.c:293
+	 #9  0x00007efcb1a5ba02 in virKeepAliveTimer (timer=<optimized out>,
+	 opaque=0x20d3d00) at rpc/virkeepalive.c:176
+	 #10 0x00000000004272e9 in virt_viewer_events_dispatch_timeout
+	 (opaque=0x1e6cd30) at virt-viewer-events.c:233
+	 #11 0x00007efcae7231b3 in g_timeout_dispatch () from
+	 /lib64/libglib-2.0.so.0
+	 #12 0x00007efcae72279a in g_main_context_dispatch () from
+	 /lib64/libglib-2.0.so.0
+	 #13 0x00007efcae722ae8 in g_main_context_iterate.isra.24 () from
+	 /lib64/libglib-2.0.so.0
+	 #14 0x00007efcae722dba in g_main_loop_run () from
+	 /lib64/libglib-2.0.so.0
+	 #15 0x00007efcb054a045 in gtk_main () from /lib64/libgtk-3.so.0
+	 #16 0x0000000000410a9c in main (argc=1, argv=0x7ffde58a7978) at
+	 virt-viewer-main.c:124
+
+	Based on commit cff5f1c46f4b9661e112b85159fb58ae473a9a89 from
+	libvirt-glib.
+	Original author: Marc-André Lureau <marcandre.lureau@redhat.com>
+
+	Related to: rhbz#1243228
+
+	events: register event using GOnce to avoid multiple initializations
+	Based on commit 8f8d9ce5238dbcbce40aa04ba55b8c55f97c79c0 from
+	libvirt-glib.
+	Original author: Marc-André Lureau <marcandre.lureau@redhat.com>
+
+	Related to: rhbz#1243228
+
+	events: ensure event callbacks are threadsafe
+	Take a global lock whenever changing any event callbacks to ensure
+	thread safety.
+
+	Based on commit f1fe67da2dac6a249f796535b8dbd155d5741ad7 from
+	libvirt-glib.
+	Original author: Daniel P. Berrange <berrange@redhat.com>
+
+	Related to: rhbz#1243228
+
+2015-07-22  Pavel Grunt  <pgrunt@redhat.com>
+
+	virt-viewer-window: Allow to resize window to any size
+	The function virt_viewer_window_resize restricts window to be bigger
+	than a client's screen. It avoids extending the window to more client's
+	screens, it causes changes of the zoom level if the guest does not fit
+	into a screen.
+
+	Lets remove virt_viewer_window_resize (its behaviour was introduced
+	by the commit 6acb3856b6d8007752388f22f97aa8aaffdb7a5e). It will let
+	the window managers to handle resizing of the window.
+
+	Resolves:
+	https://bugzilla.redhat.com/show_bug.cgi?id=1221501
+	https://bugzilla.redhat.com/show_bug.cgi?id=1205804
+
+	Remove unnecessary parameter from virt_viewer_window_resize()
+	Since c3cbdef888cc823e92140027d38378f40ccd4174 virt_viewer_window_resize
+	is always called with keep_win_size = FALSE.
+
+2015-07-09  Pavel Hrdina  <phrdina@redhat.com>
+
+	virt-viewer: set keepAlive on libvirt connection
+	Setting the keepAlive on libvirt connection is needed in order to
+	receive the CloseCallback event.
+
+	Resolves: rhbz#1164052
+
+2015-06-30  Jonathon Jongsma  <jjongsma@redhat.com>
+
+	Build an intermediate convenience library
+	Instead of building every single source file twice (once for
+	virt-viewer, and once for remote-viewer), just build them into a
+	temporary library and link the final executables against that.
+
+	The one possible drawback to this approach is that we now use the same
+	log domain for both executables: 'virt-viewer'. Previously, the
+	remote-viewer executable used 'remote-viewer' for its log domain.
+
+	Build: put one file on a line
+	For easier maintenance, put a single source file per-line in the
+	makefile
+
+	Remove spice-controller flags from virt-viewer build
+	Virt-viewer does not use spice-controller, only remote-viewer does. So
+	there's no need to ad SPICE_CONTROLLER_CFLAGS to the virt-viewer build.
+
+2015-06-24  Fabiano Fidêncio  <fidencio@redhat.com>
+
+	mingw,spec: Fix mingw-gstreamer1-plugins-bad-free name
+	The package was created with a wrong name (mingw-gstreamer1-plugins-bad)
+	and then fixed (mingw-gstreamer1-plugins-bad-free) for f22 and newer.
+
+2015-06-23  Fabiano Fidêncio  <fidencio@redhat.com>
+
+	msi: drop gtk2 support
+	As virt-viewer builds for Windows are using GTK3 nowadays, we can easily
+	drop GTK2 support and avoid maintenance effort in something that is not
+	used/tested anymore.
+
+	nsis: drop gtk2 support
+	As virt-viewer builds for Windows are using GTK3 nowadays, we can easily
+	drop GTK2 support and avoid maintenance effort in something that is not
+	used/tested anymore.
+
+	mingw-spec: Update msitools dependency
+	The new msitools release includes the necessaries changes for fixing
+	mingw-virt-viewer build (on fedora22).
+
+	These fixes are:
+	- an updated libvirt.wxi, removing storageencryption.rng file
+	- a new included libeproxy.wxi, a new dep for gtk3 since its 3.15.3
+	  version.
+
+	nsis: add libepoxy-0.dll (a new gtk3 dependency)
+	The new dependecy was introduced in gtk+ 3.15.3.
+
+2015-06-19  Jonathon Jongsma  <jjongsma@redhat.com>
+
+	Don't wait for reconnect when user cancels auth
+	When starting virt-viewer with the --reconnect switch to a guest that
+	has a password, if the user cancels the authentication dialog (e.g.
+	pressing 'Esc'), the window will display "Waiting for guest domain to
+	restart".  Obviously, the domain will never restart because it's already
+	running.
+
+	After this fix, the application will simply exit when the user cancels
+	authentication, even if the --reconnect switch is used.
+
+	Automatically retry auth failures for VNC
+	There's no reason that we need to ask if the user wants to retry auth
+	failures for VNC sessions but not ask for spice sessions. If the user
+	doesn't want to retry, she can simply click 'cancel' when the auth
+	dialog pops up, just as they do with spice.
+
+	VNC session: emit session-cancelled signal
+	When the user cancells an authentication dialog (e.g. by pressing 'Esc',
+	emit the session-cancelled signal to be consistent with the spice
+	session implementation.
+
+	Rename session-auth-failed to session-auth-unsupported
+	Now that VNC and Spice both return the same signal on normal
+	authentication failures ('session-auth-refused'), the
+	'session-auth-failed' signal is too confusingly similar. Rename it to
+	-unsupported to make it obvious that it's a different type of
+	(unrecoverable) error.
+
+	Fix inconsistencies in session auth failures
+	The spice session implementation can retry authentication on its own,
+	whereas the vnc session needs to tear down the session and re-connect in
+	order to retry a failed authentication. This results in the following
+	inconsistent behavior:
+
+	VNC session:
+	 - emits a 'session-auth-failed' signal when the client does not support
+	   a particular authentication type (i.e.: a non-recoverable error)
+	Spice session:
+	- emits a 'session-auth-failed' signal when user enters an incorrect
+	  password, and immediately retries auth internally
+
+	VNC session:
+	 - emits a 'session-auth-refused' error when user enters an invalid
+	   password (i.e.: a recoverable error)
+	Spice Session:
+	- never emits a 'session-auth-refused' signal
+
+	Because of these differences, the VirtViewerApp code to handle authentication
+	failures is a bit confusing and difficult to maintain. To fix this issue, make
+	both the spice and VNC sessions emit the same signal when similar errors occur.
+	We use the new session API added in the last commit to determine whether the
+	session supports automatic retries so we know how to handle the signal.
+
+	Session: add vfunc to check auth retry capability
+	The spice session implementation can retry authentication on its own,
+	whereas the vnc session needs to tear down the session and re-connect in
+	order to retry a failed authentication. Add API to determine this so
+	that we can clean up some code related to authentication failures.
+
+	Move SpiceSession setup to create_spice_session()
+	Most of the setup (connecting to signals, etc) for the SpiceSession was
+	done in create_spice_session(), but some was done afterwards in
+	virt_viewer_session_spice_new(). Consolidate all session configuration
+	in one place.
+
+	In addition to making it easier to maintain, create_spice_session() is
+	also called in virt_viewer_session_spice_close(). which results in a
+	spice session that is configured slightly differently than the first
+	session created in _new(). Consolidating everything in
+	create_spice_session() avoids that inconsistency.
+
+2015-06-19  Daniel P. Berrange  <berrange@redhat.com>
+
+	Add config.h include to remote-viewer-connect.c file
+
+2015-06-16  Lukas Venhoda  <lvenhoda@redhat.com>
+
+	remote-viewer-connect: Address entry is now required
+	Connect button is now non-sensitive when address entry is empty.
+	Pressing enter will now also NOT connect, when address entry is empty.
+
+	remote-viewer-connect: Fixed reselecting in recent chooser
+	Recent chooser didn't unselect on loosing focus.
+	Selecting recent connection, then modifying address in entry and
+	doubleclicking on the same recent connection caused remote-viewer to
+	connect to address in the entry,
+
+	Recent chooser now unselects on loosing focus, forcing to re-select when
+	doubleclicking the recent connection, which will now properly set the
+	address to connect to.
+
+	remote-viewer-connect: Changed hardcoded UI into XML
+	Hardcoded UI removed in favor of XML.
+	Added the new XML file for translation.
+
+	remote-viewer-connect: Changed dialog into a window
+	Changed connect dialog from GtkDialog to a GtkWindow.
+	Added the necessary signals and buttons, to keep the
+	behaviour of a dialog. (ESC to close, ENTER to submit)
+
+	remote-viewer-connect: Check if uri is NULL
+	URI should be NULL before passing it to remote_viewer_connect_dialog.
+
+	remote-viewer-connect: Changed response to gboolean
+	remote_viewer_connect_dialog now returns TRUE and FALSE, instead of 0 and -1.
+
+	Added a doxygen style comment to document this in code also.
+
+	remote-viewer: Connect dialog moved to its own file
+	Connect dialog from remote-viewer is now in its own file.
+	Most other dialog also have their own files.
+	This will make changing the dialog into a window easier.
+
+	Renamed connect_dialog to remote_viewer_connect_dialog.
+
+2015-06-16  Pavel Grunt  <pgrunt@redhat.com>
+
+	configure: Require spice-protocol 0.12.7
+	We are already using SPICE_CHANNEL_WEBDAV from spice/enums.h
+
+2015-06-15  Christophe Fergeau  <cfergeau@redhat.com>
+
+	Enable hotkeys after setting them in virt_viewer_app_set_hotkeys
+	Enabling hotkeys will trigger a rebuild of the 'send keys' menu
+	containing the new hotkeys. virt_viewer_app_set_hotkeys() was clearing
+	and then enabling the hotkeys before parsing the string containing the
+	new hotkeys. This was causing these hotkeys to be missing from the 'Send
+	keys' menu when they are set through the spice controller because the
+	'send keys' menu was rebuilt before the new hotkeys are set.
+
+	Resolves: rhbz#1055600
+
+2015-06-11  Fabiano Fidêncio  <fidencio@redhat.com>
+
+	nsis: Ship libwinpthread even without libvirt support
+	Without libwinpthread, remote-viewer complains about missing this dll,
+	when built using --without-libvirt
+
+2015-06-10  Sandy Stutsman  <sstutsma@redhat.com>
+
+	Add InstallScope="perMachine" to virt-viewer.wxs.in
+	Addresses: https://bugzilla.redhat.com/show_bug.cgi?id=1146016
+	Without this parameter the installer will place the start menu icon in the
+	Admin users path rather than the 'AllUsers'.  Unprivileged users are unable
+	to use the menu to start the remote-viewer.
+
+	N.B. Because previous installations mixed Users and PerMachine (AllUsers)
+	paths, this installation will *NOT* properly upgrade them.  They must be
+	manually uninstalled first.
+
+2015-06-10  Daniel P. Berrange  <berrange@redhat.com>
+
+	Add missing config.h header file
+
+2015-06-09  Christophe Fergeau  <cfergeau@redhat.com>
+
+	vv-file: Show 'newer-version-url' when version check fails
+	We currently display a generic error message when the current binary is
+	older than the minimum version specified in the vv file. The previous
+	commit added a 'newer-version-url' field to these .vv file. This commit
+	adds that URL to the error message if it's set.
+
+	vv-file: Add 'newer-version-url' key to .vv files
+	If set, this URL will be displayed when one of the version checks
+	('version' of 'versions' key fail). This URL should contain explanations
+	about how to get an updated remote-viewer version.
+
+	test: Add test case for virt_viewer_compare_buildid
+
+	util: Replace virt_viewer_compare_version with _compare_buildid
+	This allows us to do a more accurate version check if the .vv file
+	producer wants to allow builds newer than x.y-z because they contain an
+	important bug fix.
+
+	vv-file: Use "versions" in min version check
+	This tries to use the list of versions added to .vv files by the
+	previous commit. If remote-viewer was built with an os-id specified, and
+	if it's found in the 'versions' .vv file key, then the version
+	associated with it is used for version checks, otherwise the 'version'
+	field is used if present.
+
+	Show osid in remote-viewer --version
+
+	build-sys: Add --with-osid
+	This new configure flag allows to specify a string ID (eg fedora22,
+	ubuntu10.04, ..) identifying the OS this remote-viewer build will be
+	for. This will be used in combination with the new 'versions' field in
+	.vv files in order to make it possible for the creator of the .vv file
+	to specify which version it expects for the various OSes which may
+	connect.
+
+	vv-file: Add VirtViewerFile::versions
+	Specifying a single minimal version in the .vv file is not enough as
+	the client version will be highly dependent on the OS it's running in.
+	Windows versioning is not the same as linux versioning, Fedora 21 and
+	Fedora 22 may have different release numbers for the same version,
+	and we may want to force a specific minimal release in case of a
+	critical bug fix.
+
+	This commit adds supports for a 'versions' field in .vv files where a
+	list of os-id:version couples can be stored.
+
+	vv-file: Refactor virt_viewer_file_check_min_version
+	Reorganize the code a bit so that it's easier to extend it.
+
+	vv-file: Move version checking code in its own function
+	This moves the version checking code in a
+	virt_viewer_file_check_min_version helper so that it can be
+	reused/extended more easily.
+
+	build-sys: Always prepend '-' to BUILDID
+	This was removed by commit 28a6bd6 as WINDOWS_PRODUCTVERSION
+	needs a buildid without a dash. Apart from this variable,
+	all other uses of buildid/BUILDID in virt-viewer source tree
+	need a dash between the version number and the buildid to avoid getting
+	output like "3.01" instead of "3.0-1"
+
+	Rather than patching every location where BUILDID is used, this commit
+	appends the "-" before substituting/defining BUILDID in configure.ac.
+	This does not modifies the buildid configure.ac variable, this way
+	WINDOWS_PRODUCTVERSION won't get an unwanted '-'.
+
+	build-sys: Don't substitute buildid when it was not set
+	Since it defaults to being 0, we'll get a spurious 0 on remote-viewer
+	--version if we AC_DEFINE/AC_SUBST it when the user did not specify it.
+
+2015-06-04  Pavel Grunt  <pgrunt@redhat.com>
+
+	monitor-mapping: Do not allow to skip a display
+	Skipping a display does not have an effect because displays will be
+	reconfigured and shifted on the guest side anyway.
+
+	these monitor mappings are not valid:
+	 'monitor-mapping=1:2;3:1' - display #2 is not specified
+	 'monitor-mapping=4:2;2:1' - displays #1, #3 are not specified
+	 'monitor-mapping=3:3'     - displays #1, #2 are not specified
+
+2015-06-02  Fabiano Fidêncio  <fidencio@redhat.com>
+
+	session-spice: Only update displays geometry if the agent is connected
+
+2015-05-21  Lukas Venhoda  <lvenhoda@redhat.com>
+
+	virt-viewer: Fix choose VM dialog alt-tab in gnome2
+	Choose VM dialog was not visible in taskbar and alt-tab when running on
+	system with gnome2.
+
+	rhbz#1223285
+
+2015-05-21  Fabiano Fidêncio  <fidencio@redhat.com>
+
+	Revert "display-vnc: fix zoom-level set by command line"
+	This reverts commit 68148e1bd1a47ff370c78e2569a57ae0f3d8a400.
+
+	The commit in question was causing a regression about a tiny window
+	being displayed when opening a vnc guest.
+	The issue only happens with the gtk2 version of virt-viewer.
+
+	rhbz#1170071 that was solved by the reverted commit is avoided by
+	the commit c45a30e909656434aa842d48d828ef038ec7364a.
+
+	Resolves: rhbz#1201679
+
+2015-05-21  Pavel Grunt  <pgrunt@redhat.com>
+
+	session-vnc: Set window for display to avoid gtk-vnc v0.3.8 crash
+	The VNC display widget of gtk-vnc v0.3.8 needs a window at the moment
+	it is initialized otherwise it would crash.
+
+	Resolves: rhbz#1196517
+
+2015-05-21  Lukas Venhoda  <lvenhoda@redhat.com>
+
+	virt-viewer-display-vnc: Set uuid when using VNC
+	Notify user, that VNC does not provide uuid.
+
+	Set uuid to string "VNC does not provide guid".
+	This is more informative then just plain "Unknown".
+	User will now know WHY the GUID is unknown, when using remote-viewer.
+
+	virt-viewer-display-vnc: Set guest name when using VNC
+	If it's not already set, set guest name field in virt-viewer-app when using VNC.
+
+	Wait for VNC to be initialized (virt_viewer_display_vnc_initialized()).
+	In this callback get field guest name from app and check whether it
+	was already set before (FE from libvirt).
+	If not, set the guest name to name provided by VNC from
+	vnc_display_get_name().
+
+	This fill fix issue in remote-viewer: Guest name is Unknown when using VNC.
+
+2015-04-29  Michal Privoznik  <mprivozn@redhat.com>
+
+	Fix syntax-check
+	Commit c45a30e9 broke syntax-check:
+
+	trailing_blank
+	src/virt-viewer-window.c:1478:
+	maint.mk: found trailing blank(s)
+	maint.mk:700: recipe for target 'sc_trailing_blank' failed
+	make: *** [sc_trailing_blank] Error 1
+
+2015-04-22  Pavel Grunt  <pgrunt@redhat.com>
+
+	virt-viewer-window: Set initial zoom only once
+	It is not needed to do it more times as it may cause unnecessary resize
+	events especially when leaving the fullscreen mode
+
+	related: rhbz#1206460
+
+	virt-viewer-window: Make sure that minimum zoom level is lower than NORMAL_ZOOM_LEVEL
+	The minimum size of the desktop is 100x100 if the minimum window size
+	is greater than this, the zoom level is greater than NORMAL_ZOOM_LEVEL
+
+	related: rhbz#1206460
+
+2015-04-22  Lukas Venhoda  <lvenhoda@redhat.com>
+
+	virt-viewer: Set toolbar buttons not sensitive when needed
+	File->Screenshot, File->Preferences, View->Zoom and Send keys are now
+	sensitive only while quest is connected.
+
+	Changed behaviour of zoom:
+
+	Previously, zoom could be set while quest wasn't connected. The zoom
+	would then be set on connection. There was no indication of current zoom
+	level while not connected to guest.
+
+	Now, the menu is not sensitive while not connected to guest. Zoom can
+	now be only modified while connected to guest, or from the command line.
+
+	app/window: Set display menu not sensitive when needed
+	Displays menu must be sensitive only when at least one display is
+	enabled.
+
+2015-04-22  Fabiano Fidêncio  <fidencio@redhat.com>
+
+	cosmetic: move the "break" to inside the {} block
+
+	spice-session: use the error message, when available, on _channel_destroy()
+
+	session-spice: Destroy the channel instead of emit a "session-disconnect" signal
+	Whenever we reach these branches, we will abort or have to create a new
+	spice session (from the dialog showed to the user). So, destroying the
+	channel on these situations seems sane enough.
+	It also avoids an error dialog to be popped out twice with (basically)
+	the same information.
+
+	session-spice: Do not use _UNUSED for used attributes
+	channel attribute is actually used for error treatment
+
+	display: remove useless identation level
+
+2015-04-15  Jonathon Jongsma  <jjongsma@redhat.com>
+
+	SessionSpice: Protect against unreffing window twice
+	In theory, the dispose method can be called multiple times, so any
+	member variables that are unreffed should be set to NULL so that we
+	don't accidentally unref them multiple times.
+
+2015-04-15  Christophe Fergeau  <cfergeau@redhat.com>
+
+	build-sys: Ship mingw-virt-viewer.spec in tarballs
+	virt-viewer.spec is already shipped in tarballs, it's convenient to have
+	a pregenerated mingw-virt-viewer.spec in there as well.
+
+2015-04-14  Pavel Grunt  <pgrunt@redhat.com>
+
+	virt-viewer-main: '--wait' should not be used without domain name
+	Commit a830275344c88aef12166661b68ea2b4429c7212 required the domain
+	name to be placed just after the '--wait' option. It broke the
+	command line api, because running 'virt-viewer $vm --wait' was considered
+	as the error.
+
+	This patch rather checks whether the domain name was specified.
+
+	Related: rhbz#1209398, rhbz#1211573
+
+	Revert "virt-viewer-main: Require domain name as argument for '--wait'"
+	This reverts commit a830275344c88aef12166661b68ea2b4429c7212.
+
+	Commit a830275344c88aef12166661b68ea2b4429c7212 required the domain
+	name to be placed just after the '--wait' option. It broke the
+	command line api, because running 'virt-viewer $vm --wait' was considered
+	as the error.
+
+	Related: rhbz#1209398, rhbz#1211573
+
+	Revert "man: document that '--wait' requires domain as parameter"
+	This reverts commit 9ba2d28a0f35b69befd26d7c122bbe4cd626422f.
+
+	Commit a830275344c88aef12166661b68ea2b4429c7212 required the domain
+	name to be placed just after the '--wait' option. It broke the
+	command line api, because running 'virt-viewer $vm --wait' was considered
+	as the error.
+
+	Related: rhbz#1209398, rhbz#1211573
+
+	Revert "virt-viewer-main: exit when domain names doesn't match"
+	This reverts commit 10264d0d1ecbd67d3e59e3a1a3032936b0635eda.
+
+	Commit a830275344c88aef12166661b68ea2b4429c7212 required the domain
+	name to be placed just after the '--wait' option. It broke the
+	command line api, because running 'virt-viewer $vm --wait' was considered
+	as the error.
+
+	Related: rhbz#1209398, rhbz#1211573
+
+	virt-viewer-main: exit when domain names doesn't match
+	Since the domain name is required as a parameter for the '--wait'
+	option (commit a830275344c88aef12166661b68ea2b4429c7212 ), it is
+	neccessary to check whether all domains names are the same. Otherwise
+	it wouldn't be clear which name should be used.
+
+	related: rhbz#1211573
+
+	man: document that '--wait' requires domain as parameter
+	related: rhbz#1211573
+
+	man: document usage of domain name as optional
+	related: rhbz#1211573
+
+	ovirt: Allow to cancel authentication without showing error dialog
+	Resolves: https://bugzilla.redhat.com/show_bug.cgi?id=1201604
+
+2015-04-09  Christophe Fergeau  <cfergeau@redhat.com>
+
+	ovirt: Add support for an 'admin' key in vv file
+	When using a user with administrator rights, the VMs this user can
+	access from the user portal and the admin portal are different, and
+	REST API users must indicate which set of VMs they want through a
+	specific header. libgovirt already has support for that in its API, but
+	virt-viewer was not making use of that API.
+	This commit adds support for an 'admin' field in the [ovirt] section of
+	.vv files so oVirt can indicate remote-viewer whether this header should
+	be set or not.
+
+2015-04-09  Pavel Grunt  <pgrunt@redhat.com>
+
+	virt-viewer-app: Do not show error dialog twice for unknown graphic
+	Related: rhbz#1085216
+
+2015-04-09  Jonathon Jongsma  <jjongsma@redhat.com>
+
+	Cleanup: only add display when it's created
+	This wasn't causing any problems because the _add_display() function has
+	an early return for the case that the display has already been added to
+	the session, but it's quite confusing when reading the code to see this
+	_add_display() function being called for every display every time we get
+	a monitor configuration update.
+
+	Emit one show-hint notification when enabling a display
+	Freeze notifications before setting the show hints to prevent multiple
+	notification signals from being emitted.
+
+2015-04-09  Pavel Grunt  <pgrunt@redhat.com>
+
+	display-spice: Do not ignore change of position
+	Positions of displays can be changed by guest, it is important to
+	react to this change by rearranging client's windows otherwise
+	mouse actions can be assigned to a wrong window.
+
+	Resolves: https://bugzilla.redhat.com/show_bug.cgi?id=1206216
+
+	virt-viewer-window: Return early when zoom of window and zoom of display are same
+	The zoom level should be changed when zoom levels of the window and
+	the display are different. It is wrong to check the previous value of
+	the window because it could be set just for the window and not for
+	the display (e.g. when setting zoom level using the command line).
+
+	Related to: https://bugzilla.redhat.com/show_bug.cgi?id=1206460
+
+	virt-viewer-window: Set zoom when display is enabled and ready.
+	The display has default dimensions (100x100) when it is disabled.
+	Calculating the minimal zoom for the display will give wrong value
+	for the newly opened display.
+
+	It is better to wait for setting the zoom level to the moment when
+	the display is enabled and ready.
+
+	Related to: https://bugzilla.redhat.com/show_bug.cgi?id=1206460
+
+2015-04-07  Pavel Grunt  <pgrunt@redhat.com>
+
+	virt-viewer-main: Require domain name as argument for '--wait'
+	As since 88f634179e56742a21fb4c7efc270e4203322d74 virt-viewer can be
+	used without a domain-name, let's require it when using --wait.
+
+	Resolves: rhbz#1209398
+
+2015-04-07  Christophe Fergeau  <cfergeau@redhat.com>
+
+	Fix leak in virt_viewer_session_spice_clear_displays()
+	The GList returned by spice_session_get_channels() must be freed after
+	use.
+
+2015-04-03  Fabiano Fidêncio  <fidencio@redhat.com>
+
+	Fix crash when disabling last enabled display
+	Using virt_viewer_signal_connect_object() instead of g_signal_connect()
+	ensures that menu_display_visible_toggled_cb() won't be executed after
+	the display object be disposed.
+
+	Backtrace for the crash:
+
+	 #0  0x00007ffff070592b in g_type_check_instance_is_a (type_instance=0x8851f0, iface_type=<optimized out>) at gtype.c:4016
+	 #1  0x000000000041ee06 in virt_viewer_display_get_session (self=0x8851f0) at ../../src/virt-viewer-display.c:702
+	 #2  0x0000000000417be7 in menu_display_visible_toggled_cb (checkmenuitem=0x93f790 [GtkCheckMenuItem], display=0x8851f0) at ../../src/virt-viewer-app.c:2187
+	 #6  0x00007ffff06fe29f in <emit signal ??? on instance 0x93f790 [GtkCheckMenuItem]> (instance=instance@entry=0x93f790, signal_id=<optimized out>, detail=detail@entry=0) at gsignal.c:3361
+	 #3  0x00007ffff06e3b9f in g_closure_invoke (closure=0x93faa0, return_value=return_value@entry=0x0, n_param_values=1, param_values=param_values@entry=0x7fffffffc230, invocation_hint=invocation_hint@entry=0x7fffffffc1b0) at gclosure.c:768
+	 #4  0x00007ffff06f54c9 in signal_emit_unlocked_R (node=node@entry=0x6d73e0, detail=detail@entry=0, instance=instance@entry=0x93f790, emission_return=emission_return@entry=0x0, instance_and_params=instance_and_params@entry=0x7fffffffc230) at gsignal.c:3549
+	 #5  0x00007ffff06fded0 in g_signal_emit_valist (instance=<optimized out>, signal_id=<optimized out>, detail=<optimized out>, var_args=var_args@entry=0x7fffffffc3f0) at gsignal.c:3305
+	 #7  0x00007ffff5eb6158 in gtk_check_menu_item_activate (check_menu_item=0x93f790 [GtkCheckMenuItem]) at gtkcheckmenuitem.c:299
+	 #8  0x00007ffff5eb6158 in gtk_check_menu_item_activate (menu_item=0x93f790 [GtkCheckMenuItem]) at gtkcheckmenuitem.c:419
+	 #12 0x00007ffff06fe29f in <emit signal ??? on instance 0x93f790 [GtkCheckMenuItem]> (instance=<optimized out>, signal_id=<optimized out>, detail=<optimized out>) at gsignal.c:3361
+	 #9  0x00007ffff06e3b9f in g_closure_invoke (closure=closure@entry=0x6d5aa0, return_value=return_value@entry=0x0, n_param_values=1, param_values=param_values@entry=0x7fffffffc6b0, invocation_hint=invocation_hint@entry=0x7fffffffc630) at gclosure.c:768
+	 #10 0x00007ffff06f51bd in signal_emit_unlocked_R (node=node@entry=0x6d5ba0, detail=detail@entry=0, instance=instance@entry=0x93f790, emission_return=emission_return@entry=0x0, instance_and_params=instance_and_params@entry=0x7fffffffc6b0) at gsignal.c:3479
+	 #11 0x00007ffff06fded0 in g_signal_emit_valist (instance=<optimized out>, signal_id=<optimized out>, detail=<optimized out>, var_args=var_args@entry=0x7fffffffc870) at gsignal.c:3305
+	 #13 0x0000000000417c5e in menu_display_visible_toggled_cb (checkmenuitem=0x93f790 [GtkCheckMenuItem], display=0x8851f0) at ../../src/virt-viewer-app.c:2200
+	 #17 0x00007ffff06fe29f in <emit signal ??? on instance 0x93f790 [GtkCheckMenuItem]> (instance=instance@entry=0x93f790, signal_id=<optimized out>, detail=detail@entry=0) at gsignal.c:3361
+	 #14 0x00007ffff06e3c45 in g_closure_invoke (closure=0x93faa0, return_value=return_value@entry=0x0, n_param_values=1, param_values=param_values@entry=0x7fffffffcb50, invocation_hint=invocation_hint@entry=0x7fffffffcad0) at gclosure.c:768
+	 #15 0x00007ffff06f54c9 in signal_emit_unlocked_R (node=node@entry=0x6d73e0, detail=detail@entry=0, instance=instance@entry=0x93f790, emission_return=emission_return@entry=0x0, instance_and_params=instance_and_params@entry=0x7fffffffcb50) at gsignal.c:3549
+	 #16 0x00007ffff06fded0 in g_signal_emit_valist (instance=<optimized out>, signal_id=<optimized out>, detail=<optimized out>, var_args=var_args@entry=0x7fffffffcd10) at gsignal.c:3305
+	 #18 0x00007ffff5eb6158 in gtk_check_menu_item_activate (check_menu_item=0x93f790 [GtkCheckMenuItem]) at gtkcheckmenuitem.c:299
+	 #19 0x00007ffff5eb6158 in gtk_check_menu_item_activate (menu_item=0x93f790 [GtkCheckMenuItem]) at gtkcheckmenuitem.c:419
+	 #23 0x00007ffff06fe29f in <emit signal ??? on instance 0x93f790 [GtkCheckMenuItem]> (instance=instance@entry=0x93f790, signal_id=<optimized out>, detail=detail@entry=0) at gsignal.c:3361
+	 #20 0x00007ffff06e3c45 in g_closure_invoke (closure=closure@entry=0x6d5aa0, return_value=return_value@entry=0x0, n_param_values=1, param_values=param_values@entry=0x7fffffffcfd0, invocation_hint=invocation_hint@entry=0x7fffffffcf50) at gclosure.c:768
+	 #21 0x00007ffff06f51bd in signal_emit_unlocked_R (node=node@entry=0x6d5ba0, detail=detail@entry=0, instance=instance@entry=0x93f790, emission_return=emission_return@entry=0x0, instance_and_params=instance_and_params@entry=0x7fffffffcfd0) at gsignal.c:3479
+	 #22 0x00007ffff06fded0 in g_signal_emit_valist (instance=<optimized out>, signal_id=<optimized out>, detail=<optimized out>, var_args=var_args@entry=0x7fffffffd190) at gsignal.c:3305
+	 #24 0x00007ffff608648e in IA__gtk_widget_activate (widget=widget@entry=0x93f790 [GtkCheckMenuItem]) at gtkwidget.c:5048
+	 #25 0x00007ffff5f6cacd in IA__gtk_menu_shell_activate_item (menu_shell=0x70ece0 [GtkMenu], menu_item=0x93f790 [GtkCheckMenuItem], force_deactivate=<optimized out>) at gtkmenushell.c:1303
+	 #26 0x00007ffff5f6ce96 in gtk_menu_shell_button_release (widget=0x70ece0 [GtkMenu], event=<optimized out>) at gtkmenushell.c:730
+	 #31 0x00007ffff06fe29f in <emit signal ??? on instance 0x70ece0 [GtkMenu]> (instance=instance@entry=0x70ece0, signal_id=<optimized out>, detail=detail@entry=0) at gsignal.c:3361
+	 #27 0x00007ffff5f578ad in _gtk_marshal_BOOLEAN__BOXED (closure=0x6c7180, return_value=0x7fffffffd4e0, n_param_values=<optimized out>, param_values=0x7fffffffd540, invocation_hint=<optimized out>, marshal_data=<optimized out>) at gtkmarshalers.c:86
+	 #28 0x00007ffff06e3c45 in g_closure_invoke (closure=closure@entry=0x6c7180, return_value=return_value@entry=0x7fffffffd4e0, n_param_values=2, param_values=param_values@entry=0x7fffffffd540, invocation_hint=invocation_hint@entry=0x7fffffffd4c0) at gclosure.c:768
+	 #29 0x00007ffff06f5cef in signal_emit_unlocked_R (node=node@entry=0x6c73f0, detail=detail@entry=0, instance=instance@entry=0x70ece0, emission_return=emission_return@entry=0x7fffffffd660, instance_and_params=instance_and_params@entry=0x7fffffffd540) at gsignal.c:3587
+	 #30 0x00007ffff06fdac2 in g_signal_emit_valist (instance=<optimized out>, signal_id=<optimized out>, detail=<optimized out>, var_args=var_args@entry=0x7fffffffd710) at gsignal.c:3315
+	 #32 0x00007ffff608790c in gtk_widget_event_internal (widget=widget@entry=0x70ece0 [GtkMenu], event=event@entry=0x944f90) at gtkwidget.c:5017
+	 #33 0x00007ffff6087be7 in IA__gtk_widget_event (widget=widget@entry=0x70ece0 [GtkMenu], event=event@entry=0x944f90) at gtkwidget.c:4814
+	 #34 0x00007ffff5f55b94 in IA__gtk_propagate_event (widget=0x70ece0 [GtkMenu], event=0x944f90) at gtkmain.c:2501
+	 #35 0x00007ffff5f55f5b in IA__gtk_main_do_event (event=0x944f90) at gtkmain.c:1696
+	 #36 0x00007ffff5bae7dc in gdk_event_dispatch (source=<optimized out>, callback=<optimized out>, user_data=<optimized out>) at gdkevents-x11.c:2425
+	 #37 0x00007ffff03e40ba in g_main_context_dispatch (context=0x693d50) at gmain.c:3122
+	 #38 0x00007ffff03e40ba in g_main_context_dispatch (context=context@entry=0x693d50) at gmain.c:3737
+	 #39 0x00007ffff03e4450 in g_main_context_iterate (context=0x693d50, block=block@entry=1, dispatch=dispatch@entry=1, self=<optimized out>) at gmain.c:3808
+	 #40 0x00007ffff03e4772 in g_main_loop_run (loop=0x748980) at gmain.c:4002
+
+2015-04-02  Pavel Grunt  <pgrunt@redhat.com>
+
+	session-spice: Remove spice-gtk version checks
+	Since 77ac0d8892837a117f9ca10020c1ac7f1944fca7 virt-viewer requires
+	spice-gtk v0.28
+
+	virt-viewer-app: Set hotkeys when app is constructed
+	virt_viewer_app_set_hotkeys() calls virt_viewer_app_set_enable_accel()
+	which notify the display about "enable-accel". However the display
+	begins to exist after the virt_viewer_app initialization.
+
+	Resolves: https://bugzilla.redhat.com/show_bug.cgi?id=1206106
+
+	virt-viewer-window: Change zoom of the display only when it is possible
+	Do not allow to zoom out if it is not possible due to the width of
+	the top menu. It avoids emitting size allocation events that will
+	change the display resolution of the spice guest.
+
+	Resolves: https://bugzilla.redhat.com/show_bug.cgi?id=1206460
+
+	virt-viewer-window: Return NULL instead of FALSE for display
+
+	virt-viewer-display: Use MIN_DISPLAY_WIDTH/HEIGHT instead of numbers
+
+	Use ZOOM constants instead of numbers
+
+2015-04-01  Christophe Fergeau  <cfergeau@redhat.com>
+
+	Fix virt-viewer --reconnect crash with SPICE VMs
+	When using virt-viewer --reconnect, virt-viewer currently crashes when
+	a SPICE VM is destroyed with "virsh destroy"
+
+	What happens is that when the guest is destroyed, virt-viewer receives a
+	SPICE_CHANNEL_ERROR_IO notification in
+	virt_viewer_session_spice_main_channel_event().  This triggers the
+	emission of the "session-disconnected" signal, which will end up calling
+	spice_session_disconnect() (indirectly through
+	virt_viewer_app_disconnected/virt_viewer_app_deactivate).
+
+	Since spice-gtk commit ff25f3e, the actual session disconnection is
+	done from an idle.  When the "session-disconnected" emission stops, the
+	VirtViewerSession instance is destroyed. However, the associated
+	VirtViewerDisplaySpice are still alive as the various SpiceChannels
+	instances hold a reference through the "virt-viewer-displays" GObject
+	data.
+	These channels are destroyed when the idle queued by spice_session_disconnect()
+	run. The associated VirtViewerDisplay are in turn destroyed too, but
+	this causes attempts to use the VirtViewerSession associated with the
+	displays, which has already been destroyed. This causes a crash.
+
+	This commit adds a virt_viewer_session_spice_clear_displays() which is
+	similar to virt_viewer_session_clear_displays(), but makes sure the
+	"virt-viewer-displays" references are dropped too. This ensures the
+	VirtViewerDisplay instances don't outlive the VirtViewerSession
+	they are associated with.
+
+	Backtrace for the crash:
+
+	 #0  0x0000000000413f0f in display_show_hint (display=0x85ab50 [VirtViewerDisplaySpice], pspec=0x939bd0 [GParamFlags], user_data=0x0) at virt-viewer-app.c:949
+	 #4  0x00000031ff22a29f in <emit signal notify:show-hint on instance 0x85ab50 [VirtViewerDisplaySpice]> (instance=instance@entry=0x85ab50, signal_id=<optimized out>, detail=<optimized out>) at gsignal.c:3361
+	     #1  0x00000031ff20fc45 in g_closure_invoke (closure=0xa98f50, return_value=return_value@entry=0x0, n_param_values=2, param_values=param_values@entry=0x7fffffffc700, invocation_hint=invocation_hint@entry=0x7fffffffc680) at gclosure.c:768
+	     #2  0x00000031ff2214c9 in signal_emit_unlocked_R (node=node@entry=0x674f80, detail=detail@entry=1678, instance=instance@entry=0x85ab50, emission_return=emission_return@entry=0x0, instance_and_params=instance_and_params@entry=0x7fffffffc700) at gsignal.c:3549
+	     #3  0x00000031ff229ed0 in g_signal_emit_valist (instance=<optimized out>, signal_id=<optimized out>, detail=<optimized out>, var_args=var_args@entry=0x7fffffffc8d0) at gsignal.c:3305
+	 #5  0x00000031ff214175 in g_object_dispatch_properties_changed (object=0x85ab50 [VirtViewerDisplaySpice], n_pspecs=<optimized out>, pspecs=<optimized out>) at gobject.c:1056
+	 #6  0x00000031ff216661 in g_object_notify (pspec=0x939bd0 [GParamFlags], object=0x85ab50 [VirtViewerDisplaySpice]) at gobject.c:1149
+	 #7  0x00000031ff216661 in g_object_notify (object=0x85ab50 [VirtViewerDisplaySpice], property_name=<optimized out>) at gobject.c:1197
+	 #8  0x000000000041e5ab in virt_viewer_display_set_show_hint (self=0x85ab50 [VirtViewerDisplaySpice], mask=1, enable=0) at virt-viewer-display.c:691
+	 #9  0x000000000042b62d in update_display_ready (self=0x85ab50 [VirtViewerDisplaySpice])
+	     at virt-viewer-display-spice.c:145
+	 #13 0x00000031ff22a29f in <emit signal notify:ready on instance 0x898590 [SpiceDisplay]> (instance=instance@entry=0x898590, signal_id=<optimized out>, detail=<optimized out>) at gsignal.c:3361
+	     #10 0x00000031ff20fc45 in g_closure_invoke (closure=0x99b280, return_value=return_value@entry=0x0, n_param_values=2, param_values=param_values@entry=0x7fffffffcc50, invocation_hint=invocation_hint@entry=0x7fffffffcbd0) at gclosure.c:768
+	     #11 0x00000031ff2214c9 in signal_emit_unlocked_R (node=node@entry=0x674f80, detail=detail@entry=1696, instance=instance@entry=0x898590, emission_return=emission_return@entry=0x0, instance_and_params=instance_and_params@entry=0x7fffffffcc50) at gsignal.c:3549
+	     #12 0x00000031ff229ed0 in g_signal_emit_valist (instance=<optimized out>, signal_id=<optimized out>, detail=<optimized out>, var_args=var_args@entry=0x7fffffffce20) at gsignal.c:3305
+	 #14 0x00000031ff214175 in g_object_dispatch_properties_changed (object=0x898590 [SpiceDisplay], n_pspecs=<optimized out>, pspecs=<optimized out>) at gobject.c:1056
+	 #15 0x00000031ff216661 in g_object_notify (pspec=0xa83370 [GParamBoolean], object=0x898590 [SpiceDisplay]) at gobject.c:1149
+	 #16 0x00000031ff216661 in g_object_notify (object=0x898590 [SpiceDisplay], property_name=<optimized out>) at gobject.c:1197
+	 #17 0x00007ffff7522525 in update_ready (display=0x898590 [SpiceDisplay]) at spice-widget.c:236
+	 #18 0x00007ffff752257e in set_monitor_ready (self=0x898590 [SpiceDisplay], ready=0)
+	     at spice-widget.c:244
+	 #19 0x00007ffff75274e6 in primary_destroy (channel=0x89f5c0 [SpiceDisplayChannel], data=0x898590)
+	     at spice-widget.c:2169
+	 #20 0x00007ffff7528918 in channel_destroy (s=0x909fa0 [SpiceSession], channel=0x89f5c0 [SpiceDisplayChannel], data=0x898590) at spice-widget.c:2484
+	 #24 0x00000031ff22a29f in <emit signal ??? on instance 0x909fa0 [SpiceSession]> (instance=<optimized out>, signal_id=<optimized out>, detail=<optimized out>) at gsignal.c:3361
+	     #21 0x00000031ff20fc45 in g_closure_invoke (closure=0xa9bda0, return_value=return_value@entry=0x0, n_param_values=2, param_values=param_values@entry=0x7fffffffd280, invocation_hint=invocation_hint@entry=0x7fffffffd200) at gclosure.c:768
+	     #22 0x00000031ff2214c9 in signal_emit_unlocked_R (node=node@entry=0x9c17d0, detail=detail@entry=0, instance=instance@entry=0x909fa0, emission_return=emission_return@entry=0x0, instance_and_params=instance_and_params@entry=0x7fffffffd280) at gsignal.c:3549
+	     #23 0x00000031ff229ed0 in g_signal_emit_valist (instance=<optimized out>, signal_id=<optimized out>, detail=<optimized out>, var_args=var_args@entry=0x7fffffffd450) at gsignal.c:3305
+	 #25 0x00007ffff71c3248 in spice_session_channel_destroy (session=0x909fa0 [SpiceSession], channel=0x89f5c0 [SpiceDisplayChannel]) at spice-session.c:2217
+	 #26 0x00007ffff71bd8b2 in session_disconnect (self=0x909fa0 [SpiceSession], keep_main=0)
+	     at spice-session.c:281
+	 #27 0x00007ffff71c1b27 in session_disconnect_idle (self=0x909fa0 [SpiceSession]) at spice-session.c:1853
+	 #28 0x00000031fee4a0ba in g_main_context_dispatch (context=0x6a4400) at gmain.c:3122
+	 #29 0x00000031fee4a0ba in g_main_context_dispatch (context=context@entry=0x6a4400) at gmain.c:3737
+	 #30 0x00000031fee4a450 in g_main_context_iterate (context=0x6a4400, block=block@entry=1, dispatch=dispatch@entry=1, self=<optimized out>) at gmain.c:3808
+	 #31 0x00000031fee4a772 in g_main_loop_run (loop=0x9890f0) at gmain.c:4002
+	 #32 0x0000003babc05f75 in gtk_main () at gtkmain.c:1219
+	 #33 0x000000000043143b in main (argc=1, argv=0x7fffffffda48) at virt-viewer-main.c:12
+
+2015-03-27  Fabiano Fidêncio  <fidencio@redhat.com>
+
+	virt-viewer: Make update_display() more readable
+
+	virt-viewer: Do not wait for a guest that will never show up
+	All the situations where virt_viewer_update_display() can fail are
+	those when we won't be able to connect regardless of what changes on the
+	remote host. So, propagate the error instead of waiting for the guest to
+	start.
+
+	Related: rhbz#1085216
+
+	remote-viewer: Avoid simple_message_dialog() when errors can be propagated
+	Remove the dialog used to report errors when create_session() fails,
+	propagating the error is enough and it is already done.
+
+	Related: rhbz#1085216
+
+	virt-viewer: Avoid simple_message_dialog() when errors can be propagated
+	Remove all the dialogs used to report errors on extract_connect_info()
+	and just propagate the errors we got from it.
+	The only exception is virt_viewer_domain_event(), that is a callback
+	that doesn't have GError as argument. In this specific case, we show the
+	error dialog instead of propagating it.
+
+	Related: rhbz#1085216
+
+	virt-viewer-app: create_session() should return a boolean
+	By convention functions that take GError parameters should return FALSE
+	(or NULL) or error.
+
+	Related: rhbz#1085216
+
+	virt-viewer-app: Add a GError arg to create_session()
+	This is part of a small re-factoring that will have all connection
+	errors, when we won't be able to connect regardless of what changes on
+	the remote host, being treated by virt_viewer_app_initial_connect(),
+	avoiding weird behaviors as we have nowadays (like more than one error
+	dialog being shown or having the virt-viewer waiting forever for a guest
+	that will never show up).
+
+	Related: rhbz#1085216
+
+	virt-viewer: Add a GError arg to update_display()
+	This is part of a small re-factoring that will have all connection
+	errors, when we won't be able to connect regardless of what changes on
+	the remote host, being treated by virt_viewer_app_initial_connect(),
+	avoiding weird behaviors as we have nowadays (like more than one error
+	dialog being shown or having the virt-viewer waiting forever for a guest
+	that will never show up).
+
+	Related: rhbz#1085216
+
+	virt-viewer: Add a GError arg to extract_connect_info()
+	This is part of a small re-factoring that will have all connection
+	errors, when we won't be able to connect regardless of what changes on
+	the remote host, being treated by virt_viewer_app_initial_connect(),
+	avoiding weird behaviors as we have nowadays (like more than one error
+	dialog being shown or having the virt-viewer waiting forever for a guest
+	that will never show up).
+
+	Related: rhbz#1085216
+
+2015-03-26  Fabiano Fidêncio  <fidencio@redhat.com>
+
+	Do not use comments that are not in English
+
+2015-03-24  Pavel Grunt  <pgrunt@redhat.com>
+
+	virt-viewer: Clean up if no vm was chosen
+	It is safe to clean up when running virt-viewer without specifying
+	vm name if no vm was chosen. It brings back behavior before 88f6341.
+
+	The 'if (dom == NULL && err != NULL)' part was affected by commits
+	824c4b9, 1eaaf8c, 15c7d17 so the check for 'err' is not needed anymore.
+
+2015-03-23  Pavel Grunt  <pgrunt@redhat.com>
+
+	Report errors in one place
+	Since the error is propagated to the main, report the error there.
+	To make it work GError VIRT_VIEWER_ERROR_FAILED is set for all
+	failing states and it is reported using virt_viewer_app_simple_message_dialog().
+
+	Clear GError in cleanup section
+
+	Exit normally when canceling dialog
+	This applies for:
+	 libvirt authentication dialog (e.g. virt-viewer --attach guest)
+	 'recent connection' dialog (e.g. remote-viewer)
+	 'vm choose' dialog when connecting without specifying the vm name
+
+	This is done by using a new GError VIRT_VIEWER_ERROR_CANCELLED.
+
+	virt-viewer: Bring back debug log about nonexistent guest
+	Although commit 88f6341 allowed to use virt-viewer with a wrong guest name,
+	the user is informed about the nonexistent guest only by a dialog showing
+	the list of running machines or informing about the connection error.
+
+	Resolves https://bugzilla.redhat.com/show_bug.cgi?id=1201177
+
+2015-03-23  Jonathon Jongsma  <jjongsma@redhat.com>
+
+	Monitor config at sometimes leaves additional monitors enabled
+	When using the configuration file to specify which remote monitors should be
+	enabled when using the --full-screen option, it sometimes left additional
+	displays enabled, or didn't place the displays on the right monitor, or didn't
+	fullscreen them.
+
+	This was especially true when not enabling the first display on the remote
+	host. For example:
+
+	  monitor-mapping=2:2;3:3
+
+	(note that configuration file uses 1-based indexes, rather than 0-based
+	indexes, so the numbers used below will be 1 less than those above)
+
+	Previously, when performing fullscreen auto-conf, we were configuring displays
+	starting at #0 and ending at ndisplays. So for the previous configuration, we
+	looped from i = 0 to i < 2 (i.e. display #0 and #1) even though we should have
+	configured display #1 and #2. After this fix, we configure the exact displays
+	that were specified in the monitor-mapping configuration.
+
+	Resolves: rhbz#1200750
+
+	Use 'constructed' vfunc instead of 'constructor'
+	We don't need the added complexity of 'constructor', since we only want
+	to do some final initializing after all of the properties have been set,
+	etc. So just use the simpler 'constructed'.
+
+	VirtViewerApp: create main window after constructor
+	When using the configuration file to specify which remote monitors
+	should be enabled when using the --full-screen option, it sometimes left
+	additional displays enabled, or didn't place the displays on the right
+	monitor, or didn't fullscreen them.
+
+	Part of the problem was that we were creating the first display window before
+	loading the monitor mapping configuration from the settings file. So even if
+	the first display was disabled in the configuration, the first window will
+	still be created with an id of 0, and therefore didn't get set to fullscreen.
+	Moving the main window creation to the 'constructor' vfunc instead of the
+	object init func ensures that the configuration is all loaded before we attempt
+	to do any fullscreen autoconf.
+
+	Related: rhbz#1200750
+
+2015-03-16  Fabiano Fidêncio  <fidencio@redhat.com>
+
+	Update geometry when enabling/disabling displays
+	_update_displays_geometry() must be called every time a display is
+	enabled/disabled, avoiding gaps (when a display is disabled) or overlaps
+	(when a display is enabled) between the monitors.
+
+	This is what happens when we have 3 displays enabled (each one
+	represented by: width x height + x position + y position) ...
+
+	  Display #0       Display #1         Display #2
+	 +---------+      +----------+       +---------+
+	 |         |      |          |       |         |
+	 |         |      |          |       |         |
+	 |         |      |          |       |         |
+	 |         |      |          |       |         |
+	 |         |      |          |       |         |
+	 |         |      |          |       |         |
+	 +---------+      +----------+       +---------+
+	(680x804+0+0)   (504x804+680+0)    (408x804+1184+0)
+
+	Whether the Display #1 is disable, a message will be sent down to the
+	vdagent, representing the new arrangement of the monitors:
+
+	  Display #0     Display #2
+	 +---------+     +---------+
+	 |         |     |         |
+	 |         |     |         |
+	 |         |     |         |
+	 |         |     |         |
+	 |         |     |         |
+	 |         |     |         |
+	 +---------+     +---------+
+	(680x804+0+0)  (408x804+1184+0)
+
+	However, taking a look on the x position, a gap can be identified as
+	Display #0 starts at position (0,0) and has 680 pixels of width. But
+	Display #1 only starts at position (1184, 0), leaving 504 pixels as a
+	gap. The proper message, however, should represent the following
+	arrangement ...
+
+	  Display #0       Display #2
+	 +---------+      +---------+
+	 |         |      |         |
+	 |         |      |         |
+	 |         |      |         |
+	 |         |      |         |
+	 |         |      |         |
+	 |         |      |         |
+	 +---------+      +---------+
+	(680x804+0+0)   (408x804+680+0)
+
+	... avoiding then gaps and overlaps.
+
+	Resolves: rhbz#1111425
+	https://bugzilla.redhat.com/show_bug.cgi?id=1111425
+
+2015-03-13  Christophe Fergeau  <cfergeau@redhat.com>
+
+	Deal with NULL gport in virt_viewer_app_set_connect_info()
+	virt_viewer_app_set_connect_info() has a debug statement printing
+	gport/gtlsport. It checks that gtlsport is not NULL before printing it,
+	but makes no similar check for gport. Since it's possible to get a NULL
+	gport when using ovirt:// after the previous commit, it's better to check
+	it too.
+
+	ovirt: Don't try to use invalid port numbers
+	If a remote oVirt VM don't specify a port/secure port number, we'd still
+	try to pass it down to spice-gtk, which would then complain that 0 (the
+	default value) isn't a valid port number.
+	This commit make sure we filter out the default port/secure-port value
+	and pass NULL to spice-gtk instead when we get these values.
+
+	foreign-menu: Don't show empty foreign menu on secondary displays
+	When using ovirt://, the foreign menu will only be shown in the primary
+	window after getting notified about OvirtForeignMenu::files (ie when
+	it managed to fetch some ISO files to show in the foreign menu).
+
+	However, for secondary windows, the foreign menu will be added to the
+	window even if there are no files to show. This commit makes sure we
+	destroy the window foreign menu whenever it would be empty.
+
+2015-03-12  Fabiano Fidêncio  <fidencio@redhat.com>
+
+	POTFILES: Add virt-viewer-preferences.xml
+	The file was introduced in commit
+	73b80ba99fb80140cadd07bbbf09a412bb9a0098
+
+	spec: Add virt-viewer-preferences.xml
+	The file was introduced in commit
+	73b80ba99fb80140cadd07bbbf09a412bb9a0098
+
+2015-03-12  Christophe Fergeau  <cfergeau@redhat.com>
+
+	ovirt: Fail gracefully when hostname is missing
+	When parsing info returned by oVirt REST API, the hostname should be
+	present. However, I recently run remote-viewer against a buggy oVirt
+	instance where the hostname was missing. This commit handles better this
+	situation by displaying an error message and exiting.
+
+	ovirt: Take into account SPICE proxy
+	VMs managed by oVirt can be hidden behind a proxy. This commit allows
+	remote-viewer to make use of this information when it's available
+	A recent oVirt instance is needed so that it's available through the
+	REST API, as well as libgovirt 0.3.3 or newer.
+	With older oVirt/libgovirt versions, the worst that can happen is a
+	runtime warning in the console, and an impossibility to connect to VMs
+	behind a proxy, so this commit is not raising the minimum libgovirt
+	requirement.
+
+2015-03-12  Fabiano Fidêncio  <fidencio@redhat.com>
+
+	Take --direct into consideration when checking if a guest is reachable
+	When connecting to a remote host (using qemu+ssh://...) that has a
+	virtual machine listening to "127.0.0.1", virt_viewer_is_reachable() must
+	take --direct into account, otherwise it can end up connecting to a local
+	virtual machine listening to "0.0.0.0" instead of returning that the
+	guest is not reachable.
+
+	Resolves: rhbz#1085216
+
+2015-03-11  Fabiano Fidêncio  <fidencio@redhat.com>
+
+	Add G_SOURCE_REMOVE to vir-glib-compat
+	G_SOURCE_REMOVE was introduced in GLib 2.32 and has its value defined as
+	FALSE.
+
+	Avoid 'Dereference of a null pointer'
+	Caught by Covscan.
+
+2015-03-05  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	Enable share folder widgets if supported by session
+
+	Add virt_viewer_session_can_share_folder()
+	Functions name says it all, it is only implement for Spice, checking
+	for webdav channel presence.
+
+	Sync preferences widgets with session properties
+
+	Show preferences dialog
+	Add a menu item Preferences under File and show the preferences dialog
+
+	Add preferences dialog UI file
+
+	spice: enable/disable share folder
+	Connect/disconnect webdav channel to enable or disable sharing folder
+
+2015-03-04  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	spice: sync share folder preferences with session
+
+	Bump spice-gtk to 0.28
+	The following patches will only work with spice-gtk >= 0.28.
+
+	Add a few session properties for share folder
+	See properties comments for details.
+
+	misc: add a missing "static" for function
+
+2015-02-23  Daniel P. Berrange  <berrange@redhat.com>
+
+	Switch over to use zanata for managing translations
+	Push new pot with
+
+	  cd po
+	  make virt-viewer.pot
+	  zanata push
+
+	Pull new translations with
+
+	  cd po
+	  zanata pull
+
+2015-02-18  Pavel Grunt  <pgrunt@redhat.com>
+
+	Do not add "https://" and "/api" to oVirt URI
+	It is deprecated since govirt 0.3.1 (and virt-viewer already depends on
+	govirt 0.3.2).
+
+	Silences:
+	(remote-viewer:19420): libgovirt-WARNING **: Passing a full http:// or https:// URI to ovirt_proxy_new() is deprecated
+	(remote-viewer:19420): libgovirt-WARNING **: Passing an URI ending in /api to ovirt_proxy_new() is deprecated
+
+2015-01-12  Daniel P. Berrange  <berrange@redhat.com>
+
+	Bump release to 3.0 for next dev cycle
+
+	Update NEWS for 2.0 release
+
+2015-01-12  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	wixl: use a versionized installation directory
+	It turned out that not only the current MSI broke the "component rule",
+	but also that our files are not versionized correctly. Windows Installer
+	applies some file versioning rules before replacing a file
+	http://msdn.microsoft.com/en-us/library/aa368599%28v=vs.85%29.aspx
+
+	Since msitools doesn't extract version from files and populate the Version
+	field of the File table, it "usually" keep the current file installed.
+
+	It's practically impossible to rely on version information from
+	files (from a quick look, only 5% of the files are versionized and even
+	less correctly, libgcrypt seems to do non-monotonic buildid for example)
+
+	So the rule that applies when files are not versionized is to check the
+	file hash, and the modified date. File hash was added recently in
+	msitools, but doesn't apply when the installed file itself has a
+	version.
+
+	In order to solve the above problems, it's simpler to just have a
+	different installation prefix. Windows Installer will see files with
+	different component guid, and won't be checking any file update rule.  I
+	have verified the upgrade is working, not leaving any file behind and
+	updating registry correctly with this solution. Until the files are
+	correctly versionized, it looks like the only sensible thing to
+	do. Furthermore, this make it simpler to have several versions installed
+	in parallel later on (when we change productid)
+
+2015-01-12  Daniel P. Berrange  <berrange@redhat.com>
+
+	Update LINGUAS file from translation refresh
+
+	Tweak autobuild.sh to facilitate release builds
+
+	Refresh translations from transifex
+
+2015-01-09  Daniel P. Berrange  <berrange@redhat.com>
+
+	Add deps on mingw glib-networking RPMs needed by libsoup
+
+	Update mingw RPM deps to refer to gstreamer1
+
+2015-01-08  Daniel P. Berrange  <berrange@redhat.com>
+
+	Fix typo s/SPICE_GTK3_REQUIRED/SPICE_GTK_REQUIRED/
+	There is no separate version constant for SPICE GTK2 vs GTK3
+
+2015-01-08  Fabiano Fidêncio  <fidencio@redhat.com>
+
+	virt-viewer: set transient parent for connection's error dialog
+	Commit c3d24f8b sets transient parent for the most part of the
+	GtkDialogs, but seems like this one was forgotten.
+
+2015-01-06  Christophe Fergeau  <cfergeau@redhat.com>
+
+	virt-viewer: Don't connect to localhost displays with qemu+tcp://
+	When connecting to a remote libvirt instance, a VM may only be listening
+	on localhost for SPICE/VNC connections. In such a situation, virt-viewer
+	then tries to connect to localhost, which is not correct as this
+	'localhost' referred to the remote libvirt host it connected to.
+	This commit adds a couple of tests on the libvirt URI used and the
+	<graphics> listen address to error out in this situation.
+
+	Resolves: rhbz#1108523
+
+2015-01-06  Jonathon Jongsma  <jjongsma@redhat.com>
+
+	Remove 'map' handler for VirtViewerDisplay
+	In order to solve several problems with sizing and resizing displays, a
+	'map' handler was added to VirtViewerDisplay. The first time the map
+	handler runs, its queues a resize to attempt to ensure that the window
+	gets created at its desired size. Subsequent map events generate a call
+	to _make_resizable(), which was an attempt to ensure that the window was
+	always 'shrinkable' on the Microsoft Windows platform. Recent testing
+	suggests that this _make_resizable() is not actually necessary on
+	Windows anymore, since it is possible to shrink the display even when
+	this call is removed.
+
+	In addition, the call to _queue_resize() is a bit of an indirect
+	solution to the problem of ensuring the proper size at startup. What we
+	really want is to guarantee that the very first size request negotiation
+	returns the desired size rather than the minimum size. In order to do
+	this, we've added a flag to determine whether we've ever received a size
+	request, and if not, we return our desired size, even if 'dirty' is not
+	set.
+
+2015-01-05  Fabiano Fidêncio  <fidencio@redhat.com>
+
+	spec: Update mingw in order to use gstreamer1
+
+2015-01-05  Victor Toso  <victortoso@redhat.com>
+
+	nsis: use gstreamer-1.0 instead of gstreamer-0.10
+	Spice-gtk now is able to use gstreamer-1.0 for playback and record
+	audio. This patch updates the installer to use the latest version.
+
+2015-01-02  Christophe Fergeau  <cfergeau@redhat.com>
+
+	win: Use correct format string for intptr_t
+	Using %d as a format-specifier for intptr_t causes a warning with
+	mingw64:
+	virt-viewer-events.c: In function 'virt_viewer_events_add_handle':
+	virt-viewer-events.c:103:5: warning: format '%d' expects argument of
+	type 'int', but argument 5 has type 'intptr_t' [-Wformat=]
+	     g_debug("Converted fd %d to handle %d", fd, _get_osfhandle(fd));
+
+2014-12-22  Fabiano Fidêncio  <fidencio@redhat.com>
+
+	spec: Update mingw in order to use ovirt
+
+	spec: Update mingw in order to use gtk3
+
+	nsis: use gtk-vnc conditionally
+	Only include gtk-vnc as dep when it's explicitly done in the configure.
+
+	nsis: use spice-gtk conditionally
+	Only include spice-gtk as dep when it's explicitly done in the configure.
+
+	nsis: use libgovirt conditionally
+	Only include libgovirt as dep when it's explicitly done in the configure.
+
+	nsis: add missing file needed to use virsh.exe
+
+	nsis: use libvirt conditionally
+	Only include libvirt as dep when it's explicitly done in the configure.
+
+2014-12-21  Fabiano Fidêncio  <fidencio@redhat.com>
+
+	msi: use gtk-vnc conditionally
+	Only include gtk-vnc as dep when it's explicitly done in the configure.
+
+	msi: use spice-gtk conditionally
+	Only include spice-gtk as dep when it's explicitly done in the configure.
+
+	msi: use libgovirt conditionally
+	Only include libgovirt as dep when it's explicitly done in the configure.
+
+	msi: use libvirt conditionally
+	Only include libvirt as dep when it's explicitly done in the configure.
+
+	cosmetic: use $(VAR) instead of ${VAR}
+
+2014-12-19  Pavel Grunt  <pgrunt@redhat.com>
+
+	Set a transient parent for GtkDialogs
+	Silence the Gtk 3.14 message:
+	"GtkDialog mapped without a transient parent. This is discouraged."
+
+2014-12-15  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	msi/nsis: fix keyboard-shortcuts icon location
+	The /usr/share/icons/gnome icon theme location has been replaced with
+	Adwaita in f21, fix the path.
+
+2014-12-15  Fabiano Fidêncio  <fidencio@redhat.com>
+
+	msi: add gtk3 support
+	Add support to build the virt-viewer's msi using GTK3.
+	For the GTK3 build, in order to provide all used icons for Windows
+	systems we have to include manually all the icons we want to or add
+	adwaita-icon-theme as dependency. I've decided to go with the first
+	approach, what can be improved when we have "foreach" support in
+	msitools (https://bugzilla.gnome.org/show_bug.cgi?id=741296).
+
+	msi: add libgovirt as dependency
+	libgovirt is used to provide support to foreign menu using ovirt.
+
+	nsis: add missing 24x24 icons
+
+	nsis: add gtk3 support
+	Add support to build the virt-viewer's nsis using GTK3.
+
+	nsis: remove $INSTDIR\etc
+
+	nsis: remove $INSTDIR\etc\libvirt
+
+	nsis: remove dup entries
+
+	nsis: add libgovirt (and its dependencies)
+	libgovirt is used to provide support to foreign menu using ovirt.
+
+	nsis: add libwinpthread-1.dll
+	libwinpthread-1.dll is a dependency of libvirt
+
+	nsis: add libopus-0.dll
+	libopus-0.dll is a dependency of spice-glib
+
+	nsis: add libnettle-4-7.dll (and its dependencies)
+	libgcc_s_sjlj-1 is needed by libgmp (on x86)
+	libgcc_s_seh-1 is needed by libgmp (on x86_64s)
+	libgmp-10.dll is needed by libnettle
+	libhogweed-2-5.dll is provided by libnettle
+	libnettle-4-7.dll is needed by gnutls
+	gnutls is needed by gvnc and libvirt
+
+	An interesting point here that worth to mention is the usage of /nonfatal
+	when including libgcc_s_{sjlj,seh}-1.dll. As we only have the _seh in x64
+	the build breaks trying to add "not found" files. A check for arch was
+	one option to solve the problem, but _sjlj may exist in x64 as well, when
+	using an old gcc. An explicit check if the file exists (in compile time)
+	was another idea, but for some reason the "-" part of the filename was
+	interpreted as a math operand, breaking the build.
+	With all that in mind, adding /nonfatal was the most convenient solution.
+
+	nsis: update libgnutls version
+	Use version -28 instead of -26, matching what currently is in f21.
+
+	nsis: update libtasn1 version
+	Use version -6 instead of -3, matching what currently is in f21.
+
+	nsis: update libpng version
+	Use libpng15-15 instead of libpng16-16, matching what currently is in
+	f21.
+
+	nsis: update libgcrypt version
+	Use version -20 instead of -11, matching what currently is in f21.
+
+2014-12-10  Pavel Grunt  <pgrunt@redhat.com>
+
+	display-vnc: fix zoom-level set by command line
+	Setting the zoom-level using the command line option '--zoom' is not
+	working for vnc guests. This problem can be solved by emitting
+	the "display-desktop-resize" signal when vnc is initialized.
+
+	https://bugzilla.redhat.com/show_bug.cgi?id=1170071
+
+2014-12-01  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	Do not show twice error dialog when no VM are found
+	When running virt-viewer without argument, and no VM are found, you get
+	two error dialogs. Only one is enough.
+
+	spice: calling VirtViewerSession:close() can destroy self
+	SpiceSession in spice-gtk v0.27 will remove channels from session during
+	disconnect (and not when they are actually disposed). When no channels
+	are left, session-disconnected is emitted, and the VirtViewerSession
+	will be unref from the application. Use a weak reference to self to
+	avoid crashing after calling spice_session_disconnect()
+
+	As a workaround for existing clients, spice-gtk v0.27 will defer the
+	disconnection to idle time.  But the fix still makes sense and would
+	prevent potentially future issues if spice-gtk changes back to sync
+	disconnection.
+
+	(the alternative of calling ref/unref would needlessly recreate a
+	SpiceSession with a call to create_spice_session(), which is something
+	we can avoid when leaving the application)
+
+2014-11-25  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	virt-viewer: allow connection to unix socket only server
+	Even when the server doesn't provide a display connection address,
+	virt-viewer is able to connect to guest with libvirt attach.
+
+	Report error on attach-only display
+	Provide error details if the display can only be access through libvirt
+	--attach method.
+
+	Report error in dialog
+	Use a UI dialog to inform of connection error.
+
+	Simplify virt_viewer_initial_connect()
+	- do not overwrite err if ->initial_connect() sets it
+	- remove need for waitvm if the display server isn't yet started (note:
+	  this function might be untested, I am not sure relying on libvirt events
+	  is enough)
+
+	Simplify virt_viewer_initial_connect()
+	- remove need for waitvm if the display server isn't yet started (note:
+	  this function might be untested, I am not sure relying on libvirt events
+	  is enough)
+
+	Simplify virt_viewer_initial_connect()
+	Some refactoring to make the code easier to read, mostly code
+	movement/reindenting and introduction of a "wait" label which has the
+	same purpose as "done".
+	This also adds a "goto wait" within an if block, but this does not
+	change the initial code flow, just makes it more explicit.
+
+	Remove VIRT_VIEWER_VM_CHOOSE_DIALOG_CANCELLED
+	This error type isn't really an error, it is used to skip error report
+	code. The functions can simply return FALSE on failure, without GError
+	set, to indicate that program should quit normally.
+
+	Limit HAVE_SOCKETPAIR to directly concerned code
+
+	Move libvirt reconnect polling to VirtViewer
+	This is libvirt specific, no need to share it in the VirtViewerApp base
+	class.
+
+	spice: use virt_viewer_signal_connect_object
+	This isn't required, but makes it easier to track reference issues, as
+	you have guarantee that callbacks won't be executed if the objects are
+	disposed.
+
+2014-11-24  Fabiano Fidêncio  <fidencio@redhat.com>
+
+	Add virt-viewer-usb.png
+	Windows XP (at least) doesn't recognize .svg files
+
+2014-11-20  Fabiano Fidêncio  <fidencio@redhat.com>
+
+	Replace priv->withEvents usage for priv->domain_event
+	Once we have priv->domain_event, we don't need priv->withEvents anymore
+
+	Prefer to use virConnectDomainEventRegisterAny()
+	The usage of virConnectDomainEventRegister() is no longer recommended
+	according to the libvirt's documentation.
+
+	Set freed priv->dom to NULL in _dispose()
+	Avoid a possible use/free after the object has been freed.
+
+	Make sure conn exists before use it
+	Although all the used functions have a explicit check for a valid
+	virConnPtr, let's be safe and only use priv->conn when its value is
+	non-NULL.
+
+2014-11-18  Christophe Fergeau  <cfergeau@redhat.com>
+
+	VirtViewerApp: Never remove main window
+	It's currently possible to destroy any virt-viewer window, including the
+	main window. However, some part of the code expects that the main window
+	is always present, for example to present status messages.
+
+	In particular, stopping the guest (or running virsh destroy) will close
+	all windows: virt_viewer_session_clear_displays will get called, which
+	will call into virt_viewer_app_remove_display_removed, and finally into
+	virt_viewer_app_remove_nth_window, which will destroy the window being
+	removed if it holds the last reference to it.
+
+	So going through virt_viewer_session_clear_displays, all
+	VirtViewerWindow instances and their corresponding GtkWindow have been
+	destroyed. This is already an issue as VirtViewerApp::main_window will
+	be pointing to freed memory.
+
+	When using virt-viewer --reconnect, this will cause a crash when
+	restarting the guest in virt_viewer_app_create_session as it tries to
+	get a valid GtkWindow through:
+	GtkWindow *window = virt_viewer_window_get_window(priv->main_window);
+
+	This commit avoids this issue by special casing the main window in
+	virt_viewer_app_remove_nth_window to ensure it never gets removed.
+	This is similar to what is done in virt_viewer_app_hide_all_windows.
+
+2014-11-14  Christophe Fergeau  <cfergeau@redhat.com>
+
+	Fix check of virt_viewer_app_initial_connect return value
+	Commit 13f493200 changed virt_viewer_app_initial_connect to return a
+	gboolean rather than an int, but one call site was not updated to the
+	new convention, and was still checking for a negative value rather than
+	for FALSE in order to detect failures.
+
+2014-11-03  Daniel P. Berrange  <berrange@redhat.com>
+
+	Check for spice-gtk 0.26 instead of a git snapshot of 0.25
+	As spice-gtk macro for checking the version numbers was broken, let's
+	check for 0.26 and avoid to have virt-viewer broken on a few distros
+	for a good long time.
+
+2014-10-31  Christophe Fergeau  <cfergeau@redhat.com>
+
+	Don't use virGetLastErrorMessage()
+	This was introduced in libvirt 1.0.6 but we only require libvirt 0.10.0
+
+	Don't call local variable 'select'
+	This causes warnings with older compilers
+	virt-viewer-vm-connection.c:52: warning: declaration of 'select' shadows
+	a global declaration
+	/usr/include/sys/select.h:109: warning: shadowed declaration is here
+
+2014-10-27  Daniel P. Berrange  <berrange@redhat.com>
+
+	Avoid log message warning messages due to incorrect int format
+	The G_N_ELEMENTS() type is size_t but this was being passed to
+	a format string with '%lu' which is of a different size on many
+	platforms. Just delete this part of the warning message since
+	it was not hugely useful.
+
+	Add new ui files to the RPMs
+
+	Avoid use of non-literal string with g_debug
+
+	Fix typo s/to to/to/
+
+	Remove useless  'if (...)' before free()
+	The 'free()' function accepts NULL, so you should not
+	check for NULL before calling it.
+
+2014-10-27  Jonathon Jongsma  <jjongsma@redhat.com>
+
+	Don't try to re-configure displays when there are none
+	virt_viewer_session_on_monitor_geometry_changed() gets called
+	immediately upon agent connection, but sometimes this is before any
+	displays have been received. Simply return early when this is the case.
+
+	Shift top-left display to origin
+	When using a custom fullscreen display configuration, it's possible to
+	specify that e.g. a single screen should be fullscreen on client
+	monitor #4. Since we send down absolute positions and disable alignment
+	when all windows are in fullscreen, we can send configurations with a
+	very large offset to the top-left corner. This could result in the guest
+	trying to create a screen that was much larger than necessary. For
+	example when sending a configuration of 1280x1024+4240+0, the guest
+	would need to allocate a screen of size 5520x1024, which might fail if
+	video memory was too low. To avoid this issue, we shift all displays
+	so that the minimum X coordinate for all screens is at x=0, and the
+	minimum y coordinate is at y=0.
+
+2014-10-24  Jonathon Jongsma  <jjongsma@redhat.com>
+
+	Move monitor alignment function to util header
+
+2014-10-23  Christophe Fergeau  <cfergeau@redhat.com>
+
+	man: Improve documentation for 'version' field in vv files
+
+2014-10-23  Rex Dieter  <rdieter@math.unl.edu>
+
+	spec: Update/optimize mime scriptlets
+
+2014-10-16  Fabiano Fidêncio  <fidencio@redhat.com>
+
+	Check for the right spice version in session-spice.c
+	We have to check for the spice version where the
+	SPICE_CLIENT_ERROR_AUTH_NEEDS_PASSWORD_AND_USERNAME was introduced and
+	not for the one where spice_channel_get_error() was introduced.
+
+2014-10-16  Jonathon Jongsma  <jjongsma@redhat.com>
+
+	Don't disable "send key" menu when display isn't ready
+	The ability to send a keystroke should not depend on whether a display
+	is ready or not, it only depends on whether the display exists or not.
+
+	See https://bugzilla.redhat.com/show_bug.cgi?id=1152574
+
+2014-10-15  Jonathon Jongsma  <jjongsma@redhat.com>
+
+	Fix bug with initial placement of fullscreen windows
+	The function app_window_try_fullscreen() will lookup the initial monitor
+	for the nth monitor internally, so we should pass in the display ID to the function
+	rather than the mapped monitor ID. This was causing 2 monitors on the
+	same monitor with a configuration like this:
+
+	    monitor-mapping=1:2;2:1
+
+2014-10-15  Fabiano Fidêncio  <fidencio@redhat.com>
+
+	Force display_show_hint() when the display is set
+	Since a window is not created at startup for each display, the first
+	display(s) set when the application is opened will never receive and
+	treat the "notify::show-hint" signal on VirtViewerWindow, once the
+	callback is only set when the display is set to the specific window.
+	It causes problems like the "Send Key" menu not activated till an extra
+	display is added. To avoid this problem, let's force a call to
+	display_show_hint() everytime a display is set.
+
+	Resolves: rhbz#1152468
+	https://bugzilla.redhat.com/show_bug.cgi?id=1152468
+
+2014-10-10  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	Use socat instead of nc if possible
+	It turns out that nc does not leave on server disconnect, and there
+	doesn't seem to be any option to do that, leaving client open, and
+	a bunch of idle processes.
+
+	Replacing nc with socat solves that, client is disconnected when
+	the VM is shut down, when the sever connection is closed.
+
+	https://bugzilla.redhat.com/show_bug.cgi?id=1030487
+
+2014-10-10  Fabiano Fidêncio  <fidencio@redhat.com>
+
+	Prefill the username in the authentication dialog
+	Lets prefill the username entry using the user name of the
+	current user.
+
+	Use 'username' property from .vv file for spice-session
+
+	Ask for username when connecting with SASL
+	When connecting with SASL for authentication, some authentication
+	mechanisms need a username (the plain text and md5 ones, for example).
+
+2014-10-10  Pavel Grunt  <pgrunt@redhat.com>
+
+	Show VM chooser dialog when starting virt-viewer with no arg
+	When user starts virt-viewer without specifying VM domain name
+	or with a wrong name a list of running machines is shown
+	and user may choose one of them.
+
+	Show VM chooser dialog when oVirt VM name is missing
+	When a user tries to connect to ovirt without specifying
+	VM name (remote-viewer ovirt://ovirt.example.com) or with
+	wrong VM name a list of available virtual machines is shown,
+	and the user may pick a machine he wants to connect to.
+
+2014-10-09  Christophe Fergeau  <cfergeau@redhat.com>
+
+	man: Document [ovirt] section in .vv files
+	Add documentation for these options even though they are mainly meant to
+	be set by the oVirt portal when it generates the .vv file.
+
+	man: Improve doc for 'ca' in .vv files
+	Make it clearer that this CA will be used to validate the certificate
+	presented by the remote SPICE host when using TLS.
+
+	Fix 'seperate' typo in man page/comments
+
+	ovirt: Allow to remove CD images
+	It turns out this is supposed to be done through update requests with a
+	CD image with an empty name, which is what the current code tries to do.
+	The only reason it's not working is because of server-side bugs with
+	oVirt < 3.5
+	The requirement on libgovirt is raised to 0.3.2 as
+	a small change is needed as well in libgovirt to allow empty filenames:
+	https://git.gnome.org/browse/libgovirt/commit/?id=bdb788fcc
+
+	Without this change, nothing too bad will happen, but the CD won't be
+	removed and warnings will be logged in the console.
+
+2014-10-01  Ján Tomko  <jtomko@redhat.com>
+
+	Prefer virDomainOpenGraphicsFD for --attach
+	The virDomainOpenGraphics API cannot label the socket
+	we pass to it. Prefer virDomainOpenGraphicsFD (if building
+	with libvirt 1.2.8 or later) which creates the socket for us
+	and works with SELinux too.
+
+	Fall back to the old API if the new one is unsupported
+	(i.e. the libvirtd on the host is older than the libvirt version
+	virt-viewer was compiled against).
+
+	Fixes https://bugzilla.redhat.com/show_bug.cgi?id=1141228
+
+2014-09-26  Fabiano Fidêncio  <fidencio@redhat.com>
+
+	Let the user cancel the SPICE auth dialog
+	virt_viewer_auth_collect_credentials() was recently changed to return
+	a boolean instead of an integer (2561c171). This change introduced a
+	regression in the authentication dialog behavior, making it impossible
+	for the user to cancel.
+
+	Improve authentication error messages
+	Adding a better error message to our default error message, based on the
+	libvirt error. Also, the libvirt error is shown as debug.
+
+	https://bugzilla.redhat.com/show_bug.cgi?id=1142742
+
+	Simplify virt_viewer_auth_libvirt_credentials() return value logic
+	As the function should return < 0 in error cases, let's explicitly
+	return/set the return value to -1 in error cases. Otherwise, the
+	function will return 0.
+
+	This patch also fixes a regression introduced by (a5ce2ed3).
+
+	https://bugzilla.redhat.com/show_bug.cgi?id=1142742
+
+2014-09-26  Jonathon Jongsma  <jjongsma@redhat.com>
+
+	Add example of an oVirt URI to the manpage
+	https://bugzilla.redhat.com/show_bug.cgi?id=1142769
+
+	Add documentation for fullscreen monitor mapping
+	see https://bugzilla.redhat.com/show_bug.cgi?id=1142769
+
+	Initialize fullscreen display map to fallback
+	If uuid was never set, we never checked the 'fallback' monitor map.
+	Initializing the monitor map to the fallback value at startup solves
+	this issue. This allows fallback mode to work with older servers that
+	don't send the UUID.
+
+	Unset app 'fullscreen' when leaving fullscreen
+	Previously, the fullscreen floating toolbar and the "toggle-fullscreen"
+	hotkey (which maps to the menu item action) had slightly different
+	methods of exiting fullscreen. The floating toolbar method unset the
+	'fullscreen' property on the application (which causes all windows to
+	simultaneously exit fullscreen), whereas the hotkey did not. This had a
+	side-effect of preventing the display from auto re-sizing if it was
+	fullscreened again.  After this change, both the hotkey and the toolbar
+	button will unset the application-level 'fullscreen' property when
+	exiting fullscreen mode.
+
+	Resolves: rhbz#1022608
+
+2014-09-24  Jonathon Jongsma  <jjongsma@redhat.com>
+
+	VirtViewerDisplayVnc: set 'session' property
+	Set the display's session property in the constructor. If the session is
+	not set, then virt_viewer_display_get_session() doesn't return anything
+	useful.
+
+	Make default window size a bit more useful
+	Currently, windows have a default size of 400x400 pixels. This is a
+	strange aspect ratio for a display, and it is also too small to be
+	useful for much. Since the default window size determines the initial
+	size of newly-enabled displays, it would be nice if we used a slightly
+	better size.
+
+	Set initial window size to display desktop size
+	When setting the 'display' for a VirtViewerWindow, the initial size for
+	that window should be the size of the remote display. So we synthesize a
+	desktop resize event when setting a new display for a window.  This is
+	only done for enabled displays. Disabled displays generally have a size
+	of 0x0, which would result in the window being at it's minimum size, so
+	just allow the window to use its default size.
+
+	Create windows on demand, not at startup
+	Previously, a window was created at startup for each display, even if
+	the display was not enabled. This resulted in a fixed 1:1 association
+	between windows and remote displays. Since there was always one window
+	created at startup to display status messages (the "main window"), this
+	was always associated with remote display #1. But if the first remote
+	display was not enabled, we ended up with a extra black window with a
+	message saying ("Waiting for display 1...").
+
+	By creating windows on demand, we can re-use the "main window" for any
+	arbitrary display, even if it's not display #1.
+
+	Resolves: rhbz#1032939
+
+	VirtViewerApp: store windows in a list
+	Use a list to store the application's windows.  This is another step
+	towards separating the window from the guest display ID.
+
+	VirtViewerDisplay: add convenience API for getting nth
+	g_object_get(...) can be cumbersome, so add convenience API for getting
+	the display ID ("nth-display") property:
+
+	    virt_viewer_display_get_nth()
+
+	App: keep hash table of displays
+	This is part of a re-factoring that will de-couple the client window
+	from the remote display id.
+
+	Don't show extra screens in fullscreen mode
+	When using the fullscreen display mapping configuration file, extra
+	monitors could end up enabled by mistake. This was because
+	virt_viewer_app_get_initial_monitor_for_display would end up returning
+	Nmonitor = Ndisplay when the display map hash lookup failed. In
+	reality, when a display map is specified, but the hash lookup fails,
+	the display should not be enabled. This function now returns -1 to
+	distinguish this case, and the display is not enabled when this value is
+	returned.
+
+	Resolves issue described at
+	https://bugzilla.redhat.com/show_bug.cgi?id=1129477#c9
+
+	Move monitor mapping into app_window_try_fullscreen()
+	Rather than requiring all callers to calculate the initial monitor
+	mapping before calling app_window_try_fullscreen, move the
+	responsibility for calculating the correct monitor into this function.
+	This makes it less likely that somebody will forget and a display will
+	get placed on the wrong monitor.
+
+2014-09-23  Christophe Fergeau  <cfergeau@redhat.com>
+
+	Don't unref 'display' in VirtViewerDisplaySpice::finalize
+	Right after being created, the SpiceDisplay 'display' private member is
+	added to the VirtViewerDisplaySpice GTK+ container with
+	gtk_container_add. This call will take ownership of the floating
+	reference that SpiceDisplay got upon creation.
+	This means VirtViewerDisplaySpice::display is a pointer to SpiceDisplay,
+	but it must not be unref'ed when the object is destroyed as we don't own
+	that reference.
+	As the container which owns the reference is the
+	VirtViewerDisplaySpice instance itself, we don't need to take an
+	additional reference here.
+
+	This fixes a crash when exiting remote-viewer after connecting to a
+	SPICE VM:
+	  #0  0x00007ffff3f33a81 in g_type_check_instance_is_fundamentally_a (type_instance=0x874500, fundamental_type=80) at gtype.c:3981
+	  #1  0x00007ffff3f19f96 in g_object_unref (_object=0x874500) at gobject.c:3067
+	  #2  0x000000000042a1ea in virt_viewer_display_spice_finalize (obj=0x6ebc30) at virt-viewer-display-spice.c:65
+	  #3  0x00007ffff3f1a257 in g_object_unref (_object=0x6ebc30) at gobject.c:3170
+	  #4  0x0000000000428de7 in destroy_display (data=0x6ebc30) at virt-viewer-session-spice.c:649
+	  #5  0x00007ffff3bbb51b in g_ptr_array_foreach (array=0x7e12a0, func=0x428d71 <destroy_display>, user_data=0x0) at garray.c:1502
+	  #6  0x00007ffff3bbaadf in ptr_array_free (array=0x7e12a0, flags=FREE_SEGMENT) at garray.c:1088
+	  #7  0x00007ffff3bbaa10 in g_ptr_array_unref (array=0x7e12a0) at garray.c:1036
+	  #8  0x00007ffff3bcf9bd in g_data_set_internal (datalist=0xa0adb0, key_id=1622, new_data=0x0, new_destroy_func=0x0, dataset=0x0) at gdataset.c:407
+	  #9  0x00007ffff3bcfe74 in g_datalist_id_set_data_full (datalist=0xa0adb0, key_id=1622, data=0x0, destroy_func=0x0) at gdataset.c:670
+	  #10 0x00007ffff3f1a771 in g_object_set_data (object=0xa0ada0, key=0x437252 "virt-viewer-displays", data=0x0) at gobject.c:3461
+	  #11 0x0000000000429b56 in virt_viewer_session_spice_channel_destroy (s=0x6eb910, channel=0xa0ada0, session=0x8cb3a0) at virt-viewer-session-spice.c:854
+	  #12 0x00007ffff3f12d81 in g_cclosure_marshal_VOID__OBJECT (closure=0x8e8fd0, return_value=0x0, n_param_values=2, param_values=0x7fffffffcd80, invocation_hint=0x7fffffffccc0, marshal_data=0x0) at gmarshal.c:1272
+	  #13 0x00007ffff3f0e143 in g_closure_invoke (closure=0x8e8fd0, return_value=0x0, n_param_values=2, param_values=0x7fffffffcd80, invocation_hint=0x7fffffffccc0) at gclosure.c:768
+	  #14 0x00007ffff3f2aef0 in signal_emit_unlocked_R (node=0x7c1f20, detail=0, instance=0x6eb910, emission_return=0x0, instance_and_params=0x7fffffffcd80) at gsignal.c:3553
+	  #15 0x00007ffff3f2a1f3 in g_signal_emit_valist (instance=0x6eb910, signal_id=219, detail=0, var_args=0x7fffffffd058) at gsignal.c:3309
+	  #16 0x00007ffff3f2a746 in g_signal_emit (instance=0x6eb910, signal_id=219, detail=0) at gsignal.c:3365
+	  #17 0x00007ffff529d784 in spice_session_channel_destroy (session=0x6eb910, channel=0xa0ada0) at spice-session.c:1990
+	  #18 0x00007ffff529ed25 in spice_channel_dispose (gobject=0xa0ada0) at spice-channel.c:153
+	  #19 0x00007ffff52acd26 in spice_display_channel_dispose (object=0xa0ada0) at channel-display.c:136
+	  #20 0x00007ffff3f1a132 in g_object_unref (_object=0xa0ada0) at gobject.c:3133
+	  #21 0x00007ffff52a4afb in spice_channel_delayed_unref (data=0xa0ada0) at spice-channel.c:2156
+	  #22 0x00007ffff3bf21d1 in g_idle_dispatch (source=0xa35a00, callback=0x7ffff52a49f3 <spice_channel_delayed_unref>, user_data=0xa0ada0) at gmain.c:5320
+	  #23 0x00007ffff3bef8eb in g_main_dispatch (context=0x68a920) at gmain.c:3064
+	  #24 0x00007ffff3bf0661 in g_main_context_dispatch (context=0x68a920) at gmain.c:3663
+	  #25 0x00007ffff3bf0853 in g_main_context_iterate (context=0x68a920, block=1, dispatch=1, self=0x6c8c60) at gmain.c:3734
+	  #26 0x00007ffff3bf0c7c in g_main_loop_run (loop=0x889b20) at gmain.c:3928
+	  #27 0x00007ffff69be44f in gtk_main () at gtkmain.c:1207
+	  #28 0x0000000000431896 in main (argc=1, argv=0x7fffffffd648) at remote-viewer-main.c:183
+
+2014-09-23  Fabiano Fidêncio  <fidencio@redhat.com>
+
+	Do not fail when the auth dialog is cancelled
+	https://bugzilla.redhat.com/show_bug.cgi?id=1145460
+
+	Revert changes related to numpad accelerators
+	Due to a GTK+ limitation and bad testing from my side, I've pushed
+	two patches trying to add support to use Ctrl + {+, -, 0} from numpad
+	to control zoom-in, zoom-out and zoom-reset.
+	Unfortunately, with the first patch (3a168815) I've duplicated the menu
+	items related to the zoom functions. With the second one (55cdb986),
+	provided to not show the duplicated menu items, we came back to the
+	initial state, where the numpad accelerators don't work.
+
+	So, in resume, multiple accelerators in a GTK+ widget are only supported
+	on applications using GApplication, what is not our case and won't be
+	till we drop the GTK+2 support.
+
+	Revert "Do not show duplicated menu items" and
+	Revert "Add support to use numpad accelarators for zoom-{in.out,reset}"
+
+	This reverts commits 55cdb9867df05f1c4f6c8e569a6f0c1e0bc28d99 and
+	3a168815b738076526ba0f3e9a82e6fb1db482e9.
+
+2014-09-22  Christophe Fergeau  <cfergeau@redhat.com>
+
+	Remove inaccurate G_GNUC_UNUSED
+	The 'user_data' variable is used in the callback.
+
+2014-09-17  Fabiano Fidêncio  <fidencio@redhat.com>
+
+	Add support to view the password entry content
+	Allow users to check if the entered password is right and/org modify
+	the password easily in case it's wrong.
+
+2014-09-15  Fabiano Fidêncio  <fidencio@redhat.com>
+
+	Mark all strings for translation in the auth dialog
+	A few strings weren't marked for translation in the authentication
+	dialog.
+
+	Do not show duplicated menu items
+	When the support to use numpad accelerators for zoom-{in,out,reset}
+	was added (3a168815), by mistake, we have added duplicated buttons
+	in View -> Zoom.
+
+2014-09-12  Christophe Fergeau  <cfergeau@redhat.com>
+
+	Fix --without-spice-gtk --with-ovirt build
+	The oVirt foreign menu support reused some existing bits from the older
+	SPICE controller foreign menu code. However, this controller code is
+	only built when spice-gtk support is built, while the oVirt foreign menu
+	code could be used with VNC as well. Trying to build the ovirt foreign
+	menu code without spice-gtk causes build issues due to missing
+	functions, or missing declarations, ...
+
+	The libgovirt/spice-gtk code which is entangled is the code to update
+	the foreign menu when its content changes, or when a new window is
+	opened. Making the oVirt-specific code independant from the
+	spice-gtk-specific code is not too complicated, but this comes at the
+	expense of a bit of code duplication, but this is only simple code
+	iterating over the GHashTable storing the opened windows.
+
+	Resolves: rhbz#1127156
+
+	Add translatable file to POTFILES.in
+
+2014-09-11  Jonathon Jongsma  <jjongsma@redhat.com>
+
+	Remove extra ref on SpiceDisplay
+	There's no need to ref the SpiceDisplay widget when adding it to a
+	container. The container will take its own ref.
+
+	VirtViewer: Fix memory leaks
+	Don't leak priv->uri or priv->domkey from VirtViewer class
+
+2014-09-05  Jonathon Jongsma  <jjongsma@redhat.com>
+
+	Don't print warning for missing comment in config file
+	Change g_warning to g_debug as suggested by Marc-Andre
+
+2014-08-26  Jonathon Jongsma  <jjongsma@redhat.com>
+
+	Change collect_credentials() to return a boolean
+	Instead of returning 0 for success and -1 for failure, change to a
+	boolean success value to be more consistent with the rest of the
+	virt-viewer code.
+
+	Auth: fix leak of username
+	When collect_credentials() returns a failure status, 'username' was
+	potentially leaked.
+
+2014-08-19  Jonathon Jongsma  <jjongsma@redhat.com>
+
+	remote-viewer: oVirt username review fixes
+	Minor fixes from patch review
+
+	rhbz#1061826
+
+2014-08-19  Fabiano Fidêncio  <fidencio@redhat.com>
+
+	Force displays to update geometry when agent connects
+	We have to force displays to update geometry when the agent connects to
+	ensure the client will have the guest with the right resolution when the
+	guest has rebooted or the agent has crashed.
+
+	https://bugzilla.redhat.com/sho_bug.cgi?id=1021841
+
+	Fix gcc warning (unused-parameter)
+
+	Fix gcc warning (missing-prototypes)
+
+	Add support to use numpad accelarators for zoom-{in.out,reset}
+	As virt-viewer uses GtkAccelMap for shortcuts and that GTK only can have
+	one key binding per accelerator (in accel_map_add_entry), let's also add
+	support specificly for the numpad keys in the virt-viewer code
+
+	https://bugzilla.redhat.com/show_bug.cgi?id=883433
+
+	Don't check for NULL when it never can happen
+
+2014-08-18  Christophe Fergeau  <cfergeau@redhat.com>
+
+	Create foreign menu from .vv file information
+	When the .vv file has an [ovirt] section, we should try to create a foreign
+	menu out of it. This will allow remote-viewer to offer a menu to change the
+	currenty inserted cdrom.
+
+	Contrary to the ovirt:// case when we already have fetched an OvirtAPI
+	and OvirtVm instance in order to get the SPICE/VNC connection details,
+	when working from a .vv file, we'll need to get them from the REST API.
+	Authentication should happen through the JSESSIONID cookie, if that
+	fails we want to give up on using the foreign menu, so we don't need to
+	set up authentication callbacks.
+
+	Add ovirt-specific properties to VirtViewerFile
+	They will be useful to implement foreign menu support through
+	oVirt REST API
+
+	Add 'group' argument to VirtViewerFile helpers
+	For foreign menu support, we'll need a way to pass oVirt-specific
+	information in the .vv file. This will be done through an additional
+	[ovirt] section, this commit is in preparation for that.
+
+	ovirt: Use OvirtForeignMenu class
+	After the previous commit which introduced the OvirtForeignMenu
+	class, we can now make use of it in the remote-viewer UI code.
+
+	ovirt: Add OvirtForeignMenu class
+	This class is used to implement the so-called oVirt 'foreign menu'
+	which is a menu populated with ISO images available on the
+	oVirt instance that the user can dynamically insert into the
+	virtual machine he is currently viewing.
+
+	ovirt: Remove extra '/' from oVirt URI
+	The 'path' part of the URI will always start with a '/' when present as
+	this is what separates it from the hostname. When rebuilding the final
+	URI, the current code inserts a '/' by itself between the hostname and
+	the path, which results in URIs with an extra '/':
+	https://ovirt.example.com//some/path/api
+
+	This is not only cosmetic as this can cause issues with cookie handling
+	if libgovirt accesses //some/path/api while the cookie is set for
+	/some/path/api.
+
+2014-08-18  Jonathon Jongsma  <jjongsma@redhat.com>
+
+	remote-viewer: allow username in ovirt URIs
+	When the user launches remote-viewer with an ovirt URI of the form
+
+	        ovirt://user@host/vmname
+
+	Pre-populate the authentication dialog with the specified username. We
+	don't support specifying the password on the commandline, since that is
+	a potential security risk.
+
+	rhbz#1061826
+
+2014-08-15  Jonathon Jongsma  <jjongsma@redhat.com>
+
+	Don't use fallback ca-file when launching vv-file
+	When launching from a vv-file, we want to use the ca specified in the vv
+	file and not load additional certs from the fallback ca-file. This
+	ensures that the ca-file property of the spice session is unset when
+	loading a ca from a vv-file.
+
+	Resolves: rhbz#1127762
+
+2014-08-07  Jonathon Jongsma  <jjongsma@redhat.com>
+
+	Write vm name to config file as comment
+
+	Change per-guest fullscreen config format
+	use <display>:<monitor>;<display>:<monitor> instead of simply implying the
+	display from the array index (e.g. <monitor>;<monitor>). This allows you to set
+	up sparse guest displays (e.g. display 1 + 3).
+
+	For example, to configure display 1 to be fullscreen on monitor 2 and display 2
+	to be fullscreen on monitor 3:
+
+	    monitor-mapping=1:2;2:3
+
+	Add a dialog showing details of the current guest
+	This allows the user to obtain the GUID and vm name of the currently-connected
+	guest.  Obviously, this only works with spice. In the future, it will allow them
+	to set guest-specific configuration options (using a GUID as a key)
+
+2014-08-04  Christophe Fergeau  <cfergeau@redhat.com>
+
+	Fix warning when going in/out of fullscreen
+	Going to fullscreen, and then exiting causes these messages to show up
+	on the console:
+	(remote-viewer:14481): GLib-CRITICAL **: Source ID 784 was not found
+	when attempting to remove it
+
+	Remove unused RemoteViewerPrivate members
+
+	Remove incorrect G_GNUC_UNUSED from remote_viewer_window_added
+	The 'app' parameter is used in the function.
+
+	Remove unused VirtViewerNotebook::dispose
+	The vfunc implementation is only chaining to its parent, removing it
+	will achieve the same result.
+
+	Chain up to parent's dispose at the end of VirtViewerWindow::dispose
+	glib documentation says this should be the last thing done in the
+	dispose() call, which makes sense as this could invalidate still-needed
+	data in the parent object.
+
+2014-07-22  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	virt-viewer.xml: remove zoom-{in,out} accelerators
+	The XML menu accelerators conflict with accelerator set in the code and
+	prevent using them. This is a regression from d29fc63d.
+
+2014-07-21  Marc-André Lureau  <marcandre.lureau@gmail.com>
+
+	Only filter virt-viewer debug messages
+	Filter only our own debug messages.
+
+	https://bugzilla.redhat.com/show_bug.cgi?id=1118365
+
+	Always set ask-quit setting
+	Avoid creating empty settings files, always set the ask-quit key.
+
+	https://bugzilla.redhat.com/show_bug.cgi?id=1006737
+
+	spice: avoid crash if connection failed without error
+	spice_channel_get_error() is not guarantee to return a GError.
+
 2014-07-21  Daniel P. Berrange  <berrange@redhat.com>
+
+	Bump version to 2.0 for next dev cycle
 
 	Update NEWS for 1.0 release
 

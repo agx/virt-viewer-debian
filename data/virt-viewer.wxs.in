@@ -16,9 +16,20 @@
       <?define Win64 = "no"?>
   <?endif?>
 
-  <?require spice-gtk.wxi?>
-  <?require gtk-vnc.wxi?>
-  <?require libvirt.wxi?>
+  <?if $(var.HaveSpiceGtk) = "True"?>
+    <?require spice-gtk3.wxi?>
+  <?endif?>
+  <?if $(var.HaveGtkVnc) = "True"?>
+    <?require gtk-vnc2.wxi?>
+  <?endif?>
+  <?require adwaita-icons-needed.wxi?>
+  <?if $(var.HaveLibvirt) = "True"?>
+    <?require libvirt.wxi?>
+  <?endif?>
+  <?if $(var.HaveOVirt) = "True"?>
+    <?require libgovirt.wxi?>
+  <?endif?>
+  <?require libxml2.wxi?>
 
   <?define UpgradeCode = "5B027138-1A63-49E6-877E-055E5EEC1903"?>
   <Product Id="*"
@@ -28,7 +39,7 @@
            UpgradeCode="$(var.UpgradeCode)"
            Language="1033">
 
-    <Package InstallerVersion="200" Compressed="yes" Comments="comments"/>
+    <Package InstallerVersion="200" Compressed="yes" Comments="comments" InstallScope="perMachine"/>
     <Media Id="1" Cabinet="cabinet.cab" EmbedCab="yes"/>
 
     <Property Id="ARPHELPLINK" Value="http://www.virt-tools.org"/>
@@ -56,7 +67,7 @@
       <Component Id="CProgIds" Guid="89D6F46D-9C5E-4D65-8456-58FC361E553E">
         <ProgId Id='VirtViewer.vvfile' Description='VirtViewer connection file'>
           <Extension Id='vv' ContentType='application/x-virt-viewer'>
-            <Verb Id='open' Command='Open' TargetFile='fil808B4A5BAB4ACD727D3823632E798743' Argument='"%1"' />
+            <Verb Id='open' Command='Open' TargetFile='fil610DF9E49759B1DEC646290195F96F8A' Argument='"%1"' />
             <MIME ContentType="application/x-virt-viewer" Default="yes"/>
           </Extension>
         </ProgId>
@@ -65,7 +76,7 @@
 
     <Directory Id="TARGETDIR" Name="SourceDir">
       <Directory Id="$(var.ArchProgramFilesFolder)">
-        <Directory Id="INSTALLDIR" Name="VirtViewer">
+        <Directory Id="INSTALLDIR" Name="VirtViewer v@VERSION@@BUILDID@">
           <Component Id="CDepsFile" Guid="*">
             <File Id="filA1E799D196006E6DF67DACE15B8C6193" KeyPath="yes" Source="deps.txt"/>
           </Component>
@@ -90,7 +101,7 @@
               <Directory Id="DirIconsHi16x16Apps" Name="apps">
                 <Component Id="CIconsHi16x16Apps" Guid="*">
                   <File Id="FIconskeyboardshortcuts" KeyPath="yes"
-                        Source="/usr/share/icons/gnome/16x16/apps/preferences-desktop-keyboard-shortcuts.png"/>
+                        Source="/usr/share/icons/Adwaita/16x16/apps/preferences-desktop-keyboard-shortcuts.png"/>
                 </Component>
               </Directory>
             </Directory>
@@ -112,9 +123,20 @@
     </DirectoryRef>
 
     <Feature Id="Complete"  Level="1">
-      <ComponentGroupRef Id="CG.spice-gtk"/>
-      <ComponentGroupRef Id="CG.libvirt"/>
-      <ComponentGroupRef Id="CG.gtk-vnc"/>
+      <?if $(var.HaveSpiceGtk) = "True"?>
+        <ComponentGroupRef Id="CG.spice-gtk3"/>
+      <?endif?>
+      <?if $(var.HaveGtkVnc) = "True"?>
+        <ComponentGroupRef Id="CG.gtk-vnc2"/>
+      <?endif?>
+      <ComponentGroupRef Id="CG.adwaita-icons-needed"/>
+      <?if $(var.HaveLibvirt) = "True"?>
+        <ComponentGroupRef Id="CG.libvirt"/>
+      <?endif?>
+      <?if $(var.HaveOVirt) = "True"?>
+        <ComponentGroupRef Id="CG.libgovirt"/>
+      <?endif?>
+      <ComponentGroupRef Id="CG.libxml2"/>
       <ComponentGroupRef Id="CG.virt-viewer"/>
       <ComponentRef Id="CDepsFile"/>
       <ComponentRef Id="CShortcut"/>

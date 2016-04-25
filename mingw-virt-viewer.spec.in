@@ -4,7 +4,7 @@
 
 # We want the 1st part of the release number, and
 # the 3rd part (or 0 if not present). We want to
-# avoid the autobuild magic %{extra_release} too
+# avoid the autobuild magic 'extra_release' too
 # which is not purely numeric and larger than 255.
 # This scheme lets us cope with RHEL-style z-stream
 # versioning when creating Win product versions
@@ -26,26 +26,32 @@ BuildRequires:  mingw32-filesystem >= 23
 BuildRequires:  mingw64-filesystem >= 23
 BuildRequires:  mingw32-glib2 >= @GLIB2_REQUIRED@
 BuildRequires:  mingw64-glib2 >= @GLIB2_REQUIRED@
-BuildRequires:  mingw32-gstreamer-plugins-bad-free
-BuildRequires:  mingw64-gstreamer-plugins-bad-free
-BuildRequires:  mingw32-gstreamer-plugins-good
-BuildRequires:  mingw64-gstreamer-plugins-good
-BuildRequires:  mingw32-gtk2 >= @GTK2_REQUIRED@
-BuildRequires:  mingw64-gtk2 >= @GTK2_REQUIRED@
+BuildRequires:  mingw32-glib-networking
+BuildRequires:  mingw64-glib-networking
+BuildRequires:  mingw32-gstreamer1-plugins-bad-free
+BuildRequires:  mingw64-gstreamer1-plugins-bad-free
+BuildRequires:  mingw32-gstreamer1-plugins-good
+BuildRequires:  mingw64-gstreamer1-plugins-good
+BuildRequires:  mingw32-gtk3 >= @GTK3_REQUIRED@
+BuildRequires:  mingw64-gtk3 >= @GTK3_REQUIRED@
+BuildRequires:  mingw32-libgovirt
+BuildRequires:  mingw64-libgovirt
 BuildRequires:  mingw32-libusbx
 BuildRequires:  mingw64-libusbx
 BuildRequires:  mingw32-libvirt >= @LIBVIRT_REQUIRED@
 BuildRequires:  mingw64-libvirt >= @LIBVIRT_REQUIRED@
 BuildRequires:  mingw32-libxml2 >= @LIBXML2_REQUIRED@
 BuildRequires:  mingw64-libxml2 >= @LIBXML2_REQUIRED@
-BuildRequires:  mingw32-gtk-vnc >= @GTK_VNC1_REQUIRED@
-BuildRequires:  mingw64-gtk-vnc >= @GTK_VNC1_REQUIRED@
+BuildRequires:  mingw32-gtk-vnc2 >= @GTK_VNC2_REQUIRED@
+BuildRequires:  mingw64-gtk-vnc2 >= @GTK_VNC2_REQUIRED@
 BuildRequires:  mingw32-readline
 BuildRequires:  mingw64-readline
+BuildRequires:  mingw32-rest
+BuildRequires:  mingw64-rest
 BuildRequires:  mingw32-spice-glib
 BuildRequires:  mingw64-spice-glib
-BuildRequires:  mingw32-spice-gtk >= @SPICE_GTK_REQUIRED@
-BuildRequires:  mingw64-spice-gtk >= @SPICE_GTK_REQUIRED@
+BuildRequires:  mingw32-spice-gtk3 >= @SPICE_GTK_REQUIRED@
+BuildRequires:  mingw64-spice-gtk3 >= @SPICE_GTK_REQUIRED@
 BuildRequires:  mingw32-usbredir
 BuildRequires:  mingw64-usbredir
 BuildRequires:  pkgconfig
@@ -54,8 +60,9 @@ BuildRequires:  intltool
 BuildRequires:  icoutils
 BuildRequires:  dos2unix
 BuildRequires:  hicolor-icon-theme
-BuildRequires:  gnome-icon-theme
-BuildRequires:  msitools >= 0.92-2
+BuildRequires:  adwaita-icon-theme
+BuildRequires:  hwdata
+BuildRequires:  msitools >= 0.94-2
 
 BuildArch:      noarch
 
@@ -96,7 +103,7 @@ MinGW Windows virt-viewer MSI
 %setup -q -n virt-viewer-%{version}
 
 %build
-%mingw_configure --with-gtk=2.0 --with-buildid=%{buildid}
+%mingw_configure --with-gtk=3.0 --with-buildid=%{buildid}
 
 %mingw_make %{?_smp_mflags} V=1
 %mingw_make %{?_smp_mflags} V=1 -C data msi
@@ -133,6 +140,10 @@ rm -rf $RPM_BUILD_ROOT
 %{mingw32_datadir}/virt-viewer/ui/virt-viewer.xml
 %{mingw32_datadir}/virt-viewer/ui/virt-viewer-about.xml
 %{mingw32_datadir}/virt-viewer/ui/virt-viewer-auth.xml
+%{mingw32_datadir}/virt-viewer/ui/virt-viewer-guest-details.xml
+%{mingw32_datadir}/virt-viewer/ui/virt-viewer-vm-connection.xml
+%{mingw32_datadir}/virt-viewer/ui/virt-viewer-preferences.xml
+%{mingw32_datadir}/virt-viewer/ui/remote-viewer-connect.xml
 %{mingw32_datadir}/icons/hicolor/*/apps/*
 %{mingw32_datadir}/icons/hicolor/*/devices/*
 
@@ -154,6 +165,10 @@ rm -rf $RPM_BUILD_ROOT
 %{mingw64_datadir}/virt-viewer/ui/virt-viewer.xml
 %{mingw64_datadir}/virt-viewer/ui/virt-viewer-about.xml
 %{mingw64_datadir}/virt-viewer/ui/virt-viewer-auth.xml
+%{mingw64_datadir}/virt-viewer/ui/virt-viewer-guest-details.xml
+%{mingw64_datadir}/virt-viewer/ui/virt-viewer-vm-connection.xml
+%{mingw64_datadir}/virt-viewer/ui/virt-viewer-preferences.xml
+%{mingw64_datadir}/virt-viewer/ui/remote-viewer-connect.xml
 %{mingw64_datadir}/icons/hicolor/*/apps/*
 %{mingw64_datadir}/icons/hicolor/*/devices/*
 
