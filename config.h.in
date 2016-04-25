@@ -51,6 +51,9 @@
 /* Have libgovirt? */
 #undef HAVE_OVIRT
 
+/* Have rest_proxy_auth_cancel and OVIRT_REST_CALL_ERROR_CANCELLED? */
+#undef HAVE_OVIRT_CANCEL
+
 /* Define to 1 if you have the `socketpair' function. */
 #undef HAVE_SOCKETPAIR
 
@@ -84,15 +87,14 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
+/* Have virDomainOpenGraphicsFD? */
+#undef HAVE_VIR_DOMAIN_OPEN_GRAPHICS_FD
+
 /* Define to 1 if you have the <windows.h> header file. */
 #undef HAVE_WINDOWS_H
 
-/* Define to the sub-directory in which libtool stores uninstalled libraries.
-   */
+/* Define to the sub-directory where libtool stores uninstalled libraries. */
 #undef LT_OBJDIR
-
-/* Define to 1 if your C compiler doesn't accept -c and -o together. */
-#undef NO_MINUS_C_MINUS_O
 
 /* Name of package */
 #undef PACKAGE
@@ -114,6 +116,9 @@
 
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
+
+/* OS ID for this build */
+#undef REMOTE_VIEWER_OS_ID
 
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS

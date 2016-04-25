@@ -98,7 +98,12 @@ static void
 virt_viewer_session_vnc_connected(VncDisplay *vnc G_GNUC_UNUSED,
                                   VirtViewerSessionVnc *session)
 {
-    GtkWidget *display = virt_viewer_display_vnc_new(session->priv->vnc);
+    GtkWidget *display = virt_viewer_display_vnc_new(session, session->priv->vnc);
+    VirtViewerApp *app = virt_viewer_session_get_app(VIRT_VIEWER_SESSION(session));
+
+    virt_viewer_window_set_display(virt_viewer_app_get_main_window(app),
+                                   VIRT_VIEWER_DISPLAY(display));
+
     g_signal_emit_by_name(session, "session-connected");
     virt_viewer_session_add_display(VIRT_VIEWER_SESSION(session),
                                     VIRT_VIEWER_DISPLAY(display));
@@ -111,7 +116,7 @@ virt_viewer_session_vnc_disconnected(VncDisplay *vnc G_GNUC_UNUSED,
     GtkWidget *display;
 
     virt_viewer_session_clear_displays(VIRT_VIEWER_SESSION(session));
-    display = virt_viewer_display_vnc_new(session->priv->vnc);
+    display = virt_viewer_display_vnc_new(session, session->priv->vnc);
     g_debug("Disconnected");
     g_signal_emit_by_name(session, "session-disconnected", NULL);
     virt_viewer_display_set_show_hint(VIRT_VIEWER_DISPLAY(display),
@@ -147,7 +152,7 @@ virt_viewer_session_vnc_auth_unsupported(VncDisplay *vnc G_GNUC_UNUSED,
 {
     gchar *msg = g_strdup_printf(_("Unsupported authentication type %d"),
                                  authType);
-    g_signal_emit_by_name(session, "session-auth-failed", msg);
+    g_signal_emit_by_name(session, "session-auth-unsupported", msg);
     g_free(msg);
 }
 
@@ -283,9 +288,13 @@ virt_viewer_session_vnc_auth_credential(GtkWidget *src G_GNUC_UNUSED,
 
     VirtViewerFile *file = virt_viewer_session_get_file(VIRT_VIEWER_SESSION(self));
     if (file != NULL) {
-        if (wantUsername && virt_viewer_file_is_set(file, "username")) {
-            username = virt_viewer_file_get_username(file);
-            wantUsername = FALSE;
+        if (wantUsername) {
+            if (virt_viewer_file_is_set(file, "username")) {
+                username = virt_viewer_file_get_username(file);
+                wantUsername = FALSE;
+            } else {
+                username = g_strdup(g_get_user_name());
+            }
         }
         if (wantPassword && virt_viewer_file_is_set(file, "password")) {
             password = virt_viewer_file_get_password(file);
@@ -294,13 +303,14 @@ virt_viewer_session_vnc_auth_credential(GtkWidget *src G_GNUC_UNUSED,
     }
 
     if (wantUsername || wantPassword) {
-        int ret = virt_viewer_auth_collect_credentials(self->priv->main_window,
-                                                       "VNC", NULL,
-                                                       wantUsername ? &username : NULL,
-                                                       wantPassword ? &password : NULL);
+        gboolean ret = virt_viewer_auth_collect_credentials(self->priv->main_window,
+                                                            "VNC", NULL,
+                                                            wantUsername ? &username : NULL,
+                                                            wantPassword ? &password : NULL);
 
-        if (ret < 0) {
+        if (!ret) {
             vnc_display_close(self->priv->vnc);
+            g_signal_emit_by_name(self, "session-cancelled");
             goto cleanup;
         }
     }

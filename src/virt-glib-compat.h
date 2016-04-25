@@ -69,6 +69,13 @@ G_BEGIN_DECLS
 
 #if !GLIB_CHECK_VERSION(2,32,0)
 GByteArray *g_byte_array_new_take (guint8 *data, gsize len);
+
+#define G_SOURCE_CONTINUE   TRUE
+#define G_SOURCE_REMOVE     FALSE
+#endif
+
+#if GLIB_CHECK_VERSION(2,31,0)
+#define g_mutex_new() g_new0(GMutex, 1)
 #endif
 
 G_END_DECLS

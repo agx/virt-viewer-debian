@@ -98,23 +98,33 @@ int main(int argc, char **argv)
     if (error) {
         g_printerr("%s\n%s\n",
                    error->message, help_msg);
-        g_error_free(error);
         goto cleanup;
     }
 
     g_option_context_free(context);
 
-    if (!args || (g_strv_length(args) != 1)) {
-        g_printerr(_("\nUsage: %s [OPTIONS] DOMAIN-NAME|ID|UUID\n\n%s\n\n"), argv[0], help_msg);
+    if (args && (g_strv_length(args) != 1)) {
+        g_printerr(_("\nUsage: %s [OPTIONS] [DOMAIN-NAME|ID|UUID]\n\n%s\n\n"), argv[0], help_msg);
         goto cleanup;
     }
 
-    viewer = virt_viewer_new(uri, args[0], direct, attach, waitvm, reconnect);
+    if (args == NULL && waitvm) {
+        g_printerr(_("\nNo DOMAIN-NAME|ID|UUID was specified for '--wait'\n\n"));
+        goto cleanup;
+    }
+
+    viewer = virt_viewer_new(uri, (args) ? args[0] : NULL, direct, attach, waitvm, reconnect);
     if (viewer == NULL)
         goto cleanup;
 
-    if (!virt_viewer_app_start(VIRT_VIEWER_APP(viewer)))
+    if (!virt_viewer_app_start(VIRT_VIEWER_APP(viewer), &error)) {
+        if (g_error_matches(error, VIRT_VIEWER_ERROR, VIRT_VIEWER_ERROR_CANCELLED))
+            ret = 0;
+        else if (error) {
+            virt_viewer_app_simple_message_dialog(VIRT_VIEWER_APP(viewer), error->message);
+        }
         goto cleanup;
+    }
 
     gtk_main();
 
@@ -126,6 +136,7 @@ int main(int argc, char **argv)
     g_free(uri);
     g_strfreev(args);
     g_free(help_msg);
+    g_clear_error(&error);
 
     return ret;
 }

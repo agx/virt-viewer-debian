@@ -29,6 +29,9 @@
 
 G_BEGIN_DECLS
 
+#define MIN_DISPLAY_WIDTH 50
+#define MIN_DISPLAY_HEIGHT 50
+
 #define VIRT_VIEWER_TYPE_DISPLAY virt_viewer_display_get_type()
 
 #define VIRT_VIEWER_DISPLAY(obj)                                        \
@@ -87,6 +90,8 @@ struct _VirtViewerDisplayClass {
     void (*display_keyboard_ungrab)(VirtViewerDisplay *display);
 
     void (*display_desktop_resize)(VirtViewerDisplay *display);
+    void (*enable)(VirtViewerDisplay *display);
+    void (*disable)(VirtViewerDisplay *display);
 };
 
 GType virt_viewer_display_get_type(void);
@@ -122,11 +127,14 @@ void virt_viewer_display_release_cursor(VirtViewerDisplay *display);
 
 void virt_viewer_display_close(VirtViewerDisplay *display);
 void virt_viewer_display_set_enabled(VirtViewerDisplay *display, gboolean enabled);
+void virt_viewer_display_enable(VirtViewerDisplay *display);
+void virt_viewer_display_disable(VirtViewerDisplay *display);
 gboolean virt_viewer_display_get_enabled(VirtViewerDisplay *display);
 gboolean virt_viewer_display_get_selectable(VirtViewerDisplay *display);
 void virt_viewer_display_queue_resize(VirtViewerDisplay *display);
 void virt_viewer_display_get_preferred_monitor_geometry(VirtViewerDisplay *self, GdkRectangle* preferred);
 void virt_viewer_display_get_preferred_size(VirtViewerDisplay *self, GtkRequisition* requisistion);
+gint virt_viewer_display_get_nth(VirtViewerDisplay *self);
 
 G_END_DECLS
 

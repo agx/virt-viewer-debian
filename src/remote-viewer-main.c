@@ -47,7 +47,11 @@
 static void
 remote_viewer_version(void)
 {
-    g_print(_("remote-viewer version %s\n"), VERSION BUILDID);
+    g_print(_("remote-viewer version %s"), VERSION BUILDID);
+#ifdef REMOTE_VIEWER_OS_ID
+    g_print(" (OS ID: %s)", REMOTE_VIEWER_OS_ID);
+#endif
+    g_print("\n");
     exit(EXIT_SUCCESS);
 }
 
@@ -134,7 +138,6 @@ main(int argc, char **argv)
         g_printerr(_("%s\nRun '%s --help' to see a full list of available command line options\n"),
                    error->message, base_name);
         g_free(base_name);
-        g_error_free(error);
         goto cleanup;
     }
 
@@ -174,8 +177,14 @@ main(int argc, char **argv)
 
     app = VIRT_VIEWER_APP(viewer);
 
-    if (!virt_viewer_app_start(app))
+    if (!virt_viewer_app_start(app, &error)) {
+        if (g_error_matches(error, VIRT_VIEWER_ERROR, VIRT_VIEWER_ERROR_CANCELLED))
+            ret = 0;
+        else if (error) {
+            virt_viewer_app_simple_message_dialog(app, error->message);
+        }
         goto cleanup;
+    }
 
     g_signal_connect(virt_viewer_app_get_session(app), "session-connected",
                      G_CALLBACK(connected), app);
@@ -189,6 +198,7 @@ main(int argc, char **argv)
     if (viewer)
         g_object_unref(viewer);
     g_strfreev(args);
+    g_clear_error(&error);
 
     return ret;
 }

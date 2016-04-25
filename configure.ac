@@ -1,5 +1,5 @@
 
-AC_INIT([virt-viewer],[1.0])
+AC_INIT([virt-viewer],[3.1])
 AC_CONFIG_SRCDIR(src/virt-viewer-main.c)
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([build-aux])
@@ -19,9 +19,9 @@ GTK2_REQUIRED="2.18.0"
 GTK3_REQUIRED="3.0"
 GTK_VNC1_REQUIRED="0.3.8"
 GTK_VNC2_REQUIRED="0.4.0"
-SPICE_GTK_REQUIRED="0.22"
-SPICE_PROTOCOL_REQUIRED="0.10.1"
-GOVIRT_REQUIRED="0.3.0"
+SPICE_GTK_REQUIRED="0.30"
+SPICE_PROTOCOL_REQUIRED="0.12.7"
+GOVIRT_REQUIRED="0.3.2"
 
 AC_SUBST([GLIB2_REQUIRED])
 AC_SUBST([LIBXML2_REQUIRED])
@@ -103,19 +103,23 @@ PKG_CHECK_MODULES(LIBXML2, libxml-2.0 >= $LIBXML2_REQUIRED)
 AC_ARG_WITH([libvirt],
     AS_HELP_STRING([--without-libvirt], [Ignore presence of libvirt and disable it]))
 
-AS_IF([test "x$with_libvirt" != "xno"],
-      [PKG_CHECK_MODULES(LIBVIRT,
-                         [libvirt >= $LIBVIRT_REQUIRED],
-                         [have_libvirt=yes], [have_libvirt=no])],
-      [have_libvirt=no])
+AS_IF([test "x$with_libvirt" != "xno" && test "x$with_libvirt" != "xyes"],
+      [PKG_CHECK_EXISTS([libvirt >= $LIBVIRT_REQUIRED],
+                        [with_libvirt=yes], [with_libvirt=no])])
 
-AS_IF([test "x$have_libvirt" = "xyes"],
-      [AC_DEFINE([HAVE_LIBVIRT], 1, [Have libvirt?])],
-      [AS_IF([test "x$with_libvirt" = "xyes"],
-             [AC_MSG_ERROR([libvirt requested but not found])
-      ])
-])
-AM_CONDITIONAL([HAVE_LIBVIRT], [test "x$have_libvirt" = "xyes"])
+AS_IF([test "x$with_libvirt" = "xyes"],
+      [PKG_CHECK_MODULES(LIBVIRT, [libvirt >= $LIBVIRT_REQUIRED])]
+      [AC_DEFINE([HAVE_LIBVIRT], 1, [Have libvirt?])]
+)
+AM_CONDITIONAL([HAVE_LIBVIRT], [test "x$with_libvirt" = "xyes"])
+
+old_LIBS=$LIBS
+LIBS=$LIBVIRT_LIBS
+# virDomainOpenGraphicsFD was introduced in libvirt 1.2.8
+AC_CHECK_LIB([virt],
+             [virDomainOpenGraphicsFD],
+             [AC_DEFINE([HAVE_VIR_DOMAIN_OPEN_GRAPHICS_FD], 1, [Have virDomainOpenGraphicsFD?])])
+LIBS=$old_LIBS
 
 AC_MSG_CHECKING([which gtk+ version to compile against])
 AC_ARG_WITH([gtk],
@@ -153,68 +157,81 @@ PKG_CHECK_MODULES(GTK, gtk+-$GTK_API_VERSION >= $GTK_REQUIRED)
 AC_ARG_WITH([gtk-vnc],
     AS_HELP_STRING([--without-gtk-vnc], [Ignore presence of gtk-vnc and disable it]))
 
-AS_IF([test "x$with_gtk_vnc" != "xno"],
-      [PKG_CHECK_MODULES(GTK_VNC,
-                         gtk-vnc-$GTK_VNC_API_VERSION >= $GTK_VNC_REQUIRED,
-                         [have_gtk_vnc=yes], [have_gtk_vnc=no])],
-      [have_gtk_vnc=no])
+AS_IF([test "x$with_gtk_vnc" != "xno" && test "x$with_gtk_vnc" != "xyes"],
+      [PKG_CHECK_EXISTS([gtk-vnc-$GTK_VNC_API_VERSION >= $GTK_VNC_REQUIRED],
+                        [with_gtk_vnc=yes], [with_gtk_vnc=no])])
 
-AS_IF([test "x$have_gtk_vnc" = "xyes"],
-      [AC_DEFINE([HAVE_GTK_VNC], 1, [Have gtk-vnc?])],
-      [AS_IF([test "x$with_gtk_vnc" = "xyes"],
-             [AC_MSG_ERROR([gtk-vnc requested but not found])
-      ])
-])
-AM_CONDITIONAL([HAVE_GTK_VNC], [test "x$have_gtk_vnc" = "xyes"])
+AS_IF([test "x$with_gtk_vnc" = "xyes"],
+      [PKG_CHECK_MODULES(GTK_VNC, [gtk-vnc-$GTK_VNC_API_VERSION >= $GTK_VNC_REQUIRED])]
+      [AC_DEFINE([HAVE_GTK_VNC], 1, [Have gtk-vnc?])]
+)
+AM_CONDITIONAL([HAVE_GTK_VNC], [test "x$with_gtk_vnc" = "xyes"])
 
 AC_ARG_WITH([spice-gtk],
     AS_HELP_STRING([--without-spice-gtk], [Ignore presence of spice-gtk and disable it]))
 
-AS_IF([test "x$with_spice_gtk" != "xno"],
-      [PKG_CHECK_MODULES(SPICE_GTK,
-                         [spice-client-gtk-$SPICE_GTK_API_VERSION >= $SPICE_GTK_REQUIRED],
-                         [have_spice_gtk=yes], [have_spice_gtk=no])],
-      [have_spice_gtk=no])
+AS_IF([test "x$with_spice_gtk" != "xno" && test "x$with_spice_gtk" != "xyes"],
+      [PKG_CHECK_EXISTS([spice-client-gtk-$SPICE_GTK_API_VERSION >= $SPICE_GTK_REQUIRED
+                         spice-controller spice-protocol >= $SPICE_PROTOCOL_REQUIRED],
+                        [with_spice_gtk=yes], [with_spice_gtk=no])])
 
-AS_IF([test "x$have_spice_gtk" = "xyes"],
+AS_IF([test "x$with_spice_gtk" = "xyes"],
+      [PKG_CHECK_MODULES(SPICE_GTK, [spice-client-gtk-$SPICE_GTK_API_VERSION >= $SPICE_GTK_REQUIRED])]
       [PKG_CHECK_MODULES(SPICE_CONTROLLER, [spice-controller])]
       [PKG_CHECK_MODULES(SPICE_PROTOCOL, [spice-protocol >= $SPICE_PROTOCOL_REQUIRED])]
-      [AC_DEFINE([HAVE_SPICE_GTK], 1, [Have spice-gtk?])],
-      [AS_IF([test "x$with_spice_gtk" = "xyes"],
-             [AC_MSG_ERROR([spice-gtk requested but not found])
-      ])
-])
-AM_CONDITIONAL([HAVE_SPICE_GTK], [test "x$have_spice_gtk" = "xyes"])
+      [AC_DEFINE([HAVE_SPICE_GTK], 1, [Have spice-gtk?])]
+)
+AM_CONDITIONAL([HAVE_SPICE_GTK], [test "x$with_spice_gtk" = "xyes"])
 
 AC_ARG_WITH([ovirt],
     AS_HELP_STRING([--without-ovirt], [Ignore presence of librest and disable oVirt support]))
 
-AS_IF([test "x$with_ovirt" != "xno"],
-      [PKG_CHECK_MODULES([OVIRT], [govirt-1.0 >= $GOVIRT_REQUIRED],
-                         [have_ovirt=yes], [have_ovirt=no])],
-      [have_ovirt=no])
+AS_IF([test "x$with_ovirt" != "xno" && test "x$with_ovirt" != "xyes"],
+      [PKG_CHECK_EXISTS([govirt-1.0 >= $GOVIRT_REQUIRED],
+                        [with_ovirt=yes], [with_ovirt=no])])
 
-AS_IF([test "x$have_ovirt" = "xyes"],
-      [AC_DEFINE([HAVE_OVIRT], 1, [Have libgovirt?])],
-      [AS_IF([test "x$with_ovirt" = "xyes"],
-             [AC_MSG_ERROR([oVirt support requested but libgovirt not found])
-      ])
-])
+AS_IF([test "x$with_ovirt" = "xyes"],
+      [PKG_CHECK_MODULES([OVIRT], [govirt-1.0 >= $GOVIRT_REQUIRED])]
+      [AC_DEFINE([HAVE_OVIRT], 1, [Have libgovirt?])]
+      [SAVED_CFLAGS="$CFLAGS"
+       SAVED_LIBS="$LIBS"
+       CFLAGS="$OVIRT_CFLAGS"
+       LIBS="$OVIRT_LIBS"
+       AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <govirt/govirt.h>]],
+        [static int err = OVIRT_REST_CALL_ERROR_CANCELLED;
+         void *fun = rest_proxy_auth_cancel;])],
+        [AC_DEFINE([HAVE_OVIRT_CANCEL], 1, [Have rest_proxy_auth_cancel and OVIRT_REST_CALL_ERROR_CANCELLED?])],
+        [])
+       CFLAGS="$SAVED_CFLAGS"
+       LIBS="$SAVED_LIBS"]
+)
+AM_CONDITIONAL([HAVE_OVIRT], [test "x$with_ovirt" = "xyes"])
 
 dnl Decide if this platform can support the SSH tunnel feature.
 AC_CHECK_HEADERS([sys/socket.h sys/un.h windows.h])
 AC_CHECK_FUNCS([fork socketpair])
 
 
-if test "x$have_gtk_vnc" != "xyes" && test "x$have_spice_gtk" != "xyes"; then
+if test "x$with_gtk_vnc" != "xyes" && test "x$with_spice_gtk" != "xyes"; then
     AC_MSG_ERROR([At least one of spice or vnc must be used])
+fi
+
+AC_ARG_WITH([osid],
+    AS_HELP_STRING([--with-osid=id], [Set OS ID for use in .vv files]))
+if test -n "$with_osid"; then
+    AC_DEFINE_UNQUOTED([REMOTE_VIEWER_OS_ID], "$with_osid", [OS ID for this build])
 fi
 
 AC_ARG_WITH([buildid],
     AS_HELP_STRING([--with-buildid=id], [Set additional build version details]),
     [buildid="$with_buildid"], [buildid="0"])
-AC_DEFINE_UNQUOTED([BUILDID], "$buildid", [Build version details])
-AC_SUBST([BUILDID], "$buildid")
+
+if test "x$buildid" != "x0"; then
+    AC_DEFINE_UNQUOTED([BUILDID], "-$buildid", [Build version details])
+    AC_SUBST([BUILDID], "-$buildid")
+else
+    AC_DEFINE_UNQUOTED([BUILDID], "", [Build version details])
+fi
 
 major=`echo $PACKAGE_VERSION | cut -d. -f1`
 minor=`echo $PACKAGE_VERSION | cut -d. -f2`
@@ -234,6 +251,7 @@ AM_CONDITIONAL(ENABLE_UPDATE_MIMEDB, test x$enable_update_mimedb = xyes)
 AC_CONFIG_FILES([
     Makefile
     data/Makefile
+    data/adwaita-icons-needed.wxi
     data/virt-viewer.wxs
     data/virt-viewer.nsis
     data/virt-viewer-debug.nsis
