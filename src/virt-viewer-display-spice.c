@@ -25,7 +25,7 @@
 #include <config.h>
 
 #include <math.h>
-#include <spice-audio.h>
+#include <spice-client-gtk.h>
 
 #include <glib/gi18n.h>
 
@@ -214,7 +214,7 @@ virt_viewer_display_spice_size_allocate(VirtViewerDisplaySpice *self,
      * resizes the window to the size it already wants to be (based on desktop
      * size and zoom level), just return early
      */
-    virt_viewer_display_get_preferred_size(VIRT_VIEWER_DISPLAY(self), &preferred);
+    gtk_widget_get_preferred_size(GTK_WIDGET(self), NULL, &preferred);
     if (preferred.width == allocation->width
         && preferred.height == allocation->height) {
         return;
@@ -243,7 +243,7 @@ enable_accel_changed(VirtViewerApp *app,
                      GParamSpec *pspec G_GNUC_UNUSED,
                      VirtViewerDisplaySpice *self)
 {
-    GtkAccelKey key = { 0 };
+    GtkAccelKey key = {0, 0, 0};
     if (virt_viewer_app_get_enable_accel(app))
         gtk_accel_map_lookup_entry("<virt-viewer>/view/release-cursor", &key);
 
@@ -286,8 +286,11 @@ virt_viewer_display_spice_new(VirtViewerSessionSpice *session,
     g_return_val_if_fail(SPICE_IS_DISPLAY_CHANNEL(channel), NULL);
 
     g_object_get(channel, "channel-id", &channelid, NULL);
-    // We don't allow monitorid != 0 && channelid != 0
-    g_return_val_if_fail(channelid == 0 || monitorid == 0, NULL);
+    if (channelid != 0 && monitorid != 0) {
+        g_warning("Unsupported graphics configuration:\n"
+                  "spice-gtk only supports multiple graphics channels if they are single-head");
+        return NULL;
+    }
 
     self = g_object_new(VIRT_VIEWER_TYPE_DISPLAY_SPICE,
                         "session", session,

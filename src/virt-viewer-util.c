@@ -49,53 +49,15 @@ virt_viewer_error_quark(void)
 
 GtkBuilder *virt_viewer_util_load_ui(const char *name)
 {
-    struct stat sb;
     GtkBuilder *builder;
-    GError *error = NULL;
+    gchar *resource = g_strdup_printf("%s/ui/%s",
+                                      VIRT_VIEWER_RESOURCE_PREFIX,
+                                      name);
 
-    builder = gtk_builder_new();
-    if (stat(name, &sb) >= 0) {
-        gtk_builder_add_from_file(builder, name, &error);
-    } else {
-        gchar *path = g_build_filename(PACKAGE_DATADIR, "ui", name, NULL);
-        gboolean success = (gtk_builder_add_from_file(builder, path, &error) != 0);
-        if (error) {
-            if (!(error->domain == G_FILE_ERROR && error->code == G_FILE_ERROR_NOENT))
-                g_warning("Failed to add ui file '%s': %s", path, error->message);
-            g_clear_error(&error);
-        }
-        g_free(path);
+    builder = gtk_builder_new_from_resource(resource);
 
-        if (!success) {
-            const gchar * const * dirs = g_get_system_data_dirs();
-            g_return_val_if_fail(dirs != NULL, NULL);
-
-            while (dirs[0] != NULL) {
-                path = g_build_filename(dirs[0], PACKAGE, "ui", name, NULL);
-                if (gtk_builder_add_from_file(builder, path, NULL) != 0) {
-                    g_free(path);
-                    break;
-                }
-                g_free(path);
-                dirs++;
-            }
-            if (dirs[0] == NULL)
-                goto failed;
-        }
-    }
-
-    if (error) {
-        g_error("Cannot load UI description %s: %s", name,
-                error->message);
-        g_clear_error(&error);
-        goto failed;
-    }
-
+    g_free(resource);
     return builder;
- failed:
-    g_error("failed to find UI description file");
-    g_object_unref(builder);
-    return NULL;
 }
 
 int
@@ -173,7 +135,7 @@ static WeakHandlerCtx *
 whc_new(GObject *instance,
         GObject *observer)
 {
-    WeakHandlerCtx *ctx = g_slice_new0(WeakHandlerCtx);
+    WeakHandlerCtx *ctx = g_new0(WeakHandlerCtx, 1);
 
     ctx->instance = instance;
     ctx->observer = observer;
@@ -184,7 +146,7 @@ whc_new(GObject *instance,
 static void
 whc_free(WeakHandlerCtx *ctx)
 {
-    g_slice_free(WeakHandlerCtx, ctx);
+    g_free(ctx);
 }
 
 static void observer_destroyed_cb(gpointer, GObject *);
@@ -290,6 +252,17 @@ static void log_handler(const gchar *log_domain,
     g_log_default_handler(log_domain, log_level, message, unused_data);
 }
 
+#ifdef G_OS_WIN32
+static BOOL is_handle_valid(HANDLE h)
+{
+    if (h == INVALID_HANDLE_VALUE || h == NULL)
+        return FALSE;
+
+    DWORD flags;
+    return GetHandleInformation(h, &flags);
+}
+#endif
+
 void virt_viewer_util_init(const char *appname)
 {
 #ifdef G_OS_WIN32
@@ -302,18 +275,25 @@ void virt_viewer_util_init(const char *appname)
      */
     CreateMutexA(0, 0, "VirtViewerMutex");
 
-    if (AttachConsole(ATTACH_PARENT_PROCESS) != 0) {
-        freopen("CONIN$", "r", stdin);
-        freopen("CONOUT$", "w", stdout);
-        freopen("CONOUT$", "w", stderr);
-        dup2(fileno(stdin), STDIN_FILENO);
-        dup2(fileno(stdout), STDOUT_FILENO);
-        dup2(fileno(stderr), STDERR_FILENO);
-    }
-#endif
+    /* Get redirection from parent */
+    BOOL out_valid = is_handle_valid(GetStdHandle(STD_OUTPUT_HANDLE));
+    BOOL err_valid = is_handle_valid(GetStdHandle(STD_ERROR_HANDLE));
 
-#if !GLIB_CHECK_VERSION(2,31,0)
-    g_thread_init(NULL);
+    /*
+     * If not all output are redirected try to redirect to parent console.
+     * If parent has no console (for instance as launched from GUI) just
+     * rely on default (no output).
+     */
+    if ((!out_valid || !err_valid) && AttachConsole(ATTACH_PARENT_PROCESS)) {
+        if (!out_valid) {
+            freopen("CONOUT$", "w", stdout);
+            dup2(fileno(stdout), STDOUT_FILENO);
+        }
+        if (!err_valid) {
+            freopen("CONOUT$", "w", stderr);
+            dup2(fileno(stderr), STDERR_FILENO);
+        }
+    }
 #endif
 
     setlocale(LC_ALL, "");
@@ -541,6 +521,7 @@ displays_cmp(const void *p1, const void *p2, gpointer user_data)
     guint j = *(guint*)p2;
     GdkRectangle *m1 = g_hash_table_lookup(displays, GINT_TO_POINTER(i));
     GdkRectangle *m2 = g_hash_table_lookup(displays, GINT_TO_POINTER(j));
+    g_return_val_if_fail(m1 != NULL && m2 != NULL, 0);
     diff = m1->x - m2->x;
     if (diff == 0)
         diff = m1->y - m2->y;
@@ -567,7 +548,7 @@ virt_viewer_align_monitors_linear(GHashTable *displays)
     guint max_id = 0;
     guint ndisplays = 0;
     GHashTableIter iter;
-    gpointer key, value;
+    gpointer key;
 
     g_return_if_fail(displays != NULL);
 
@@ -580,7 +561,7 @@ virt_viewer_align_monitors_linear(GHashTable *displays)
     sorted_displays = g_new0(guint, ndisplays);
 
     g_hash_table_iter_init(&iter, displays);
-    while (g_hash_table_iter_next(&iter, &key, &value))
+    while (g_hash_table_iter_next(&iter, &key, NULL))
         sorted_displays[GPOINTER_TO_INT(key)] = GPOINTER_TO_INT(key);
 
     g_qsort_with_data(sorted_displays, ndisplays, sizeof(guint), displays_cmp, displays);
@@ -591,6 +572,7 @@ virt_viewer_align_monitors_linear(GHashTable *displays)
         guint nth = sorted_displays[i];
         g_assert(nth < ndisplays);
         GdkRectangle *rect = g_hash_table_lookup(displays, GINT_TO_POINTER(nth));
+        g_return_if_fail(rect != NULL);
         rect->x = x;
         rect->y = 0;
         x += rect->width;
@@ -615,14 +597,15 @@ virt_viewer_shift_monitors_to_origin(GHashTable *displays)
     gint xmin = G_MAXINT;
     gint ymin = G_MAXINT;
     GHashTableIter iter;
-    gpointer key, value;
+    gpointer value;
 
     if (g_hash_table_size(displays) == 0)
         return;
 
     g_hash_table_iter_init(&iter, displays);
-    while (g_hash_table_iter_next(&iter, &key, &value)) {
+    while (g_hash_table_iter_next(&iter, NULL, &value)) {
         GdkRectangle *display = value;
+        g_return_if_fail(display != NULL);
         if (display->width > 0 && display->height > 0) {
             xmin = MIN(xmin, display->x);
             ymin = MIN(ymin, display->y);
@@ -633,7 +616,7 @@ virt_viewer_shift_monitors_to_origin(GHashTable *displays)
     if (xmin > 0 || ymin > 0) {
         g_debug("%s: Shifting all monitors by (%i, %i)", G_STRFUNC, xmin, ymin);
         g_hash_table_iter_init(&iter, displays);
-        while (g_hash_table_iter_next(&iter, &key, &value)) {
+        while (g_hash_table_iter_next(&iter, NULL, &value)) {
             GdkRectangle *display = value;
             if (display->width > 0 && display->height > 0) {
                 display->x -= xmin;
@@ -643,6 +626,93 @@ virt_viewer_shift_monitors_to_origin(GHashTable *displays)
     }
 }
 
+/**
+ * virt_viewer_parse_monitor_mappings:
+ * @mappings: (array zero-terminated=1) values for the "monitor-mapping" key
+ * @nmappings: the size of @mappings
+ * @nmonitors: the count of client's monitors
+ *
+ * Parses and validates monitor mappings values to return a hash table
+ * containing the mapping from guest display ids to client monitors ids.
+ *
+ * Returns: (transfer full) a #GHashTable containing mapping from guest display
+ *  ids to client monitor ids or %NULL if the mapping is invalid.
+ */
+GHashTable*
+virt_viewer_parse_monitor_mappings(gchar **mappings, const gsize nmappings, const gint nmonitors)
+{
+    GHashTable *displaymap = g_hash_table_new(g_direct_hash, g_direct_equal);
+    GHashTable *monitormap = g_hash_table_new(g_direct_hash, g_direct_equal);
+    gint i, max_display_id = 0;
+    gchar **tokens = NULL;
+
+    if (nmappings == 0) {
+        g_warning("Empty monitor-mapping configuration");
+        goto configerror;
+    }
+
+    for (i = 0; i < nmappings; i++) {
+        gchar *endptr = NULL;
+        gint display = 0, monitor = 0;
+
+        tokens = g_strsplit(mappings[i], ":", 2);
+        if (g_strv_length(tokens) != 2) {
+            g_warning("Invalid monitor-mapping configuration: '%s'. "
+                      "Expected format is '<DISPLAY-ID>:<MONITOR-ID>'",
+                      mappings[i]);
+            g_strfreev(tokens);
+            goto configerror;
+        }
+
+        display = strtol(tokens[0], &endptr, 10);
+        if ((endptr && *endptr != '\0') || display < 1) {
+            g_warning("Invalid monitor-mapping configuration: display id is invalid: %s %p='%s'", tokens[0], endptr, endptr);
+            g_strfreev(tokens);
+            goto configerror;
+        }
+        monitor = strtol(tokens[1], &endptr, 10);
+        if ((endptr && *endptr != '\0') || monitor < 1) {
+            g_warning("Invalid monitor-mapping configuration: monitor id '%s' is invalid", tokens[1]);
+            g_strfreev(tokens);
+            goto configerror;
+        }
+        g_strfreev(tokens);
+
+        if (monitor > nmonitors) {
+            g_warning("Invalid monitor-mapping configuration: monitor #%i for display #%i does not exist", monitor, display);
+            goto configerror;
+        }
+
+        /* config file format is 1-based, not 0-based */
+        display--;
+        monitor--;
+
+        if (g_hash_table_lookup_extended(displaymap, GINT_TO_POINTER(display), NULL, NULL) ||
+            g_hash_table_lookup_extended(monitormap, GINT_TO_POINTER(monitor), NULL, NULL)) {
+            g_warning("Invalid monitor-mapping configuration: a display or monitor id was specified twice");
+            goto configerror;
+        }
+        g_debug("Fullscreen config: mapping guest display %i to monitor %i", display, monitor);
+        g_hash_table_insert(displaymap, GINT_TO_POINTER(display), GINT_TO_POINTER(monitor));
+        g_hash_table_insert(monitormap, GINT_TO_POINTER(monitor), GINT_TO_POINTER(display));
+        max_display_id = MAX(display, max_display_id);
+    }
+
+    for (i = 0; i < max_display_id; i++) {
+        if (!g_hash_table_lookup_extended(displaymap, GINT_TO_POINTER(i), NULL, NULL)) {
+            g_warning("Invalid monitor-mapping configuration: display #%d was not specified", i+1);
+            goto configerror;
+        }
+    }
+
+    g_hash_table_unref(monitormap);
+    return displaymap;
+
+configerror:
+    g_hash_table_unref(monitormap);
+    g_hash_table_unref(displaymap);
+    return NULL;
+}
 
 /*
  * Local variables:

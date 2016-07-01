@@ -29,8 +29,8 @@
 
 G_BEGIN_DECLS
 
-#define MIN_DISPLAY_WIDTH 50
-#define MIN_DISPLAY_HEIGHT 50
+#define MIN_DISPLAY_WIDTH 320
+#define MIN_DISPLAY_HEIGHT 200
 
 #define VIRT_VIEWER_TYPE_DISPLAY virt_viewer_display_get_type()
 
@@ -133,7 +133,6 @@ gboolean virt_viewer_display_get_enabled(VirtViewerDisplay *display);
 gboolean virt_viewer_display_get_selectable(VirtViewerDisplay *display);
 void virt_viewer_display_queue_resize(VirtViewerDisplay *display);
 void virt_viewer_display_get_preferred_monitor_geometry(VirtViewerDisplay *self, GdkRectangle* preferred);
-void virt_viewer_display_get_preferred_size(VirtViewerDisplay *self, GtkRequisition* requisistion);
 gint virt_viewer_display_get_nth(VirtViewerDisplay *self);
 
 G_END_DECLS

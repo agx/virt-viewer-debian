@@ -5,11 +5,6 @@
 # touch configure.ac or Makefile.am.
 %{!?enable_autotools:%define enable_autotools 0}
 
-%define with_gtk3 0
-%if 0%{?fedora} >= 15 || 0%{?rhel} >= 7
-%define with_gtk3 1
-%endif
-
 %define with_spice 0
 %if 0%{?fedora} >= 17 || 0%{?rhel} >= 6
 %define with_spice 1
@@ -21,7 +16,7 @@
 %endif
 
 Name: virt-viewer
-Version: 3.1
+Version: 4.0
 Release: 1%{?dist}%{?extra_release}
 Summary: Virtual Machine Viewer
 Group: Applications/System
@@ -42,31 +37,20 @@ BuildRequires: gettext-devel
 BuildRequires: libtool
 %endif
 
-BuildRequires: glib2-devel >= 2.22.0
-%if %{with_gtk3}
-BuildRequires: gtk3-devel >= 3.0
-%else
-BuildRequires: gtk2-devel >= 2.18.0
-%endif
-BuildRequires: libvirt-devel >= 0.10.0
-BuildRequires: libxml2-devel >= 2.6.0
-%if %{with_gtk3}
-BuildRequires: gtk-vnc2-devel >= 0.4.0
-%else
-BuildRequires: gtk-vnc-devel >= 0.3.8
-%endif
+BuildRequires: pkgconfig(glib-2.0) >= 2.38
+BuildRequires: pkgconfig(gtk+-3.0) >= 3.10
+BuildRequires: pkgconfig(libvirt) >= 0.10.0
+BuildRequires: pkgconfig(libvirt-glib-1.0) >= 0.1.8
+BuildRequires: pkgconfig(libxml-2.0) >= 2.6.0
+BuildRequires: pkgconfig(gtk-vnc-2.0) >= 0.4.0
 %if %{with_spice}
-%if %{with_gtk3}
-BuildRequires: spice-gtk3-devel >= 0.30
-%else
-BuildRequires: spice-gtk-devel >= 0.30
-%endif
-BuildRequires: spice-protocol >= 0.12.7
+BuildRequires: pkgconfig(spice-client-gtk-3.0) >= 0.31
+BuildRequires: pkgconfig(spice-protocol) >= 0.12.7
 %endif
 BuildRequires: /usr/bin/pod2man
 BuildRequires: intltool
 %if %{with_govirt}
-BuildRequires: libgovirt-devel >= 0.3.2
+BuildRequires: pkgconfig(govirt-1.0) >= 0.3.2
 %endif
 
 %if 0%{?fedora} >= 20
@@ -92,12 +76,6 @@ autoreconf -if
 %define spice_arg --with-spice-gtk
 %else
 %define spice_arg --without-spice-gtk
-%endif
-
-%if %{with_gtk3}
-%define gtk_arg --with-gtk=3.0
-%else
-%define gtk_arg --with-gtk=2.0
 %endif
 
 %if %{with_govirt}
@@ -144,18 +122,10 @@ fi
 %doc README COPYING AUTHORS ChangeLog NEWS
 %{_bindir}/%{name}
 %{_bindir}/remote-viewer
-%dir %{_datadir}/%{name}
-%dir %{_datadir}/%{name}/ui/
-%{_datadir}/%{name}/ui/virt-viewer.xml
-%{_datadir}/%{name}/ui/virt-viewer-auth.xml
-%{_datadir}/%{name}/ui/virt-viewer-about.xml
-%{_datadir}/%{name}/ui/virt-viewer-guest-details.xml
-%{_datadir}/%{name}/ui/virt-viewer-vm-connection.xml
-%{_datadir}/%{name}/ui/virt-viewer-preferences.xml
-%{_datadir}/%{name}/ui/remote-viewer-connect.xml
 %{_datadir}/icons/hicolor/*/apps/*
 %{_datadir}/icons/hicolor/*/devices/*
 %{_datadir}/applications/remote-viewer.desktop
+%{_datadir}/appdata/remote-viewer.appdata.xml
 %{_datadir}/mime/packages/virt-viewer-mime.xml
 %ghost %{_libexecdir}/spice-xpi-client
 %{_libexecdir}/spice-xpi-client-remote-viewer
