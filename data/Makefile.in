@@ -90,26 +90,23 @@ build_triplet = @build@
 host_triplet = @host@
 @OS_WIN32_TRUE@am__append_1 = \
 @OS_WIN32_TRUE@	deps.txt				\
-@OS_WIN32_TRUE@	virt-viewer-$(VERSION).exe		\
 @OS_WIN32_TRUE@	virt-viewer-$(WIXL_ARCH)-$(VERSION).msi	\
 @OS_WIN32_TRUE@	$(NULL)
 
-@OS_WIN32_FALSE@am__append_2 = $(mime_DATA) $(desktop_DATA)
-@OS_WIN32_FALSE@am__append_3 = $(MIMEFILES) $(DESKTOPFILES)
+@OS_WIN32_FALSE@am__append_2 = $(mime_DATA) $(desktop_DATA) $(appdata_DATA)
+@OS_WIN32_FALSE@am__append_3 = $(MIMEFILES) $(DESKTOPFILES) $(APPDATAFILES)
 subdir = data
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/m4/intltool.m4 \
-	$(top_srcdir)/m4/libtool.m4 $(top_srcdir)/m4/ltoptions.m4 \
-	$(top_srcdir)/m4/ltsugar.m4 $(top_srcdir)/m4/ltversion.m4 \
-	$(top_srcdir)/m4/lt~obsolete.m4 $(top_srcdir)/acinclude.m4 \
-	$(top_srcdir)/configure.ac
+am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
+	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
+	$(top_srcdir)/m4/ltversion.m4 $(top_srcdir)/m4/lt~obsolete.m4 \
+	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 DIST_COMMON = $(srcdir)/Makefile.am $(am__DIST_COMMON)
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config.h
-CONFIG_CLEAN_FILES = adwaita-icons-needed.wxi virt-viewer.wxs \
-	virt-viewer.nsis virt-viewer-debug.nsis
+CONFIG_CLEAN_FILES = virt-viewer.wxs
 CONFIG_CLEAN_VPATH_FILES =
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -157,13 +154,11 @@ am__uninstall_files_from_dir = { \
     || { echo " ( cd '$$dir' && rm -f" $$files ")"; \
          $(am__cd) "$$dir" && rm -f $$files; }; \
   }
-am__installdirs = "$(DESTDIR)$(desktopdir)" "$(DESTDIR)$(mimedir)"
-DATA = $(desktop_DATA) $(mime_DATA)
+am__installdirs = "$(DESTDIR)$(appdatadir)" "$(DESTDIR)$(desktopdir)" \
+	"$(DESTDIR)$(mimedir)"
+DATA = $(appdata_DATA) $(desktop_DATA) $(mime_DATA)
 am__tagged_files = $(HEADERS) $(SOURCES) $(TAGS_FILES) $(LISP)
-am__DIST_COMMON = $(srcdir)/Makefile.in \
-	$(srcdir)/adwaita-icons-needed.wxi.in \
-	$(srcdir)/virt-viewer-debug.nsis.in \
-	$(srcdir)/virt-viewer.nsis.in $(srcdir)/virt-viewer.wxs.in
+am__DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/virt-viewer.wxs.in
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 ALL_LINGUAS = @ALL_LINGUAS@
@@ -199,22 +194,18 @@ GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
 GLIB2_CFLAGS = @GLIB2_CFLAGS@
 GLIB2_LIBS = @GLIB2_LIBS@
 GLIB2_REQUIRED = @GLIB2_REQUIRED@
+GLIB_COMPILE_RESOURCES = @GLIB_COMPILE_RESOURCES@
 GLIB_MKENUMS = @GLIB_MKENUMS@
 GMOFILES = @GMOFILES@
 GMSGFMT = @GMSGFMT@
 GOVIRT_REQUIRED = @GOVIRT_REQUIRED@
 GREP = @GREP@
-GTK2_REQUIRED = @GTK2_REQUIRED@
-GTK3_REQUIRED = @GTK3_REQUIRED@
-GTK_API_VERSION = @GTK_API_VERSION@
 GTK_CFLAGS = @GTK_CFLAGS@
 GTK_LIBS = @GTK_LIBS@
 GTK_REQUIRED = @GTK_REQUIRED@
-GTK_VNC1_REQUIRED = @GTK_VNC1_REQUIRED@
-GTK_VNC2_REQUIRED = @GTK_VNC2_REQUIRED@
-GTK_VNC_API_VERSION = @GTK_VNC_API_VERSION@
 GTK_VNC_CFLAGS = @GTK_VNC_CFLAGS@
 GTK_VNC_LIBS = @GTK_VNC_LIBS@
+GTK_VNC_REQUIRED = @GTK_VNC_REQUIRED@
 ICOTOOL = @ICOTOOL@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
@@ -237,6 +228,7 @@ LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
 LIBVIRT_CFLAGS = @LIBVIRT_CFLAGS@
+LIBVIRT_GLIB_REQUIRED = @LIBVIRT_GLIB_REQUIRED@
 LIBVIRT_LIBS = @LIBVIRT_LIBS@
 LIBVIRT_REQUIRED = @LIBVIRT_REQUIRED@
 LIBXML2_CFLAGS = @LIBXML2_CFLAGS@
@@ -354,9 +346,7 @@ top_srcdir = @top_srcdir@
 NULL = 
 CLEANFILES = $(am__append_1) $(am__append_2)
 MANUFACTURER = Virt Manager Project
-EXTRA_DIST = spice-xpi-client-remote-viewer \
-	adwaita-icons-needed.wxi.in virt-viewer.wxs.in \
-	virt-viewer.nsis.in virt-viewer-debug.nsis.in $(NULL) \
+EXTRA_DIST = spice-xpi-client-remote-viewer virt-viewer.wxs.in $(NULL) \
 	$(am__append_3)
 @HAVE_LIBVIRT_FALSE@@OS_WIN32_TRUE@HaveLibvirt = False
 @HAVE_LIBVIRT_TRUE@@OS_WIN32_TRUE@HaveLibvirt = True
@@ -372,6 +362,9 @@ EXTRA_DIST = spice-xpi-client-remote-viewer \
 @OS_WIN32_FALSE@MIMEFILES = virt-viewer-mime.xml.in
 @OS_WIN32_FALSE@mimedir = $(datadir)/mime/packages
 @OS_WIN32_FALSE@mime_DATA = virt-viewer-mime.xml
+@OS_WIN32_FALSE@appdatadir = $(datadir)/appdata
+@OS_WIN32_FALSE@APPDATAFILES = remote-viewer.appdata.xml.in
+@OS_WIN32_FALSE@appdata_DATA = $(APPDATAFILES:.xml.in=.xml)
 all: all-am
 
 .SUFFIXES:
@@ -404,13 +397,7 @@ $(top_srcdir)/configure:  $(am__configure_deps)
 $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
-adwaita-icons-needed.wxi: $(top_builddir)/config.status $(srcdir)/adwaita-icons-needed.wxi.in
-	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
 virt-viewer.wxs: $(top_builddir)/config.status $(srcdir)/virt-viewer.wxs.in
-	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
-virt-viewer.nsis: $(top_builddir)/config.status $(srcdir)/virt-viewer.nsis.in
-	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
-virt-viewer-debug.nsis: $(top_builddir)/config.status $(srcdir)/virt-viewer-debug.nsis.in
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
 
 mostlyclean-libtool:
@@ -418,6 +405,27 @@ mostlyclean-libtool:
 
 clean-libtool:
 	-rm -rf .libs _libs
+install-appdataDATA: $(appdata_DATA)
+	@$(NORMAL_INSTALL)
+	@list='$(appdata_DATA)'; test -n "$(appdatadir)" || list=; \
+	if test -n "$$list"; then \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(appdatadir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(appdatadir)" || exit 1; \
+	fi; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(appdatadir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(appdatadir)" || exit $$?; \
+	done
+
+uninstall-appdataDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(appdata_DATA)'; test -n "$(appdatadir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	dir='$(DESTDIR)$(appdatadir)'; $(am__uninstall_files_from_dir)
 install-desktopDATA: $(desktop_DATA)
 	@$(NORMAL_INSTALL)
 	@list='$(desktop_DATA)'; test -n "$(desktopdir)" || list=; \
@@ -501,7 +509,7 @@ check-am: all-am
 check: check-am
 all-am: Makefile $(DATA) all-local
 installdirs:
-	for dir in "$(DESTDIR)$(desktopdir)" "$(DESTDIR)$(mimedir)"; do \
+	for dir in "$(DESTDIR)$(appdatadir)" "$(DESTDIR)$(desktopdir)" "$(DESTDIR)$(mimedir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -557,7 +565,8 @@ info: info-am
 
 info-am:
 
-install-data-am: install-desktopDATA install-mimeDATA
+install-data-am: install-appdataDATA install-desktopDATA \
+	install-mimeDATA
 	@$(NORMAL_INSTALL)
 	$(MAKE) $(AM_MAKEFLAGS) install-data-hook
 install-dvi: install-dvi-am
@@ -602,7 +611,8 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-desktopDATA uninstall-mimeDATA
+uninstall-am: uninstall-appdataDATA uninstall-desktopDATA \
+	uninstall-mimeDATA
 	@$(NORMAL_INSTALL)
 	$(MAKE) $(AM_MAKEFLAGS) uninstall-hook
 .MAKE: install-am install-data-am install-strip uninstall-am
@@ -610,45 +620,27 @@ uninstall-am: uninstall-desktopDATA uninstall-mimeDATA
 .PHONY: all all-am all-local check check-am clean clean-generic \
 	clean-libtool cscopelist-am ctags-am distclean \
 	distclean-generic distclean-libtool distdir dvi dvi-am html \
-	html-am info info-am install install-am install-data \
-	install-data-am install-data-hook install-desktopDATA \
-	install-dvi install-dvi-am install-exec install-exec-am \
-	install-html install-html-am install-info install-info-am \
-	install-man install-mimeDATA install-pdf install-pdf-am \
-	install-ps install-ps-am install-strip installcheck \
-	installcheck-am installdirs maintainer-clean \
+	html-am info info-am install install-am install-appdataDATA \
+	install-data install-data-am install-data-hook \
+	install-desktopDATA install-dvi install-dvi-am install-exec \
+	install-exec-am install-html install-html-am install-info \
+	install-info-am install-man install-mimeDATA install-pdf \
+	install-pdf-am install-ps install-ps-am install-strip \
+	installcheck installcheck-am installdirs maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-generic \
 	mostlyclean-libtool pdf pdf-am ps ps-am tags-am uninstall \
-	uninstall-am uninstall-desktopDATA uninstall-hook \
-	uninstall-mimeDATA
+	uninstall-am uninstall-appdataDATA uninstall-desktopDATA \
+	uninstall-hook uninstall-mimeDATA
 
 .PRECIOUS: Makefile
 
 
 # this make sure those files are regenerated when they change
 # (in maintainer-mode)
-all-local: adwaita-icons-needed.wxi virt-viewer.wxs virt-viewer.nsis virt-viewer-debug.nsis
+all-local: virt-viewer.wxs
 
 @OS_WIN32_TRUE@deps.txt:
 @OS_WIN32_TRUE@	$(AM_V_GEN)rpm -qa | grep $(host_os) | sort | unix2dos > $@
-
-@OS_WIN32_TRUE@virt-viewer-$(VERSION).exe: virt-viewer.nsis deps.txt
-@OS_WIN32_TRUE@	$(AM_V_GEN)DESTDIR=`mktemp -d` && \
-@OS_WIN32_TRUE@	make -C $(top_builddir) install DESTDIR=$$DESTDIR >/dev/null && \
-@OS_WIN32_TRUE@	makensis -NOCD							\
-@OS_WIN32_TRUE@             -DDESTDIR=$$DESTDIR					\
-@OS_WIN32_TRUE@             -DHaveSpiceGtk=$(HaveSpiceGtk)				\
-@OS_WIN32_TRUE@             -DHaveGtkVnc=$(HaveGtkVnc)					\
-@OS_WIN32_TRUE@             -DHaveLibvirt=$(HaveLibvirt)				\
-@OS_WIN32_TRUE@             -DHaveOVirt=$(HaveOVirt)					\
-@OS_WIN32_TRUE@             $< >/dev/null &&						\
-@OS_WIN32_TRUE@	rm -rf $$DESTDIR
-
-@OS_WIN32_TRUE@virt-viewer-debug-$(VERSION).exe: virt-viewer-debug.nsis
-@OS_WIN32_TRUE@	$(AM_V_GEN)DESTDIR=`mktemp -d` && \
-@OS_WIN32_TRUE@	make -C $(top_builddir) install DESTDIR=$$DESTDIR >/dev/null && \
-@OS_WIN32_TRUE@	makensis -NOCD -DDESTDIR=$$DESTDIR $< >/dev/null && \
-@OS_WIN32_TRUE@	rm -rf $$DESTDIR
 
 @OS_WIN32_TRUE@virt-viewer-$(WIXL_ARCH)-$(VERSION).msi: virt-viewer.wxs deps.txt
 @OS_WIN32_TRUE@	$(AM_V_GEN)DESTDIR=`mktemp -d` &&				\
@@ -669,6 +661,7 @@ all-local: adwaita-icons-needed.wxi virt-viewer.wxs virt-viewer.nsis virt-viewer
 
 @OS_WIN32_TRUE@msi: virt-viewer-$(WIXL_ARCH)-$(VERSION).msi
 @OS_WIN32_FALSE@@INTLTOOL_DESKTOP_RULE@
+@OS_WIN32_FALSE@@INTLTOOL_XML_RULE@
 @OS_WIN32_FALSE@@INTLTOOL_XML_RULE@
 
 @OS_WIN32_FALSE@install-data-hook:

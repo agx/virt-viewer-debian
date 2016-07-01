@@ -24,25 +24,17 @@
 
 #include <config.h>
 
-#include <spice-audio.h>
 #include <glib/gi18n.h>
 
-#include <spice-option.h>
-#include <spice-util.h>
-#include <spice-client.h>
+#include <spice-client-gtk.h>
 
 #include <usb-device-widget.h>
 #include "virt-viewer-file.h"
+#include "virt-viewer-file-transfer-dialog.h"
 #include "virt-viewer-util.h"
 #include "virt-viewer-session-spice.h"
 #include "virt-viewer-display-spice.h"
 #include "virt-viewer-auth.h"
-#include "virt-glib-compat.h"
-
-#if !GLIB_CHECK_VERSION(2, 26, 0)
-#include "gbinding.h"
-#include "gbinding.c"
-#endif
 
 G_DEFINE_TYPE (VirtViewerSessionSpice, virt_viewer_session_spice, VIRT_VIEWER_TYPE_SESSION)
 
@@ -58,6 +50,8 @@ struct _VirtViewerSessionSpicePrivate {
     gboolean has_sw_smartcard_reader;
     guint pass_try;
     gboolean did_auto_conf;
+    VirtViewerFileTransferDialog *file_transfer_dialog;
+
 };
 
 #define VIRT_VIEWER_SESSION_SPICE_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE((o), VIRT_VIEWER_TYPE_SESSION_SPICE, VirtViewerSessionSpicePrivate))
@@ -155,6 +149,10 @@ virt_viewer_session_spice_dispose(GObject *obj)
     spice->priv->audio = NULL;
 
     g_clear_object(&spice->priv->main_window);
+    if (spice->priv->file_transfer_dialog) {
+        gtk_widget_destroy(GTK_WIDGET(spice->priv->file_transfer_dialog));
+        spice->priv->file_transfer_dialog = NULL;
+    }
 
     G_OBJECT_CLASS(virt_viewer_session_spice_parent_class)->dispose(obj);
 }
@@ -231,6 +229,9 @@ virt_viewer_session_spice_constructed(GObject *obj)
     virt_viewer_signal_connect_object(self, "notify::share-folder",
                                       G_CALLBACK(update_share_folder), self,
                                       G_CONNECT_SWAPPED);
+
+    self->priv->file_transfer_dialog =
+        virt_viewer_file_transfer_dialog_new(self->priv->main_window);
 
     G_OBJECT_CLASS(virt_viewer_session_spice_parent_class)->constructed(obj);
 }
@@ -586,6 +587,16 @@ fill_session(VirtViewerFile *file, SpiceSession *session)
         g_object_set(G_OBJECT(gtk), "auto-usbredir", enabled, NULL);
     }
 
+    if (virt_viewer_file_is_set(file, "usb-filter")) {
+        gchar *filterstr = virt_viewer_file_get_usb_filter(file);
+        SpiceUsbDeviceManager *manager = spice_usb_device_manager_get(session,
+                                                                      NULL);
+        if (manager != NULL) {
+            g_object_set(manager, "auto-connect-filter", filterstr, NULL);
+        }
+        g_free(filterstr);
+    }
+
     if (virt_viewer_file_is_set(file, "secure-channels")) {
         gchar **channels = virt_viewer_file_get_secure_channels(file, NULL);
         g_object_set(G_OBJECT(session), "secure-channels", channels, NULL);
@@ -785,7 +796,7 @@ virt_viewer_session_spice_usb_device_selection(VirtViewerSession *session,
     /* Create the widgets */
     dialog = gtk_dialog_new_with_buttons(_("Select USB devices for redirection"), parent,
                                          GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
-                                         GTK_STOCK_CLOSE, GTK_RESPONSE_ACCEPT,
+                                         _("_Close"), GTK_RESPONSE_ACCEPT,
                                          NULL);
     gtk_dialog_set_default_response(GTK_DIALOG(dialog), GTK_RESPONSE_ACCEPT);
     gtk_container_set_border_width(GTK_CONTAINER(dialog), 12);
@@ -831,8 +842,11 @@ static void
 destroy_display(gpointer data)
 {
     VirtViewerDisplay *display = VIRT_VIEWER_DISPLAY(data);
-    VirtViewerSession *session = virt_viewer_display_get_session(display);
+    VirtViewerSession *session;
 
+    g_return_if_fail (display != NULL);
+
+    session = virt_viewer_display_get_session(display);
     g_debug("Destroying spice display %p", display);
     virt_viewer_session_remove_display(session, display);
     g_object_unref(display);
@@ -881,6 +895,9 @@ virt_viewer_session_spice_display_monitors(SpiceChannel *channel,
         display = g_ptr_array_index(displays, i);
         if (display == NULL) {
             display = virt_viewer_display_spice_new(self, channel, i);
+            if (display == NULL)
+                continue;
+
             g_debug("creating spice display (#:%d)",
                     virt_viewer_display_get_nth(VIRT_VIEWER_DISPLAY(display)));
             g_ptr_array_index(displays, i) = g_object_ref_sink(display);
@@ -920,6 +937,16 @@ virt_viewer_session_spice_display_monitors(SpiceChannel *channel,
 }
 
 static void
+on_new_file_transfer(SpiceMainChannel *channel G_GNUC_UNUSED,
+                     SpiceFileTransferTask *task,
+                     gpointer user_data)
+{
+    VirtViewerSessionSpice *self = VIRT_VIEWER_SESSION_SPICE(user_data);
+    virt_viewer_file_transfer_dialog_add_task(self->priv->file_transfer_dialog,
+                                              task);
+}
+
+static void
 virt_viewer_session_spice_channel_new(SpiceSession *s,
                                       SpiceChannel *channel,
                                       VirtViewerSession *session)
@@ -951,6 +978,8 @@ virt_viewer_session_spice_channel_new(SpiceSession *s,
 
         virt_viewer_signal_connect_object(channel, "notify::agent-connected",
                                           G_CALLBACK(agent_connected_changed), self, 0);
+        virt_viewer_signal_connect_object(channel, "new-file-transfer",
+                                          G_CALLBACK(on_new_file_transfer), self, 0);
     }
 
     if (SPICE_IS_DISPLAY_CHANNEL(channel)) {

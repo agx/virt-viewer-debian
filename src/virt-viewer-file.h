@@ -21,7 +21,6 @@
 #ifndef __VIRT_VIEWER_FILE_H__
 #define __VIRT_VIEWER_FILE_H__
 
-#include "virt-glib-compat.h"
 #include "virt-viewer-app.h"
 
 G_BEGIN_DECLS
@@ -120,6 +119,8 @@ gchar* virt_viewer_file_get_ovirt_vm_guid(VirtViewerFile* self);
 void virt_viewer_file_set_ovirt_vm_guid(VirtViewerFile* self, const gchar* value);
 gchar* virt_viewer_file_get_ovirt_jsessionid(VirtViewerFile* self);
 void virt_viewer_file_set_ovirt_jsessionid(VirtViewerFile* self, const gchar* value);
+gchar* virt_viewer_file_get_ovirt_sso_token(VirtViewerFile* self);
+void virt_viewer_file_set_ovirt_sso_token(VirtViewerFile* self, const gchar* value);
 gchar* virt_viewer_file_get_ovirt_ca(VirtViewerFile* self);
 void virt_viewer_file_set_ovirt_ca(VirtViewerFile* self, const gchar* value);
 

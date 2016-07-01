@@ -11,12 +11,14 @@ The Virt Viewer application is maintained by
 
 With additional patches & translations from:
 
+Charles Arnold <carnold@suse.com>
 Christophe Fergeau <cfergeau@redhat.com>
 Daniel P. Berrange <berrange@redhat.com>
 Dave Allan <dallan@redhat.com>
 Doug Goldstein <cardoe@cardoe.com>
 Eduardo Lima (Etrunko) <etrunko@redhat.com>
 Fabiano Fidêncio <fidencio@redhat.com>
+Frediano Ziglio <fziglio@redhat.com>
 Guannan Ren <gren@redhat.com>
 Guido Günther <agx@sigxcpu.org>
 Hans de Goede <hdegoede@redhat.com>
@@ -24,6 +26,7 @@ Jiri Denemark <Jiri.Denemark@gmail.com>
 Jonathon Jongsma <jjongsma@redhat.com>
 Ján Tomko <jtomko@redhat.com>
 Lukas Venhoda <lvenhoda@redhat.com>
+Lukáš Venhoda <lvenhoda@redhat.com>
 Marc-André Lureau <marcandre.lureau@redhat.com>
 Martin Kletzander <mkletzan@redhat.com>
 Michal Privoznik <mprivozn@redhat.com>
@@ -34,6 +37,7 @@ Rex Dieter <rdieter@math.unl.edu>
 Richard W.M. Jones <rjones@redhat.com>
 Ronnie Sahlberg <ronniesahlberg@gmail.com>
 Sandy Stutsman <sstutsma@redhat.com>
+Uri Lublin <uril@redhat.com>
 Victor Toso <victortoso@redhat.com>
 Yann E. MORIN" <yann.morin.1998@anciens.enib.fr>
 Yonit Halperin <yhalperi@redhat.com>

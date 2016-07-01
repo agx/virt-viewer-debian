@@ -28,7 +28,6 @@
 #include <string.h>
 
 #include "ovirt-foreign-menu.h"
-#include "virt-glib-compat.h"
 #include "virt-viewer-util.h"
 
 typedef enum {
@@ -466,10 +465,11 @@ GtkWidget *ovirt_foreign_menu_get_gtk_menu(OvirtForeignMenu *foreign_menu)
     GList *it;
     char *current_iso;
 
-    g_debug("Creating GtkMenu for foreign menu");
     if (foreign_menu->priv->iso_names == NULL) {
+        g_debug("ISO list is empty, no menu to show");
         return NULL;
     }
+    g_debug("Creating GtkMenu for foreign menu");
     current_iso = ovirt_foreign_menu_get_current_iso_name(foreign_menu);
     gtk_menu = gtk_menu_new();
     for (it = foreign_menu->priv->iso_names; it != NULL; it = it->next) {
@@ -651,9 +651,14 @@ static void storage_domains_fetched_cb(GObject *source_object,
     while (g_hash_table_iter_next(&iter, NULL, (gpointer *)&domain)) {
         OvirtCollection *file_collection;
         int type;
+        int state;
 
-        g_object_get(domain, "type", &type, NULL);
+        g_object_get(domain, "type", &type, "state", &state, NULL);
         if (type != OVIRT_STORAGE_DOMAIN_TYPE_ISO) {
+            continue;
+        }
+
+        if (state != OVIRT_STORAGE_DOMAIN_STATE_ACTIVE) {
             continue;
         }
 
@@ -755,6 +760,7 @@ static void api_fetched_cb(GObject *source_object,
         return;
     }
     g_return_if_fail(OVIRT_IS_API(menu->priv->api));
+    g_object_ref(menu->priv->api);
 
     ovirt_foreign_menu_next_async_step(menu, STATE_API);
 }
@@ -791,7 +797,7 @@ static void iso_list_fetched_cb(GObject *source_object,
     ovirt_foreign_menu_set_files(OVIRT_FOREIGN_MENU(user_data), files);
     g_list_free(files);
 
-    g_timeout_add_seconds(15, ovirt_foreign_menu_refresh_iso_list, user_data);
+    g_timeout_add_seconds(300, ovirt_foreign_menu_refresh_iso_list, user_data);
 }
 
 
@@ -829,6 +835,7 @@ OvirtForeignMenu *ovirt_foreign_menu_new_from_file(VirtViewerFile *file)
     gboolean admin;
     char *ca_str = NULL;
     char *jsessionid = NULL;
+    char *sso_token = NULL;
     char *url = NULL;
     char *vm_guid = NULL;
     GByteArray *ca = NULL;
@@ -836,11 +843,21 @@ OvirtForeignMenu *ovirt_foreign_menu_new_from_file(VirtViewerFile *file)
     url = virt_viewer_file_get_ovirt_host(file);
     vm_guid = virt_viewer_file_get_ovirt_vm_guid(file);
     jsessionid = virt_viewer_file_get_ovirt_jsessionid(file);
+    sso_token = virt_viewer_file_get_ovirt_sso_token(file);
     ca_str = virt_viewer_file_get_ovirt_ca(file);
     admin = virt_viewer_file_get_ovirt_admin(file);
 
-    if ((url == NULL) || (vm_guid == NULL))
+    if ((url == NULL) || (vm_guid == NULL)) {
+        g_debug("ignoring [ovirt] section content as URL, VM GUID"
+                " are missing from the .vv file");
         goto end;
+    }
+
+    if ((jsessionid == NULL) && (sso_token == NULL)) {
+        g_debug("ignoring [ovirt] section content as jsessionid and sso-token"
+                " are both missing from the .vv file");
+        goto end;
+    }
 
     proxy = ovirt_proxy_new(url);
     if (proxy == NULL)
@@ -853,9 +870,19 @@ OvirtForeignMenu *ovirt_foreign_menu_new_from_file(VirtViewerFile *file)
 
     g_object_set(G_OBJECT(proxy),
                  "admin", admin,
-                 "session-id", jsessionid,
                  "ca-cert", ca,
                  NULL);
+    if (jsessionid != NULL) {
+        g_object_set(G_OBJECT(proxy),
+                     "session-id", jsessionid,
+                     NULL);
+    }
+    if (sso_token != NULL) {
+        g_object_set(G_OBJECT(proxy),
+                     "sso-token", sso_token,
+                     NULL);
+    }
+
     menu = g_object_new(OVIRT_TYPE_FOREIGN_MENU,
                         "proxy", proxy,
                         "vm-guid", vm_guid,
@@ -865,6 +892,7 @@ end:
     g_free(url);
     g_free(vm_guid);
     g_free(jsessionid);
+    g_free(sso_token);
     g_free(ca_str);
     if (ca != NULL) {
         g_byte_array_unref(ca);

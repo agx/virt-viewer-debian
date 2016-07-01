@@ -1,8 +1,965 @@
-2015-12-17  Daniel P. Berrange  <berrange@redhat.com>
+2016-06-30  Daniel P. Berrange  <berrange@redhat.com>
 
-	Update for release 3.1
+	Update NEWS for 4.0 release
 
 	Refresh translations from zanata
+
+2016-06-30  Eduardo Lima (Etrunko)  <etrunko@redhat.com>
+
+	Adjust timer to refresh ovirt foreign menu
+	This is a temporary solution, as discussed in the bug. We will adjust
+	the timer to refresh the ISO list from 15 seconds to 5 minutes (300
+	seconds), while reworking in the UI to replace the menu with a dialog,
+	which seems a saner way to display the list.
+
+	Resolves: rhbz#1347726
+
+2016-06-30  Fabiano Fidêncio  <fidencio@redhat.com>
+
+	ui: Use mnemonics for remote-viewer connection UI
+	Here we added mnemonics for the buttons "Cancel" and "Connect" and also
+	for the "Connection Address" entry (as it was before moving this dialog
+	to a .ui file).
+
+	The "Recent connections" widget is left behind as GtkRecentChooserWidget
+	isn't suitable for mnemonic activation.
+
+	Resolves: rhbz#1351487
+
+	Acked-by: Pavel Grunt <pgrunt@redhat.com>
+
+	timed-revealer: listen to the "grab-notify" signal
+	The "grab-notify" signal lets us know when our widget becomes
+	shadowed by a Gtk+ grab on another widget, or when it becomes unshadowed
+	due to a grab being removed.
+
+	That's exactly the case we face when dealing with "usb-redirection" and
+	"close" items of the fullscreen toolbar. And, currently, when these
+	widgets get closed the timed-revealer stays there forever. From now on
+	let's take advantage of the "grab-notify" signal and schedule a timeout
+	for the revealer when these widgets' windows get closed.
+
+	Acked-by: Christophe Fergeau <cfergeau@redhat.com>
+	Acked-by: Eduardo Lima (Etrunko) <etrunko@redhat.com>
+
+2016-06-29  Eduardo Lima (Etrunko)  <etrunko@redhat.com>
+
+	Get rid of deprecated functions to customize widget colors
+	Since commit cc455b7f916110d7cfae6b7af753349e070c9494, the background
+	color has not been set correctly for Gtk+ 3.18 (Fedora 23), while it was
+	working fine for more recent version 3.20 (Fedora 24). Tracked down to
+	some changes in GtkNotebook code which can not be easily backported.
+
+	Instead of customizing background and foreground colors, let's just
+	stick with the default colors provided by theme.
+
+	Related https://bugs.freedesktop.org/show_bug.cgi?id=94276
+
+2016-06-29  Lukáš Venhoda  <lvenhoda@redhat.com>
+
+	package: Add appdata metadata for Gnome Software
+	Adds metadata to be used with Gnome Software.
+	Includes name, summary, description and a few screenshots of remote-viewer.
+
+	Acked-by: Daniel P. Berrange <berrange@redhat.com>
+	Acked-by: Fabiano Fidêncio <fidencio@redhat.com>
+
+2016-06-29  Christophe Fergeau  <cfergeau@redhat.com>
+
+	window: Don't take a reference on 'toolbar'
+	VirtViewerTimedRevealer now derives from GtkEventBox/GtkContainer, so
+	it follows GTK+ conventions and takes ownership of the floating ref on
+	'toolbar'. Since VirtViewerWindow and VirtViewerTimedRevealer will have
+	the same lifespan, we don't need to own a reference on toolbar in
+	VirtViewerWindow.
+
+	Acked-by: Fabiano Fidêncio <fidencio@redhat.com>
+
+2016-06-29  Fabiano Fidêncio  <fidencio@redhat.com>
+
+	timed-revealer: Inherit from GtkEventBox
+	As suggested by Christophe, inheriting from GtkEventBox instead of
+	having one instance of it as a member can help us to get rid of
+	virt_viewer_timed_revealer_get_overlay_widget().
+
+	Acked-by: Christophe Fergeau <cfergeau@redhat.com>
+
+2016-06-29  Christophe Fergeau  <cfergeau@redhat.com>
+
+	timed-revealer: Don't release reference we don't own
+	VirtViewerTimedRevealer::evBox is created in
+	virt_viewer_timed_revealer_new() and will be passed to
+	gtk_container_add() through gtk_overlay_add_overlay(overlay,
+	virt_viewer_timed_revealer_get_overlay_widget(priv->revealer))
+
+	This means VirtViewerTimedRevealer does not own a reference on evBox,
+	and that it should not try to release it in
+	VirtViewerTimedRevealer::dispose()
+
+	Backtrace for the crash:
+	 #0  0x00007ffff3e92c9d in g_type_check_instance_is_fundamentally_a () at /lib64/libgobject-2.0.so.0
+	 #1  0x00007ffff3e722a5 in g_object_unref () at /lib64/libgobject-2.0.so.0
+	 #2  0x000000000041ebe3 in virt_viewer_timed_revealer_dispose (object=0x1127320) at virt-viewer-timed-revealer.c:128
+	 #3  0x00007ffff3e723b6 in g_object_unref () at  /lib64/libgobject-2.0.so.0
+	 #4  0x000000000041c040 in virt_viewer_window_dispose  (object=0x981f70) at virt-viewer-window.c:191
+	 #5  0x00007ffff3e723b6 in g_object_unref () at  /lib64/libgobject-2.0.so.0
+	 #6  0x0000000000413a58 in virt_viewer_app_display_removed (nth=<optimized out>, self=0x680330) at virt-viewer-app.c:989
+	 #7  0x0000000000413a58 in virt_viewer_app_display_removed (session=<optimized out>, display=<optimized out>, self=0x680330) at virt-viewer-app.c:1000
+	 #8  0x00007ffff3e705e0 in g_cclosure_marshal_VOID__OBJECTv () at /lib64/libgobject-2.0.so.0  #9  0x00007ffff3e6d784 in _g_closure_invoke_va () at  /lib64/libgobject-2.0.so.0
+	 #10 0x00007ffff3e88cd9 in g_signal_emit_valist () at /lib64/libgobject-2.0.so.0
+	 #11 0x00007ffff3e897eb in g_signal_emit_by_name () at /lib64/libgobject-2.0.so.0
+	 #12 0x0000000000418973 in virt_viewer_session_remove_display (session=0x9c6de0, display=0x961a90) at virt-viewer-session.c:463
+	 #13 0x0000000000420934 in destroy_display (data=<optimized out>) at virt-viewer-session-spice.c:851
+	 #14 0x00007ffff3b6d0eb in g_ptr_array_foreach () at /lib64/libglib-2.0.so.0
+	 #15 0x00007ffff3b6d180 in ptr_array_free () at /lib64/libglib-2.0.so.0
+	 #16 0x000000000042072a in virt_viewer_session_spice_clear_displays (self=0x9c6de0) at virt-viewer-session-spice.c:94
+	 #17 0x000000000042240d in virt_viewer_session_spice_close (session=<optimized out>) at virt-viewer-session-spice.c:459
+	 #18 0x0000000000414be5 in virt_viewer_app_quit (self=self@entry=0x680330) at virt-viewer-app.c:285
+	 #19 0x0000000000415500 in virt_viewer_app_maybe_quit (self=0x680330, window=window@entry=0x981a90) at virt-viewer-app.c:481
+	 #20 0x000000000041c4ad in virt_viewer_window_delete (src=<optimized out>, dummy=<optimized out>, self=0x981a90) at virt-viewer-window.c:771
+	 #21 0x00007ffff61807f1 in _gtk_marshal_BOOLEAN__BOXEDv () at /lib64/libgtk-3.so.0
+	 #22 0x00007ffff3e6d784 in _g_closure_invoke_va () at /lib64/libgobject-2.0.so.0
+	 #23 0x00007ffff3e887b3 in g_signal_emit_valist () at /lib64/libgobject-2.0.so.0
+	 #24 0x00007ffff3e8933f in g_signal_emit () at /lib64/libgobject-2.0.so.0
+	 #25 0x00007ffff62dde6c in gtk_widget_event_internal () at /lib64/libgtk-3.so.0
+	 #26 0x00007ffff617f5ef in gtk_main_do_event () at /lib64/libgtk-3.so.0
+	 #27 0x00007ffff5c7dd25 in _gdk_event_emit () at /lib64/libgdk-3.so.0
+	 #28 0x00007ffff5cae672 in gdk_event_source_dispatch () at /lib64/libgdk-3.so.0
+	 #29 0x00007ffff3b9895a in g_main_context_dispatch () at /lib64/libglib-2.0.so.0
+	 #30 0x00007ffff3b98d10 in g_main_context_iterate.isra () at /lib64/libglib-2.0.so.0
+	 #31 0x00007ffff3b98dbc in g_main_context_iteration () at /lib64/libglib-2.0.so.0
+	 #32 0x00007ffff41643cd in g_application_run () at /lib64/libgio-2.0.so.0
+	 #33 0x000000000040fc1a in main (argc=3, argv=0x7fffffffdec8) at virt-viewer-main.c:41
+
+	Acked-by: Fabiano Fidêncio <fidencio@redhat.com>
+
+	timed-revealer: Fix "revealer" refcounting
+	virt_viewer_timed_revealer_new calls gtk_container_add on the instance
+	returned by gtk_revealer_new so VirtViewerTimedRevealer does not own any
+	ref on this GtkRevealer instance. Unrefing it in _dispose() is thus wrong.
+
+	Acked-by: Fabiano Fidêncio <fidencio@redhat.com>
+
+2016-06-24  Eduardo Lima (Etrunko)  <etrunko@redhat.com>
+
+	Use more accurate debug messages for foreign menu
+	Acked-by: Christophe Fergeau <cfergeau@redhat.com>
+	Acked-by: Fabiano Fidêncio <fidencio@redhat.com>
+
+	Get ovirt foreign menu item from UI file
+	Currently the menu item is created manually, while this patch changes it to be
+	retrieved from the UI file, and decides if it needs to be shown or hidden if the
+	ISO list is received from ovirt.
+
+	This a preparation for a upcoming UI change that will present the ISO list in a
+	separate dialog, instead of a submenu.
+
+	Acked-by: Christophe Fergeau <cfergeau@redhat.com>
+	Acked-by: Fabiano Fidêncio <fidencio@redhat.com>
+
+2016-06-23  Fabiano Fidêncio  <fidencio@redhat.com>
+
+	window: Replace autoDrawer with native Gtk widgets
+	GtkRevealer was intrudced in Gtk+ 3.10 and, combined with Gtk Overlay
+	(intoduced in Gtk+ 3.2), can provide a more sustainably implementation
+	of the AutoDrawer functionality.
+
+	This approach is completely based on the approach taken by virt-manager:
+	https://github.com/virt-manager/virt-manager/commit/dc05600324f6b9a82b68581fc0a9c145f9889ce9
+
+	Resolves: https://bugs.freedesktop.org/show_bug.cgi?id=94495
+
+	Acked-by: Eduardo Lima (Etrunko) <etrunko@redhat.com>
+
+	mingw,spec: Bump msitools version
+	Fedora 24 has GLib 2.48.0, which brings a new dependency: PCRE.
+	The new dependency is already added to the wxi file (in msitools) and a
+	new msitools build including the fix is already done [0].
+
+	Let's just bump the version in our spec file and make sure we will be
+	using the msitools which includes the fix.
+
+	[0]: https://bodhi.fedoraproject.org/updates/FEDORA-2016-a7a2db6109
+
+	Acked-by: Eduardo Lima (Etrunko) <etrunko@redhat.com>
+
+2016-06-22  Pavel Grunt  <pgrunt@redhat.com>
+
+	Fix missing field initializers
+	Spotted by clang
+
+	window: Use loop instead of multiple ifs
+	Binds modifier's mask and key, also fixes a compile time warning
+	spotted by clang:
+	 warning: cast from 'gchar *' (aka 'char *') to 'guint *' (aka 'unsigned
+	  int *') increases required alignment from 1 to 4 [-Wcast-align]
+	 return (guint*)g_array_free(a, FALSE);
+
+	window: Move definition from header
+
+	window: Use a predefined macro instead of constant
+
+2016-06-21  Fabiano Fidêncio  <fidencio@redhat.com>
+
+	util: Fix resource path
+	Since commit 1f6f1a48 the resource path for icons has been broken.
+	The reason is that when moving the .ui files to $(srcdir)/resources/ui
+	the define used for the resources was changed to reflect the new
+	directory. However, this change wasn't needed by the icons and ended
+	up with virt-viewer not displaying a few icons.
+
+	Let's fix the issue by setting back the define to the previous one and
+	then tweaking the virt_viewer_util_load_ui() to add "ui" to the resource
+	path, for loading the ui files.
+
+	Acked-by: Eduardo Lima (Etrunko) <etrunko@redhat.com>
+
+2016-06-20  Fabiano Fidêncio  <fidencio@redhat.com>
+
+	ui: Move ui files to $(srcdir)/resources/ui
+	I'd like to keep our resources all in the same place. In the future we
+	will be able to have:
+	$(srcdir)
+	 |_ resources
+	    |_ ui: for our {remote,virt}-viewer ui specific files
+	    |_ gtk: for files that can be automatically handled by Gtk (like
+	    |       app-menu).
+	    |_ css: for custom themes (like:
+	            https://bugs.freedesktop.org/show_bug.cgi?id=94276)
+
+	Acked-by: Jonathon Jongsma <jjongsma@redhat.com>
+
+	ui: Rename UI files to .ui (instead of .xml)
+	When using GtkApplication, Gtk automatically searches for the menus of
+	the application at "org/example/app/gtk/menus.ui".
+
+	Currently we don't have a "menus.ui", but try to see this commit is a
+	first step in order to use app-menu.
+
+	For now, let's standardize that all our UI files will have the ".ui"
+	extension instead of the ".xml" one.
+
+	Acked-by: Jonathon Jongsma <jjongsma@redhat.com>
+
+	remote-viewer: Add missing chain-up to parent's window_added() method
+	It hasn't bitten us (so hard) so far but would from the moment we add
+	support to app-menu/headerbar.
+
+	By not chaining-up to the parent's method, gtk_window_set_application()
+	is never called. This causes GApplication object not being able to load
+	the app-menu, but using the "fallback" which only contains the "Quit"
+	item.
+
+	By chaining-up to the parent's method, g_application_hold() call on
+	virt-viewer-app.c can be removed, as it is already called by the
+	parent's window_added() method.
+
+	Acked-by: Eduardo Lima (Etrunko) <etrunko@redhat.com>
+	Acked-by: Jonathon Jongsma <jjongsma@redhat.com>
+
+	window: remove unneeded GTK_WIDGET() casts
+	Acked-by: Jonathon Jongsma <jjongsma@redhat.com>
+
+	display: use MIN_DISPLAY_{WIDTH, HEIGHT} as the minimum possible value
+	Acked-by: Pavel Grunt <pgrunt@redhat.com>
+
+	display: Only queue a resize on zoom-level changes
+	By the comment in the code:
+	"For the gtk2 build, we need to queue a resize even if the zoom level
+	 hasn't changed.  This is due to the fact that VirtViewerWindow will
+	 queue a resize event for itself immediately after calling this
+	 function (in  order to shrink the window to fit the new display size
+	 if necessary). If we don't queue a resize here, the window will become
+	 tiny because we will only request 50x50 during the window resize."
+
+	And it doesn't happen on gtk3 at all. So, let's just remove the comment
+	and just quere the resize when zoom-changes actually happen.
+
+	Acked-by: Jonathon Jongsma <jjongsma@redhat.com>
+
+2016-06-20  Pavel Grunt  <pgrunt@redhat.com>
+
+	monitor-alignment: Do not crash on NULL display
+	Since commit 01b66ef88bc142d6716b40b1e384e94a2629a99f virt-viewer
+	does not crash on connection to a guest using an invalid display
+	configuration (eg. Cirrus & QXL vga). That commit allowed existence
+	of NULL display, however the code handling monitors alignment does
+	not expect this and crashes when virt-viewer is shifting/aligning
+	its windows.
+
+	Avoid crashing by returning early on NULL display.
+
+	 #0  0x0000000000411d0a in displays_cmp (p1=p1@entry=0xbad940, p2=p2@entry=0xbad944, user_data=user_data@entry=0x8eb180) at virt-viewer-util.c:544
+	 #1  0x00007ffff3f16ac5 in msort_with_tmp (p=0x7fffffffd670, b=0xbad940, n=2) at gqsort.c:93
+	 #2  0x00007ffff3f16ded in msort_r (b=b@entry=0xbad940, n=n@entry=2, s=s@entry=4, cmp=cmp@entry=0x411ce0 <displays_cmp>, arg=arg@entry=0x8eb180) at gqsort.c:278
+	 #3  0x00007ffff3f16e78 in g_qsort_with_data (pbase=pbase@entry=0xbad940, total_elems=total_elems@entry=2, size=size@entry=4, compare_func=compare_func@entry=0x411ce0 <displays_cmp>, user_data=user_data@entry=0x8eb180) at gqsort.c:303
+	 #4  0x000000000041277c in virt_viewer_align_monitors_linear (displays=displays@entry=0x8eb180 = {...}) at virt-viewer-util.c:586
+	 #5  0x000000000041a92d in virt_viewer_session_on_monitor_geometry_changed (self=0x8f38a0 [VirtViewerSessionSpice], display=<optimized out>) at virt-viewer-session.c:373
+	 #6  0x00007ffff4415908 in g_closure_invoke (closure=0x9306c0, return_value=return_value@entry=0x0, n_param_values=2, param_values=param_values@entry=0x7fffffffd960, invocation_hint=invocation_hint@entry=0x7fffffffd900)  at gclosure.c:801
+	 #7  0x00007ffff4427a1d in signal_emit_unlocked_R (node=node@entry=0x668f80, detail=detail@entry=1551, instance=instance@entry=0x930440, emission_return=emission_return@entry=0x0, instance_and_params=instance_and_params@entry=0x7fffffffd960) at gsignal.c:3627
+	 #8  0x00007ffff442fab1 in g_signal_emit_valist (instance=<optimized out>, signal_id=<optimized out>, detail=<optimized out>, var_args=var_args@entry=0x7fffffffdaf0) at gsignal.c:3383
+	 #9  0x00007ffff442fd9f in <emit signal notify:agent-connected on instance 0x930440 [SpiceMainChannel]> (instance=instance@entry=0x930440, signal_id=<optimized out>, detail=<optimized out>) at gsignal.c:3439
+	 #10 0x00007ffff4419fd4 in g_object_dispatch_properties_changed (object=0x930440 [SpiceMainChannel], n_pspecs=<optimized out>, pspecs=<optimized out> at gobject.c:1061
+	 #11 0x00007ffff441c4f9 in g_object_notify (pspec=<optimized out>, object=0x930440 [SpiceMainChannel]) at gobject.c:1155
+	 #12 0x00007ffff441c4f9 in g_object_notify (object=0x930440 [SpiceMainChannel], property_name=<optimized out>) at gobject.c:1202
+	 #13 0x00007ffff5a63dd0 in notify_main_context (opaque=0x7fffd6fde990) at gio-coroutine.c:240
+	 #14 0x00007ffff3f07d7a in g_main_context_dispatch (context=0x68da40) at gmain.c:3152
+	 #15 0x00007ffff3f07d7a in g_main_context_dispatch (context=context@entry=0x68da40) at gmain.c:3767
+	 #16 0x00007ffff3f080b8 in g_main_context_iterate (context=0x68da40, block=block@entry=1, dispatch=dispatch@entry=1, self=<optimized out>) at gmain.c:3838
+	 #17 0x00007ffff3f0838a in g_main_loop_run (loop=0x710de0) at gmain.c:4032
+	 #18 0x00007ffff5f53045 in gtk_main () at gtkmain.c:1207
+	 #19 0x0000000000411a22 in main (argc=1, argv=0x7fffffffdfa8)
+
+	Resolves: rhbz#1250820
+
+	Acked-by: Fabiano Fidêncio <fidencio@redhat.com>
+
+	Add tests for monitor alignment
+	Related: rhbz#1250820
+
+	Acked-by: Fabiano Fidêncio <fidencio@redhat.com>
+
+2016-06-20  Charles Arnold  <carnold@suse.com>
+
+	window: Fix segault on zooming operations
+	When virt-viewer is "Waiting for guest domain to start" and
+	the Ctrl- or Ctrl+ keys are pressed to zoom the blank display
+	virt-viewer will crash in virt_viewer_display_get_desktop_size
+	because of a NULL display pointer. To reproduce start virt-viewer
+	on a VM not running and zoom the display.
+
+	Acked-by: Fabiano Fidêncio <fidencio@redhat.com>
+	Acked-by: Pavel Grunt <pgrunt@redhat.com>
+
+2016-06-16  Frediano Ziglio  <fziglio@redhat.com>
+
+	Revert "Disable IME to allow receiving all keys"
+	This reverts commit 191f9a8ab49f56aa48781b5eeaa4a1a65d626627.
+
+	This fixes https://bugzilla.redhat.com/show_bug.cgi?id=1342984.
+
+	Calling ImmDisableIME disable IME for the entire program.
+	On Windows 7 this also hide the keyboard application from the task bar
+	making impossible to switch keyboard while using remote viewer.
+	A recent commit in spice-gtk (7d881d2193bf5598b888a48bb4d8d7ad2e62f443,
+	"widget: Disable IME context on display widget") disable IME processing
+	just for SpiceDisplay. This avoid the above regression on Windows 7.
+
+	Not having this spice-gtk commit is not going to cause a huge
+	regression, so it's fine not to add strong coupling between this
+	commit and the spice-gtk commit which fixes this differently.
+
+	Acked-by: Christophe Fergeau <cfergeau@redhat.com>
+
+2016-06-04  Michal Privoznik  <mprivozn@redhat.com>
+
+	tests: Fix VPATH build
+	So test-hotkeys include virt-viewer-app.h which includes
+	virt-viewer-window.h which includes virt-viewer-display.h which
+	in turn wants to include virt-viewer-enums.h. But, the enums
+	header file is generated at build time into builddir not srcdir.
+	Therefore it may happen if the two are distinct that compiler
+	fails to find the enums file:
+
+	In file included from ../../src/virt-viewer-window.h:29:0,
+	                 from ../../src/virt-viewer-app.h:28,
+	                 from ../../tests/test-hotkeys.c:27:
+	../../src/virt-viewer-display.h:28:31: fatal error: virt-viewer-enums.h: No such file or directory
+	 #include "virt-viewer-enums.h"
+	                               ^
+	compilation terminated.
+
+	The fix is to include builddir into paths where header files are
+	looked for.
+
+	Acked-by: Fabiano Fidêncio <fidencio@redhat.com>
+
+	virt-viewer-display-vnc: Include virt-viewer-util.h
+	In function virt_viewer_display_vnc_new() we are calling
+	virt_viewer_signal_connect_object() which is defined in
+	virt-viewer-util module. However, the header file for the module
+	is never included.
+
+	  CC       libvirt_viewer_la-virt-viewer-display-vnc.lo
+	virt-viewer-display-vnc.c: In function 'virt_viewer_display_vnc_new':
+	virt-viewer-display-vnc.c:251:5: warning: implicit declaration of function 'virt_viewer_signal_connect_object' [-Wimplicit-function-declaration]
+	     virt_viewer_signal_connect_object(app, "notify::enable-accel",
+	     ^
+	virt-viewer-display-vnc.c:251:5: warning: nested extern declaration of 'virt_viewer_signal_connect_object' [-Wnested-externs]
+
+	Acked-by: Fabiano Fidêncio <fidencio@redhat.com>
+
+2016-06-02  Pavel Grunt  <pgrunt@redhat.com>
+
+	app: Check validity of hotkey
+	The hotkey is valid if it has a valid value. The value is valid if it is
+	not empty and is successfully parsed by gtk_accelerator_parse().
+
+	These hotkeys formats are considered invalid:
+	 "key" - missing value
+	 "key=" - missing value
+	 "key=abcd" - value cannot be parsed by gtk_accelerator_parse()
+
+	Resolves: rhbz#1339572
+
+	Acked-by: Fabiano Fidêncio <fidencio@redhat.com>
+
+	tests: Add hotkeys test
+	Check if expected g_warning messages are logged.
+
+	Related: rhbz#1339572
+
+	Acked-by: Fabiano Fidêncio <fidencio@redhat.com>
+
+	app: Use debug to inform about smartcard shortcuts state
+	Related: rhbz#1339572
+
+	Acked-by: Fabiano Fidêncio <fidencio@redhat.com>
+
+	vnc-display: Disable default grab sequence
+	It should be enabled only if the "release-cursor" sequence was not
+	specified (by using "--hotkeys=release-cursor=sequence"), otherwise
+	both sequences would release the cursor.
+
+	The solution is taken from the spice-display code.
+
+	Resolves: rhbz#1339575
+
+	Acked-by: Fabiano Fidêncio <fidencio@redhat.com>
+
+2016-05-31  Pavel Grunt  <pgrunt@redhat.com>
+
+	Include virt-viewer-util.h only in source files
+	It doesn't have any symbols to be used in headers
+
+	Acked-by: Fabiano Fidêncio <fidencio@redhat.com>
+
+	Add mnemonics for each display item
+	Related: rhbz#1332545
+
+	Acked-by: Fabiano Fidêncio <fidencio@redhat.com>
+
+2016-05-10  Christophe Fergeau  <cfergeau@redhat.com>
+
+	ovirt: Use sso-token when set in .vv file
+	Starting with oVirt 4.0, this replaces the jsessionid field for
+	automatic authentication with oVirt instances for REST communication.
+
+	vv-file: Add support for 'sso-token' field in [ovirt]
+	This is the new way of authenticating with remote oVirt instance
+	starting with oVirt 4.0.
+
+	ovirt: Fix OvirtApi memory handling
+	The oVirt integration code in remote-viewer assumes that
+	the caller owns a reference on the OvirtApi instance returned
+	by ovirt_proxy_fetch_api{,finish}.
+	This is incorrect as these 2 API calls have always been documented as
+	being (transfer none). This was working so far because libgovirt was
+	leaking an OvirtApi reference. This bug is fixed upstream, so we now get
+	a warning on remote-viewer exit about trying to unref an invalid object.
+
+	This commit fixes that by taking the ref we expect in OvirtForeignMenu,
+	and by not releasing a ref we do not own in remote-viewer.c
+
+	ovirt: Error reporting improvements on invalid VM name
+
+	ovirt: Don't try to use [ovirt] if jsessionid is not set
+	If jsessionid is not set in the .vv file and we try to use anyway the
+	REST API, an authentication dialog will be shown by remote-viewer, which
+	is very unwelcome. If we don't have a jsessionid set, we know we won't
+	be able to silently login to the REST API, so don't try to set a foreign
+	menu when it's not set.
+
+2016-05-04  Frediano Ziglio  <fziglio@redhat.com>
+
+	Add a program to test redirection on Windows
+	This program attempt multiple redirection combination:
+	- passing handles using either CreateProcess or SetStdHandle;
+	- having a console or not;
+	- redirection stdout/stderr yes or not.
+
+	Worth to mention that for running this test program the user will need
+	either a native MingW or Wine (with .exe executables enabled in Linux
+	binfmt).
+
+	Acked-by: Fabiano Fidêncio <fidencio@redhat.com>
+
+	Manage redirection in a way similar to Unix
+	This patch allows remote-viewer to redirect output/error streams to
+	files.
+	Also if launched from a console program (for instance from the command
+	prompt) you are able to see output from the console where you launch
+	the program.
+	This allow to launch the program with a syntax like:
+	  > remote-viewer.exe --debug > log.txt 2>&1
+	or simply:
+	  > remote-viewer.exe --debug
+
+	Acked-by: Fabiano Fidêncio <fidencio@redhat.com>
+
+2016-05-03  Jonathon Jongsma  <jjongsma@redhat.com>
+
+	Add some missing mnemonics to menu items
+	Fixes: rhbz#1332545
+
+2016-05-03  Fabiano Fidêncio  <fidencio@redhat.com>
+
+	msi: Depend on mingw-adwaita-icon-theme
+	Instead of maintain a file which includes every single icon that we use
+	from adwaita-icon-theme (adwaita-icons-needed.wxi.in), let's depend on
+	mingw-adwaita-icon-theme directly.
+	It reduces considerably the maintainability and the risk to have missing
+	icons. Although, the size of the final binary gets increased from ~35MB
+	to ~50MB.
+
+	Resolves: rhbz#1301064
+	Acked-by: Christophe Fergeau <cfergeau@redhat.com>
+
+	Remove nsis installer
+	The only reason for us to keep maintaining the nsis installer was the
+	activex plugin (spicex), which requires those nsis based installers.
+	As the next release of RHEV/oVirt won't use the activex plugin (spicex)
+	let's completely remove the nsis installer from our tree and focus on
+	only maintain the msi installer.
+	oVirt/RHEV is shipping virt-viewer based on 2.0 release and, if needed,
+	they can stick to 3.0 branch in a future update (in case their plan goes
+	wrong and they end up needing the nsis support).
+
+	Related: rhbz#1324885 and rhbz#1316560
+	Acked-by: Christophe Fergeau <cfergeau@redhat.com>
+
+2016-05-03  Jonathon Jongsma  <jjongsma@redhat.com>
+
+	Add some timeouts to file transfer dialog
+	In order to avoid the situation where a dialog flashes onto the screen
+	and then is immediately hidden, I've added a couple timeouts to the
+	dialog.
+
+	The first is a 250ms timeout before showing the dialog. This avoids
+	showing the dialog at all for very small, quick transfers.
+
+	There is also a 500ms timeout before hiding a finished task. This
+	ensures that even transfers that only take e.g. 251ms to transfer will
+	get shown to the user for at least 500ms rather than being hidden 1ms
+	after showing the dialog.
+
+	Related: rhbz#1332180, rhbz#1324521
+	Acked-by: Fabiano Fidêncio <fidencio@redhat.com>
+	Acked-by: Victor Toso <victortoso@redhat.com>
+
+	Add file transfer dialog
+	This dialog will show the progress of files being transferred from the
+	client to the guest and allows the user to cancel ongoing file transfer
+	tasks.  The user can cancel each transfer individually, or cancel all
+	ongoing transfers at once.
+
+	Resolves: rhbz#1332180, rhbz#1324521
+	Acked-by: Fabiano Fidêncio <fidencio@redhat.com>
+
+2016-04-26  Fabiano Fidêncio  <fidencio@redhat.com>
+
+	spice: avoid crashing when using invalid video config
+	virt-viewer _only_ supports guests that have either:
+
+	A) a signle graphics device with multiple displays (monitorid=0,
+	displayid=(0,1,2,3)).
+
+	B) multiple graphics device with a single display each
+	(monitorid=(0,1,2,3), displayid=0).
+
+	From now on, avoid crashing connecting to a guest which has a graphics
+	configuration that violates A or B. However, even avoiding the crash, we
+	cannot ensure the guest will work as expected.
+
+	Resolves: rhbz#1250820
+
+2016-04-22  Pavel Grunt  <pgrunt@redhat.com>
+
+	manpage: Mention spice-gtk in See also section
+
+2016-04-19  Christophe Fergeau  <cfergeau@redhat.com>
+
+	Disable IME to allow receiving all keys
+	This fixes https://bugzilla.redhat.com/show_bug.cgi?id=1297640
+
+	Acked-by: Frediano Ziglio <fziglio@redhat.com>
+	Acked-by: Pavel Grunt <pgrunt@redhat.com>
+
+2016-04-15  Christophe Fergeau  <cfergeau@redhat.com>
+
+	spec: Use pkgconfig() in BuildRequires
+	This is better than hardcoding the name of the development package as
+	this will not be impacted by package renames.
+
+2016-03-24  Eduardo Lima (Etrunko)  <etrunko@redhat.com>
+
+	configure: cleanup {GLIB2, GTK}_CFLAGS
+	Also, remove unecessary AC_SUBST calls, as {GLIB2,GTK}_LIBS are never
+	touched.
+
+	Fix spice includes
+	Spice release version 0.31 requires that only spice-client.h or
+	spice-client-gtk.h should be included directly. As a result,
+	compilation is now throwing warnings like:
+
+	warning: #warning "Only <spice-client.h> can be included directly" [-Wcpp]
+	warning: #warning "Only <spice-client-gtk.h> can be included directly" [-Wcpp]
+
+	This patch also bumps spice version requirement to 0.31, to ensure
+	those files are available.
+
+2016-03-15  Pavel Grunt  <pgrunt@redhat.com>
+
+	util: Remove unused GHashTable key/value
+
+2016-03-14  Pavel Grunt  <pgrunt@redhat.com>
+
+	Move tests under /tests directory
+	Keep tests separated from the code
+
+	Add libvirt-viewer-util library an use it in tests
+
+2016-03-09  Christophe Fergeau  <cfergeau@redhat.com>
+
+	Don't include libvirt.h in virt-viewer-auth.h
+	virt-viewer-auth.h does not use any libvirt types, so the #include is
+	not needed, and virt-viewer-auth.h is used while building remote-viewer,
+	which do not use libvirt compilation flags. This caused failures on
+	a freshly installed box without libvirt headers.
+
+	ovirt: Only use active ISO domains for foreign menu
+	oVirt storage domains can be in various states (inactive, in
+	maintainance, ...). We only want to show the ISOs it contains in the
+	foreign menu when the storage domain is actually active, not in the
+	other states.
+
+	https://bugzilla.redhat.com/show_bug.cgi?id=1310450
+
+2016-03-08  Pavel Grunt  <pgrunt@redhat.com>
+
+	test: Add tests for monitor mapping
+
+	virt_viewer_parse_monitor_mappings: Add parameter for client monitors
+	Drop dependency on gdk. it allows to write tests not depending
+	on the client's configuration.
+
+	Move monitor mapping parsing from app to util
+	It is not specific to VirtViewerApp.
+	Following commits will add support for tests thanks to this move.
+
+2016-03-07  Fabiano Fidêncio  <fidencio@redhat.com>
+
+	app, cosmetic: remove one unneeded level of identation
+	Acked-by: Pavel Grunt <pgrunt@redhat.com>
+
+	app: monitor-config - do it all or nothing
+	Don't keep trying to use a monitor config when it already failed for one
+	monitor, otherwise virt-viewer can end up in a situation where none of
+	the displays are enabled but the program is still running.
+	So, in case of any failure, let's skip the whole monitor config, forcing
+	virt-viewer to use the "fallback" one instead.
+
+	Resolves: rhbz#1315206
+
+	Acked-by: Pavel Grunt <pgrunt@redhat.com>
+
+2016-03-04  Fabiano Fidêncio  <fidencio@redhat.com>
+
+	Refresh translations from Zanata
+
+2016-03-03  Fabiano Fidêncio  <fidencio@redhat.com>
+
+	Use GResource for loading ui files
+	Let's take advantage of GResource for loading ui files in a better and
+	cleaner way than virt_viewer_util_load_ui() was doing.
+	It also brings the benefit, at least for developers, of being able to
+	test ui changes without having to "make install" virt-viewer.
+
+	Acked-by: Eduardo Lima (Etrunko) <etrunko@redhat.com>
+
+	app: Remove useless libxml includes
+	Acked-by: Eduardo Lima (Etrunko) <etrunko@redhat.com>
+
+	about: Fix the program's name in the title
+	Title currently says "About Glade". It's not a big deal because it's not
+	actually shown anywhere, but just for correctness let's change it to
+	"About Virt-Viewer".
+
+	Thanks Jonathon Jongsma for pointing this out.
+
+	Acked-by: Eduardo Lima (Etrunko) <etrunko@redhat.com>
+
+2016-02-26  Eduardo Lima (Etrunko)  <etrunko@redhat.com>
+
+	Don't open the default display while parsing command line
+	Since commit a9ce19f it has not been possible to check app version from
+	a tty without X session running. The issue is that gtk_get_option_group
+	function opens the default display if passed TRUE as argument.
+
+	Acked-by: Fabiano Fidêncio <fidencio@redhat.com>
+
+2016-02-26  Fabiano Fidêncio  <fidencio@redhat.com>
+
+	session-vnc: Avoid depracated warnings on this file
+	This is a temporary solution for using autobuild.sh, as commit df403f5
+	introduced the -Wdeprecated-declarations and gtk-vnc provides a callback
+	for getting authentication credentials which uses GValueArray, forcing
+	virt-viewer to keep using g_value_array_get_nth(), which is deprecated.
+
+	Acked-by: Pavel Grunt <pgrunt@redhat.com>
+
+2016-02-25  Fabiano Fidêncio  <fidencio@redhat.com>
+
+	configure: Simplify libvirt/libvirt-glib handling
+	Merge libvirt and libvirt-glib checking in PKG_CHECK_MODULES, then we
+	don't nee the LIBVIRT_GLIB_{CFLAGS,LIBS} in Makefile.am
+
+	Acked-by: Eduardo Lima (Etrunko) <etrunko@redhat.com>
+
+	wxi: virt-viewer depends on libvirt-glib
+	Since 51ce01d virt-viewer depends again on libvirt-glib.
+
+	Acked-by: Eduardo Lima (Etrunko) <etrunko@redhat.com>
+	Acked-by: Victor Toso <victortoso@redhat.com>
+
+	nsis: Add libvirt-glib-1.0-0.dll
+	Since 51ce01d virt-viewer depends again on libvirt-glib.
+
+	Acked-by: Eduardo Lima (Etrunko) <etrunko@redhat.com>
+	Acked-by: Victor Toso <victortoso@redhat.com>
+
+	Bring back libvirt-glib dependency
+	libvirt-glib dependency was dropped in commit 296f91c in favor to
+	maintain the full glib event loop integration into virt-viewer tree.
+	This decision was taken because libvirt-glib was not mature enough at
+	that time, which is not the case nowadays.
+
+	The libvirt-glib version chosen as dependency (0.1.8) is the first
+	release that includes the fixes for the glib event loop integration that
+	were backported to virt-viewer last year.
+
+	Acked-by: Eduardo Lima (Etrunko) <etrunko@redhat.com>
+	Acked-by: Victor Toso <victortoso@redhat.com>
+
+2016-02-25  Pavel Grunt  <pgrunt@redhat.com>
+
+	README: update information
+	Remove info about gtk versions
+	Fix a typo
+	Change link for spice-gtk widget
+
+2016-02-24  Fabiano Fidêncio  <fidencio@redhat.com>
+
+	cleanup: Don't use gtk_widget_modify_{fg,bg}()
+	These function have been deprecated since Gtk 3.0 and is recommended to
+	use _override_color() and _override_background_color() instead.
+	As these new functions take a GdkRGBA as parameter, let's use
+	gdk_rgba_parse() instead of gdk_color_parse().
+
+	Acked-by: Jonathon Jongsma <jjongsma@redhat.com>
+	Acked-by: Pavel Grunt <pgrunt@redhat.com>
+
+	cleanup: Don't use GtkStock
+	It has been deprecated since Gtk 3.10.
+
+	New strings have been added as the GTK_STOCK_* defines had their
+	translations done inside Gtk itself, but now the translations of the new
+	added labels must be done by virt-viewer translators.
+
+	Acked-by: Jonathon Jongsma <jjongsma@redhat.com>
+	Acked-by: Pavel Grunt <pgrunt@redhat.com>
+
+	cleanup: Drop old compatibilty code
+	A few more pieces of old compatibility code can be dropped, as we
+	already depend on GLib 2.38.
+
+	Acked-by: Jonathon Jongsma <jjongsma@redhat.com>
+
+	Use GDK_VERSION_MAX_ALLOWED
+	In order to avoid using a too new Gtk API.
+
+	Acked-by: Pavel Grunt <pgrunt@redhat.com>
+
+	Use GLIB_VERSION_MAX_ALLOWED
+	In order to avoid using a too new GLib API.
+
+	Acked-by: Pavel Grunt <pgrunt@redhat.com>
+
+	m4: Use -Wdeprecated-declarations
+	Let's enable deprecated-declarations warnings as we want to:
+	1) Avoid insert/maintain deprecated widgets/methods
+	2) Avoid adding widgets/methods that are too new, what could cause
+	problems like virt-viewer not being able to build in a specific distro.
+
+	Patches for making these two items possible are coming, introducing
+	_VERSION_MAX_ALLOWED for both GLIB and GDK and removing (as much as
+	possible) deprecated widgets/methods/structures.
+
+	Acked-by: Pavel Grunt <pgrunt@redhat.com>
+
+	mingw: Bump msitools version
+	Since commit 5d98df3 we depend on msitools 0.95-2.
+
+	Acked-by: Pavel Grunt <pgrunt@redhat.com>
+
+	app: Don't leave a window opened in case of connection error
+	Since commit ed9b3f3 the main window is not hidden when disconnecting.
+	But it also is not hidden when a connection error occurs, leaving a
+	black display with a not so accurate message to the users in case they
+	try to connect to a non-valid address from the remote-viewer connection
+	window and in this case the main window (display #1) shuldn't be shown.
+
+	The impetus for this chance is the following:
+	- user runs remote-viewer without any argument
+	- the remote-viewer connection window shows up
+	- user attempts to connect to a non-valid address
+	- a dialog pops up indicating a failure connecting to the graphic server
+	- the main window shows up saying "Connecting to the graphic server"
+	- user clicks 'Ok'
+	- the main window stays there with the same message
+
+	As a user, I expect the program to not show the main window in
+	connecting failure cases. This patch accomplishes that.
+
+	nsis: update nettle to 3.2.1
+	Use version 3.2.1, matching what currently is in f23.
+
+2016-02-18  Eduardo Lima (Etrunko)  <etrunko@redhat.com>
+
+	Drop old compatibility code
+	With glib requirements now being 2.38, these functions do not make sense anymore.
+
+	remote-viewer: Remove unused properties
+	The reason for using properties to access those members was to ensure
+	that they would only be set during the creation of the object. Now that
+	we removed that restriction, we set private members directly.
+
+	Port to GtkApplication API's
+	Most of this patch consists in code being shuffled around to fit the
+	expected flow while using the new APIs. I tried my best to make this
+	patch the less intrusive as possible. Main changes are:
+
+	- Updated build requirements
+	   * glib version 2.38
+	   * gtk+ version 3.10
+	   * gio
+
+	- VirtViewerApp is now a subclass of GtkApplication.
+	  Some mainloop calls were replaced:
+	   * gtk_main() -> g_application_run()
+	   * gtk_quit() -> g_application_quit()
+
+	- Unified command line option handling.
+	  The logic has moved from the main functions and split in common
+	  options, and specific ones for each application. With this, the main
+	  functions were highly simplified, and now basically responsible for
+	  instantiating the App object and running the main loop.
+
+	- All Window objects must be associated with the Application.
+	  With this, there is no need to emit our own 'window-added'/'window-
+	  removed' signals, as those will be emited by GtkApplication whenever
+	  gtk_application_add_window() and gtk_application_remove_window() are
+	  called. Also, 'window-removed' was not being used anywhere.
+
+2016-02-18  Uri Lublin  <uril@redhat.com>
+
+	spice: vv-file: do not ignore usb-filter
+	Fixes rhbz#1309634
+
+	Acked-by: Fabiano Fidêncio <fidencio@redhat.com>
+
+2016-02-15  Eduardo Lima (Etrunko)  <etrunko@redhat.com>
+
+	Minor code cleanups
+	- Reuse #ifdef HAVE_SPICE_GTK block for include.
+	- Move declaration of vfunc together with others of the same class.
+	- Move variable declaration to the top of the function.
+
+2016-02-15  Fabiano Fidêncio  <fidencio@redhat.com>
+
+	Drop support to gtk2
+	The 3.0 release was the last one that still supports GTK2. For the
+	Windows builds the support to GTK2 was dropped in the previous release.
+	Let's do the same for the entire project now.
+
+2016-02-15  Pavel Grunt  <pgrunt@redhat.com>
+
+	display: Use correct variable name
+	Fix gtk2 build
+
+	display: Remove zoom property
+	It is possible to get the same info from the "zoom-level" property.
+	virt_viewer_display_get_zoom() now returns TRUE if zoom level != 100
+
+	display: Use common code to get preferred size
+
+	app: Compute monitor mapping only in fullscreen
+
+	app: Do not show usbredir button without session
+	The button is visible in the fullscreen toolbar when waiting for a guest.
+	Clicking on it causes the runtime warning:
+	virt-viewer-CRITICAL **: virt_viewer_session_usb_device_selection: assertion 'VIRT_VIEWER_IS_SESSION(self)' failed
+
+	app: Add comment only when config file has VM group
+	Avoid the debug message on close:
+	virt-viewer-DEBUG: Unable to get comment from key file: Key file does not have group '39cd210d-5d45-478a-91fe-b3680307f2df'
+
+	app: Return early on empty monitor mapping
+	Resolves:
+	https://bugzilla.redhat.com/show_bug.cgi?id=1304648
+
+2016-02-03  Pavel Grunt  <pgrunt@redhat.com>
+
+	display: Set value of desktop width and height property directly
+	Avoid calling gtk_widget_queue_resize() and emiting
+	the "display-desktop-resize" signal.
+	The only user of the properties is virt_viewer_display_spice_set_desktop()
+	which will call the function and emit the signal after setting both
+	"desktop-width" and "desktop-height" properties.
+
+	Acked-by: Eduardo Lima (Etrunko) <etrunko@redhat.com>
+
+	display: Return early and remove a block
+	Acked-by: Eduardo Lima (Etrunko) <etrunko@redhat.com>
+
+	display: Remove unnecessary VIRT_VIEWER_DISPLAY cast
+	Acked-by: Eduardo Lima (Etrunko) <etrunko@redhat.com>
+
+2016-01-18  Fabiano Fidêncio  <fidencio@redhat.com>
+
+	Remove GSLice usage
+	It's being slowly deprecated in glib
+	https://bugzilla.gnome.org/show_bug.cgi?id=754687
+
+2016-01-13  Jonathon Jongsma  <jjongsma@redhat.com>
+
+	display: Set useful values for MIN_DISPLAY_{WIDTH, HEIGHT}
+	Nowadays the value for MIN_DISPLAY_{WIDTH,HEIGHT} is 50. This arbitrary
+	value doesn't bring any benefit, doesn't provide a useful size for a
+	desktop to be usable and can actually trigger some undefined behavior
+	when reaching resolutions that are lower than the ones provided by the
+	video drivers (as in rhbz#1296878).
+
+	In order to avoid these issues and provide a minimum resolution that can
+	still be useful for our users, let's use the same values for minimum
+	width and height used by the linux QXL drivers (320x200).
+
+	This also requires us to adjust the minimum requested widget size when
+	zoom is enabled so that we don't accidentally request a size smaller
+	than the driver can support.
+
+	Related: rhbz#1296878
+
+2016-01-08  Fabiano Fidêncio  <fidencio@redhat.com>
+
+	display: set min value for desktop-{width,height} props as MIN_DISPLAY_{WIDTH,HEIGHT}
+	Otherwise we can have warnings when resizing the virt-viewer window to
+	the smallest possible size, like:
+
+	(virt-viewer:11187): GLib-GObject-WARNING **: value "50" of type `gint'
+	is invalid or out of range for property `desktop-height' of type `gint'
+
+	Related: rhbz#1296878
 
 2015-12-07  Daniel P. Berrange  <berrange@redhat.com>
 

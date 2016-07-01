@@ -13,7 +13,7 @@
 %define buildid %(expr %{rel0} \\* 256 + %{rel1})
 
 Name:           mingw-virt-viewer
-Version:        3.1
+Version:        4.0
 Release:        %{relver}%{?extra_release}
 Summary:        MinGW Windows virt-viewer console application
 
@@ -22,24 +22,28 @@ Group:          Applications/Internet
 URL:            http://virt-manager.org/
 Source0:        ftp://virt-manager.org/downloads/virt-viewer/virt-viewer-%{version}.tar.gz
 
+BuildRequires:  mingw32-adwaita-icon-theme
+BuildRequires:  mingw64-adwaita-icon-theme
 BuildRequires:  mingw32-filesystem >= 23
 BuildRequires:  mingw64-filesystem >= 23
-BuildRequires:  mingw32-glib2 >= 2.22.0
-BuildRequires:  mingw64-glib2 >= 2.22.0
+BuildRequires:  mingw32-glib2 >= 2.38
+BuildRequires:  mingw64-glib2 >= 2.38
 BuildRequires:  mingw32-glib-networking
 BuildRequires:  mingw64-glib-networking
 BuildRequires:  mingw32-gstreamer1-plugins-bad-free
 BuildRequires:  mingw64-gstreamer1-plugins-bad-free
 BuildRequires:  mingw32-gstreamer1-plugins-good
 BuildRequires:  mingw64-gstreamer1-plugins-good
-BuildRequires:  mingw32-gtk3 >= 3.0
-BuildRequires:  mingw64-gtk3 >= 3.0
+BuildRequires:  mingw32-gtk3 >= 3.10
+BuildRequires:  mingw64-gtk3 >= 3.10
 BuildRequires:  mingw32-libgovirt
 BuildRequires:  mingw64-libgovirt
 BuildRequires:  mingw32-libusbx
 BuildRequires:  mingw64-libusbx
 BuildRequires:  mingw32-libvirt >= 0.10.0
 BuildRequires:  mingw64-libvirt >= 0.10.0
+BuildRequires:  mingw32-libvirt-glib >= 0.1.8
+BuildRequires:  mingw64-libvirt-glib >= 0.1.8
 BuildRequires:  mingw32-libxml2 >= 2.6.0
 BuildRequires:  mingw64-libxml2 >= 2.6.0
 BuildRequires:  mingw32-gtk-vnc2 >= 0.4.0
@@ -50,8 +54,8 @@ BuildRequires:  mingw32-rest
 BuildRequires:  mingw64-rest
 BuildRequires:  mingw32-spice-glib
 BuildRequires:  mingw64-spice-glib
-BuildRequires:  mingw32-spice-gtk3 >= 0.30
-BuildRequires:  mingw64-spice-gtk3 >= 0.30
+BuildRequires:  mingw32-spice-gtk3 >= 0.31
+BuildRequires:  mingw64-spice-gtk3 >= 0.31
 BuildRequires:  mingw32-usbredir
 BuildRequires:  mingw64-usbredir
 BuildRequires:  pkgconfig
@@ -60,9 +64,8 @@ BuildRequires:  intltool
 BuildRequires:  icoutils
 BuildRequires:  dos2unix
 BuildRequires:  hicolor-icon-theme
-BuildRequires:  adwaita-icon-theme
 BuildRequires:  hwdata
-BuildRequires:  msitools >= 0.94-2
+BuildRequires:  msitools >= 0.95-5
 
 BuildArch:      noarch
 
@@ -112,11 +115,13 @@ MinGW Windows virt-viewer MSI
 %mingw_make_install DESTDIR=$RPM_BUILD_ROOT
 
 %if 0%{?mingw_build_win32} == 1
-cp build_win32$MINGW_BUILDDIR_SUFFIX/data/virt-viewer-x86-3.1.msi $RPM_BUILD_ROOT/%{mingw32_datadir}/virt-viewer
+mkdir $RPM_BUILD_ROOT/%{mingw32_datadir}/virt-viewer
+cp build_win32$MINGW_BUILDDIR_SUFFIX/data/virt-viewer-x86-4.0.msi $RPM_BUILD_ROOT/%{mingw32_datadir}/virt-viewer
 %endif
 
 %if 0%{?mingw_build_win64} == 1
-cp build_win64$MINGW_BUILDDIR_SUFFIX/data/virt-viewer-x64-3.1.msi $RPM_BUILD_ROOT/%{mingw64_datadir}/virt-viewer
+mkdir $RPM_BUILD_ROOT/%{mingw64_datadir}/virt-viewer
+cp build_win64$MINGW_BUILDDIR_SUFFIX/data/virt-viewer-x64-4.0.msi $RPM_BUILD_ROOT/%{mingw64_datadir}/virt-viewer
 %endif
 
 %find_lang virt-viewer
@@ -136,14 +141,6 @@ rm -rf $RPM_BUILD_ROOT
 %{mingw32_bindir}/debug-helper.exe
 
 %dir %{mingw32_datadir}/virt-viewer/
-%dir %{mingw32_datadir}/virt-viewer/ui/
-%{mingw32_datadir}/virt-viewer/ui/virt-viewer.xml
-%{mingw32_datadir}/virt-viewer/ui/virt-viewer-about.xml
-%{mingw32_datadir}/virt-viewer/ui/virt-viewer-auth.xml
-%{mingw32_datadir}/virt-viewer/ui/virt-viewer-guest-details.xml
-%{mingw32_datadir}/virt-viewer/ui/virt-viewer-vm-connection.xml
-%{mingw32_datadir}/virt-viewer/ui/virt-viewer-preferences.xml
-%{mingw32_datadir}/virt-viewer/ui/remote-viewer-connect.xml
 %{mingw32_datadir}/icons/hicolor/*/apps/*
 %{mingw32_datadir}/icons/hicolor/*/devices/*
 
@@ -151,7 +148,7 @@ rm -rf $RPM_BUILD_ROOT
 %{mingw32_mandir}/man1/remote-viewer.1*
 
 %files -n mingw32-virt-viewer-msi
-%{mingw32_datadir}/virt-viewer/virt-viewer-x86-3.1.msi
+%{mingw32_datadir}/virt-viewer/virt-viewer-x86-4.0.msi
 
 %files -n mingw64-virt-viewer -f virt-viewer.lang
 %defattr(-,root,root)
@@ -161,14 +158,6 @@ rm -rf $RPM_BUILD_ROOT
 %{mingw64_bindir}/debug-helper.exe
 
 %dir %{mingw64_datadir}/virt-viewer/
-%dir %{mingw64_datadir}/virt-viewer/ui/
-%{mingw64_datadir}/virt-viewer/ui/virt-viewer.xml
-%{mingw64_datadir}/virt-viewer/ui/virt-viewer-about.xml
-%{mingw64_datadir}/virt-viewer/ui/virt-viewer-auth.xml
-%{mingw64_datadir}/virt-viewer/ui/virt-viewer-guest-details.xml
-%{mingw64_datadir}/virt-viewer/ui/virt-viewer-vm-connection.xml
-%{mingw64_datadir}/virt-viewer/ui/virt-viewer-preferences.xml
-%{mingw64_datadir}/virt-viewer/ui/remote-viewer-connect.xml
 %{mingw64_datadir}/icons/hicolor/*/apps/*
 %{mingw64_datadir}/icons/hicolor/*/devices/*
 
@@ -176,6 +165,6 @@ rm -rf $RPM_BUILD_ROOT
 %{mingw64_mandir}/man1/remote-viewer.1*
 
 %files -n mingw64-virt-viewer-msi
-%{mingw64_datadir}/virt-viewer/virt-viewer-x64-3.1.msi
+%{mingw64_datadir}/virt-viewer/virt-viewer-x64-4.0.msi
 
 %changelog
