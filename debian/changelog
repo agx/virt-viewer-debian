@@ -1,3 +1,14 @@
+virt-viewer (4.0-1) unstable; urgency=medium
+
+  * [145a952] Enable ovirt support (Closes: #822433)
+  * [f00b1ca] New upstream version 4.0
+    (Closes: #807963, #804217, #807482, #836957)
+  * [611e32f] Bump version requirements according to configure.ac
+  * [db03f1f] Bump standards version
+  * [097f348] Enable spice on linux-any (Closes: #779650)
+
+ -- Guido Günther <agx@sigxcpu.org>  Fri, 09 Sep 2016 17:02:26 +0200
+
 virt-viewer (3.1-1) unstable; urgency=medium
 
   * [6cb2e48] New upstream version 3.1
