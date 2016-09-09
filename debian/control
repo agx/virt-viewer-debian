@@ -9,7 +9,7 @@ Build-Depends:
  libvirt-glib-1.0-dev (>= 0.1.8),
  libgovirt-dev,
  libgtk-vnc-2.0-dev,
- libspice-client-gtk-3.0-dev (>= 0.31) [i386 amd64],
+ libspice-client-gtk-3.0-dev (>= 0.31) [linux-any],
  libxml2-dev,
  libglib2.0-dev (>= 2.38),
  libgtk-3-dev (>= 3.10),
