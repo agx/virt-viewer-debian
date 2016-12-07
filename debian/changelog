@@ -1,3 +1,9 @@
+virt-viewer (5.0-1) unstable; urgency=medium
+
+  * [811799c] New upstream version 5.0
+
+ -- Guido Günther <agx@sigxcpu.org>  Wed, 07 Dec 2016 18:05:55 +0100
+
 virt-viewer (4.0-1) unstable; urgency=medium
 
   * [145a952] Enable ovirt support (Closes: #822433)
