@@ -35,6 +35,7 @@
 #include <gio/gio.h>
 #include <glib/gprintf.h>
 #include <glib/gi18n.h>
+#include <errno.h>
 
 #ifdef HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
@@ -644,13 +645,14 @@ virt_viewer_app_open_tunnel_ssh(const char *sshhost,
 }
 
 static int
-virt_viewer_app_open_unix_sock(const char *unixsock)
+virt_viewer_app_open_unix_sock(const char *unixsock, GError **error)
 {
     struct sockaddr_un addr;
     int fd;
 
     if (strlen(unixsock) + 1 > sizeof(addr.sun_path)) {
-        g_warning ("address is too long for unix socket_path: %s", unixsock);
+        g_set_error(error, VIRT_VIEWER_ERROR, VIRT_VIEWER_ERROR_FAILED,
+                    _("Address is too long for unix socket_path: %s"), unixsock);
         return -1;
     }
 
@@ -658,10 +660,15 @@ virt_viewer_app_open_unix_sock(const char *unixsock)
     addr.sun_family = AF_UNIX;
     strcpy(addr.sun_path, unixsock);
 
-    if ((fd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0)
+    if ((fd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
+        g_set_error(error, VIRT_VIEWER_ERROR, VIRT_VIEWER_ERROR_FAILED,
+                    _("Creating unix socket failed: %s"), g_strerror(errno));
         return -1;
+    }
 
     if (connect(fd, (struct sockaddr *)&addr, sizeof addr) < 0) {
+        g_set_error(error, VIRT_VIEWER_ERROR, VIRT_VIEWER_ERROR_FAILED,
+                    _("Connecting to unix socket failed: %s"), g_strerror(errno));
         close(fd);
         return -1;
     }
@@ -898,7 +905,6 @@ ensure_window_for_display(VirtViewerApp *self, VirtViewerDisplay *display)
         if (l && virt_viewer_window_get_display(VIRT_VIEWER_WINDOW(l->data)) == NULL) {
             win = VIRT_VIEWER_WINDOW(l->data);
             g_debug("Found a window without a display, reusing for display #%d", nth);
-            virt_viewer_app_set_window_subtitle(self, win, nth);
             if (self->priv->fullscreen && !self->priv->kiosk)
                 app_window_try_fullscreen(self, win, nth);
         } else {
@@ -907,6 +913,7 @@ ensure_window_for_display(VirtViewerApp *self, VirtViewerDisplay *display)
 
         virt_viewer_window_set_display(win, display);
     }
+    virt_viewer_app_set_window_subtitle(self, win, nth);
 
     return win;
 }
@@ -1194,7 +1201,7 @@ virt_viewer_app_default_activate(VirtViewerApp *self, GError **error)
     } else if (priv->unixsock && fd == -1) {
         virt_viewer_app_trace(self, "Opening direct UNIX connection to display at %s",
                               priv->unixsock);
-        if ((fd = virt_viewer_app_open_unix_sock(priv->unixsock)) < 0)
+        if ((fd = virt_viewer_app_open_unix_sock(priv->unixsock, error)) < 0)
             return FALSE;
     }
 #endif
@@ -1452,7 +1459,8 @@ static void virt_viewer_app_auth_refused(VirtViewerSession *session,
 
     /* if the session implementation cannot retry auth automatically, the
      * VirtViewerApp needs to schedule a new connection to retry */
-    priv->authretry = !virt_viewer_session_can_retry_auth(session);
+    priv->authretry = (!virt_viewer_session_can_retry_auth(session) &&
+                       !virt_viewer_session_get_file(session));
 }
 
 static void virt_viewer_app_auth_unsupported(VirtViewerSession *session G_GNUC_UNUSED,

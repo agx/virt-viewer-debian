@@ -1,5 +1,5 @@
 
-AC_INIT([virt-viewer],[4.0])
+AC_INIT([virt-viewer],[5.0])
 AC_CONFIG_SRCDIR(src/virt-viewer-main.c)
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([build-aux])
@@ -24,7 +24,7 @@ LIBXML2_REQUIRED="2.6.0"
 LIBVIRT_REQUIRED="0.10.0"
 LIBVIRT_GLIB_REQUIRED="0.1.8"
 GTK_VNC_REQUIRED="0.4.0"
-SPICE_GTK_REQUIRED="0.31"
+SPICE_GTK_REQUIRED="0.33"
 SPICE_PROTOCOL_REQUIRED="0.12.7"
 GOVIRT_REQUIRED="0.3.2"
 
@@ -158,11 +158,13 @@ AC_ARG_WITH([spice-gtk],
 
 AS_IF([test "x$with_spice_gtk" != "xno" && test "x$with_spice_gtk" != "xyes"],
       [PKG_CHECK_EXISTS([spice-client-gtk-3.0 >= $SPICE_GTK_REQUIRED
+                         spice-client-glib-2.0 >= $SPICE_GTK_REQUIRED
                          spice-controller spice-protocol >= $SPICE_PROTOCOL_REQUIRED],
                         [with_spice_gtk=yes], [with_spice_gtk=no])])
 
 AS_IF([test "x$with_spice_gtk" = "xyes"],
-      [PKG_CHECK_MODULES(SPICE_GTK, [spice-client-gtk-3.0 >= $SPICE_GTK_REQUIRED])]
+      [PKG_CHECK_MODULES(SPICE_GTK, [spice-client-gtk-3.0 >= $SPICE_GTK_REQUIRED
+                                     spice-client-glib-2.0 >= $SPICE_GTK_REQUIRED])]
       [PKG_CHECK_MODULES(SPICE_CONTROLLER, [spice-controller])]
       [PKG_CHECK_MODULES(SPICE_PROTOCOL, [spice-protocol >= $SPICE_PROTOCOL_REQUIRED])]
       [AC_DEFINE([HAVE_SPICE_GTK], 1, [Have spice-gtk?])]

@@ -1,4 +1,167 @@
+2016-11-24  Daniel P. Berrange  <berrange@redhat.com>
+
+	Add NEWS for 5.0 release
+
+	Refresh PO files from zanata
+
+2016-11-02  Jonathon Jongsma  <jjongsma@redhat.com>
+
+	Make new file-transfer ui file translatable
+
+	Add necessary header include
+	Fixes the build broken by the last patch series.
+
+	Show failed file transfers
+	After all ongoing file transfers are finished, save a list of the file
+	transfer tasks that had errors and display the list of failed files to
+	the user so that they know that a failure occurred and can potentially
+	retry the transfer. Previously, we just failed silently so the user
+	may not have even been aware that the transfer failed.
+
+	Simplify file transfer dialog UI
+	When transferring a large number of files, the file transfer dialog was
+	unusable because the window size would be larger than the client
+	desktop. To solve this, remove the list of individual files (and the
+	ability to cancel each file transfer independantly) and only display
+	a single overall progress bar that shows the status of all ongoing
+	transfers.
+
+	This also allows us to remove the delayed unref of the task since we
+	don't need to show the task information about each individual transfer
+	task until the window is closed. Removes TaskFinishedData type.
+
+	This patch requires new API from spice-gtk to calculate the overall
+	progress:
+	 spice_file_transfer_task_get_total_bytes()
+	 spice_file_transfer_task_get_transferred_bytes()
+
+2016-10-05  Pavel Grunt  <pgrunt@redhat.com>
+
+	app: Inform user about connection failure
+	Use errno to get the reason of the failure
+
+	Resolves:
+	https://bugzilla.redhat.com/show_bug.cgi?id=1377100
+
+	build-sys: Check spice-glib version
+	virt-viewer uses spice-glib api, configure should check
+	for the required version
+
+	Related:
+	https://bugzilla.redhat.com/show_bug.cgi?id=1375429
+
+	Acked-by: Christophe Fergeau <cfergeau@redhat.com>
+
+2016-08-10  Daniel P. Berrange  <berrange@redhat.com>
+
+	spec: don't distribute both .spec files in dist
+	rpmbuild -ta only works if the tar.gz contains a single
+	spec file, so remove the mingw-virt-viewer.spec from
+	dist.
+
+	We should however be including both the spec.in files.
+
+2016-08-05  Victor Toso  <victortoso@redhat.com>
+
+	Fix filename leak on transfer dialog
+	spice_file_transfer_task_get_filename() was wrongly annotated as
+	transfer none. We can safely free this string after usage.
+
+2016-07-29  Eduardo Lima (Etrunko)  <etrunko@redhat.com>
+
+	ovirt-foreign-menu: Use g_clear_pointer/g_clear_object
+	Acked-by: Christophe Fergeau <cfergeau@redhat.com>
+
+	ovirt-foreign-menu: Rework states logic
+	Use switch/case instead of lots of conditional blocks
+
+	Acked-by: Pavel Grunt <pgrunt@redhat.com>
+
+2016-07-28  Jonathon Jongsma  <jjongsma@redhat.com>
+
+	Fix resizing problem with recent gtk versions
+	When using client-side decorations, as well as in certain other
+	situations (wayland, and windows in some cases), the window gradually
+	resizes larger and larger.
+
+	This is caused by a change in how gtk interprets the sizes passed to
+	gtk_window_resize(), particularly when client-side decorations (CSD) are
+	involved. For example, In the past this size was assumed to include the
+	size of the CSD, but now it it assumes that the sizes only represent the
+	size of the window's content, without any decorations. However,
+	gtk_widget_get_preferred_size() (when called on a GtkWindow*), returns a
+	size that includes the size of the CSD. So
+	virt_viewer_window_queue_resize() was essentially growing the window by
+	the size of the CSD every time it was called.
+
+	To work around this issue, we need to calculate the preferred size of
+	the window's child, not the size of the entire window (including CSD).
+	Then we add the width of the window's border (just to be safe) and pass
+	those values to gtk_window_resize().
+
+2016-07-12  Daniel P. Berrange  <berrange@redhat.com>
+
+	virt-viewer: ensure we close when seeing domain stop event
+	Normally virt-viewer relies on the VNC/SPICE widget seeing
+	an EOF on its underlying connection to detect when the
+	session is closed.
+
+	When tunnelling to a remote guest over SSH though, this
+	EOF can be delayed for a very long time, leaving a dead
+	session open.
+
+	This can be seen with
+
+	   virt-viewer -c qemu+ssh://remotehost/system guestname
+
+	when on the remote shell run
+
+	   virsh destroy guestname
+
+	and notice that virt-viewer does not see the shutdown
+	immediately.
+
+	When we get a domain stopped event we know the session
+	should be dead, so forceably close it, if not already
+	closed.
+
+	virt-viewer: fix display of guest name in title for vnc
+	The following commit broke the display of the guest name in
+	the title for VNC displays:
+
+	  commit 61a1bc4dcbb056755fe96c5945f84c1312041059
+	  Author: Pavel Grunt <pgrunt@redhat.com>
+	  Date:   Wed Apr 15 13:50:35 2015 +0200
+
+	    session-vnc: Set window for display to avoid gtk-vnc v0.3.8 crash
+
+	    The VNC display widget of gtk-vnc v0.3.8 needs a window at the moment
+
+	The problem is that this causes the window to be associated
+	with the display before the guest name is available. Thus
+	when ensure_window_for_display() runs, the window is already
+	configured and so it never invokes the logic to set the title.
+
+	The fix is to unconditionally update the title in the
+	ensure_window_for_display() method, even if the window already
+	exists.
+
+2016-07-07  Fabiano Fidêncio  <fidencio@redhat.com>
+
+	app,vnc: Don't retry to authenticate when vvfile authentication fails
+	When connecting to a RHEVM/oVirt machine through an expired vvfile the
+	user ends up in an endless loop of getting an error message, pressing
+	"Okay", re-scheduling a new connection retry. getting an error message
+	due to the expired vvfile and so on.
+
+	In order to avoid the issue, let's not re-schedule the connection retry
+	when the user tries to connect through a vvfile and it fails.
+
+	Acked-by: Christophe Fergeau <cfergeau@redhat.com>
+
 2016-06-30  Daniel P. Berrange  <berrange@redhat.com>
+
+	Post-release version bump to 5.0
 
 	Update NEWS for 4.0 release
 

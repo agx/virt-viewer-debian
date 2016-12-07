@@ -143,33 +143,23 @@ ovirt_foreign_menu_set_property(GObject *object, guint property_id,
 
     switch (property_id) {
     case PROP_PROXY:
-        if (priv->proxy != NULL) {
-            g_object_unref(priv->proxy);
-        }
+        g_clear_object(&priv->proxy);
         priv->proxy = g_value_dup_object(value);
         break;
     case PROP_API:
-        if (priv->api != NULL) {
-            g_object_unref(priv->api);
-        }
+        g_clear_object(&priv->api);
         priv->api = g_value_dup_object(value);
         break;
     case PROP_VM:
-        if (priv->vm != NULL) {
-            g_object_unref(priv->vm);
-        }
+        g_clear_object(&priv->vm);
         priv->vm = g_value_dup_object(value);
-        g_free(priv->vm_guid);
-        priv->vm_guid = NULL;
+        g_clear_pointer(&priv->vm_guid, g_free);
         if (priv->vm != NULL) {
             g_object_get(G_OBJECT(priv->vm), "guid", &priv->vm_guid, NULL);
         }
         break;
     case PROP_VM_GUID:
-        if (priv->vm != NULL) {
-            g_object_unref(priv->vm);
-            priv->vm = NULL;
-        }
+        g_clear_object(&priv->vm);
         g_free(priv->vm_guid);
         priv->vm_guid = g_value_dup_string(value);
         break;
@@ -184,44 +174,20 @@ ovirt_foreign_menu_dispose(GObject *obj)
 {
     OvirtForeignMenu *self = OVIRT_FOREIGN_MENU(obj);
 
-    if (self->priv->proxy) {
-        g_object_unref(self->priv->proxy);
-        self->priv->proxy = NULL;
-    }
-
-    if (self->priv->api != NULL) {
-        g_object_unref(self->priv->api);
-        self->priv->api = NULL;
-    }
-
-    if (self->priv->vm) {
-        g_object_unref(self->priv->vm);
-        self->priv->vm = NULL;
-    }
-
-    g_free(self->priv->vm_guid);
-    self->priv->vm_guid = NULL;
-
-    if (self->priv->files) {
-        g_object_unref(self->priv->files);
-        self->priv->files = NULL;
-    }
-
-    if (self->priv->cdrom) {
-        g_object_unref(self->priv->cdrom);
-        self->priv->cdrom = NULL;
-    }
+    g_clear_object(&self->priv->proxy);
+    g_clear_object(&self->priv->api);
+    g_clear_object(&self->priv->vm);
+    g_clear_pointer(&self->priv->vm_guid, g_free);
+    g_clear_object(&self->priv->files);
+    g_clear_object(&self->priv->cdrom);
 
     if (self->priv->iso_names) {
         g_list_free_full(self->priv->iso_names, (GDestroyNotify)g_free);
         self->priv->iso_names = NULL;
     }
 
-    g_free(self->priv->current_iso_name);
-    self->priv->current_iso_name = NULL;
-
-    g_free(self->priv->next_iso_name);
-    self->priv->next_iso_name = NULL;
+    g_clear_pointer(&self->priv->current_iso_name, g_free);
+    g_clear_pointer(&self->priv->next_iso_name, g_free);
 
     G_OBJECT_CLASS(ovirt_foreign_menu_parent_class)->dispose(obj);
 }
@@ -312,51 +278,45 @@ ovirt_foreign_menu_next_async_step(OvirtForeignMenu *menu,
     g_return_if_fail(current_state >= STATE_0);
     g_return_if_fail(current_state < STATE_ISOS);
 
-    current_state++;
-
-    if (current_state == STATE_API) {
+    /* Each state will check if the member is initialized, falling directly to
+     * the next one if so. If not, the callback for the asynchronous call will
+     * be responsible for calling is function again with the next state as
+     * argument.
+     */
+    switch (current_state + 1) {
+    case STATE_API:
         if (menu->priv->api == NULL) {
             ovirt_foreign_menu_fetch_api_async(menu);
-        } else {
-            current_state++;
+            break;
         }
-    }
-
-    if (current_state == STATE_VM) {
+    case STATE_VM:
         if (menu->priv->vm == NULL) {
             ovirt_foreign_menu_fetch_vm_async(menu);
-        } else {
-            current_state++;
+            break;
         }
-    }
-
-    if (current_state == STATE_STORAGE_DOMAIN) {
+    case STATE_STORAGE_DOMAIN:
         if (menu->priv->files == NULL) {
             ovirt_foreign_menu_fetch_storage_domain_async(menu);
-        } else {
-            current_state++;
+            break;
         }
-    }
-
-    if (current_state == STATE_VM_CDROM) {
+    case STATE_VM_CDROM:
         if (menu->priv->cdrom == NULL) {
             ovirt_foreign_menu_fetch_vm_cdrom_async(menu);
-        } else {
-            current_state++;
+            break;
         }
-    }
-
-    if (current_state == STATE_CDROM_FILE) {
+    case STATE_CDROM_FILE:
         ovirt_foreign_menu_refresh_cdrom_file_async(menu);
-    }
-
-    if (current_state == STATE_ISOS) {
+        break;
+    case STATE_ISOS:
         g_warn_if_fail(menu->priv->api != NULL);
         g_warn_if_fail(menu->priv->vm != NULL);
         g_warn_if_fail(menu->priv->files != NULL);
         g_warn_if_fail(menu->priv->cdrom != NULL);
 
         ovirt_foreign_menu_refresh_iso_list(menu);
+        break;
+    default:
+        g_warn_if_reached();
     }
 }
 
@@ -414,8 +374,8 @@ static void updated_cdrom_cb(GObject *source_object,
                 current_file?current_file:NULL);
         g_object_set(foreign_menu->priv->cdrom, "file", current_file, NULL);
     }
-    g_free(foreign_menu->priv->next_iso_name);
-    foreign_menu->priv->next_iso_name = NULL;
+
+    g_clear_pointer(&foreign_menu->priv->next_iso_name, g_free);
 }
 
 
@@ -550,13 +510,11 @@ static void cdrom_file_refreshed_cb(GObject *source_object,
     }
 
     /* Content of OvirtCdrom is now current */
-    g_free(menu->priv->current_iso_name);
+    g_clear_pointer(&menu->priv->current_iso_name, g_free);
     if (menu->priv->cdrom != NULL) {
         g_object_get(G_OBJECT(menu->priv->cdrom),
                      "file", &menu->priv->current_iso_name,
                      NULL);
-    } else {
-        menu->priv->current_iso_name = NULL;
     }
     g_object_notify(G_OBJECT(menu), "file");
     if (menu->priv->cdrom != NULL) {
