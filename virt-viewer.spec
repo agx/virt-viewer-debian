@@ -16,7 +16,7 @@
 %endif
 
 Name: virt-viewer
-Version: 4.0
+Version: 5.0
 Release: 1%{?dist}%{?extra_release}
 Summary: Virtual Machine Viewer
 Group: Applications/System
@@ -44,7 +44,7 @@ BuildRequires: pkgconfig(libvirt-glib-1.0) >= 0.1.8
 BuildRequires: pkgconfig(libxml-2.0) >= 2.6.0
 BuildRequires: pkgconfig(gtk-vnc-2.0) >= 0.4.0
 %if %{with_spice}
-BuildRequires: pkgconfig(spice-client-gtk-3.0) >= 0.31
+BuildRequires: pkgconfig(spice-client-gtk-3.0) >= 0.33
 BuildRequires: pkgconfig(spice-protocol) >= 0.12.7
 %endif
 BuildRequires: /usr/bin/pod2man
