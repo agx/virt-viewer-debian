@@ -48,10 +48,6 @@
 #include "remote-viewer.h"
 #include "remote-viewer-connect.h"
 
-#ifndef G_VALUE_INIT /* see bug https://bugzilla.gnome.org/show_bug.cgi?id=654793 */
-#define G_VALUE_INIT  { 0, { { 0 } } }
-#endif
-
 struct _RemoteViewerPrivate {
 #ifdef HAVE_SPICE_GTK
     SpiceCtrlController *controller;
@@ -66,6 +62,13 @@ struct _RemoteViewerPrivate {
 G_DEFINE_TYPE (RemoteViewer, remote_viewer, VIRT_VIEWER_TYPE_APP)
 #define GET_PRIVATE(o)                                                        \
     (G_TYPE_INSTANCE_GET_PRIVATE ((o), REMOTE_VIEWER_TYPE, RemoteViewerPrivate))
+
+enum RemoteViewerProperties {
+    PROP_0,
+#ifdef HAVE_OVIRT
+    PROP_OVIRT_FOREIGN_MENU,
+#endif
+};
 
 #ifdef HAVE_OVIRT
 static OvirtVm * choose_vm(GtkWindow *main_window,
@@ -213,6 +216,28 @@ end:
 }
 
 static void
+remote_viewer_get_property(GObject *object, guint property_id,
+                           GValue *value G_GNUC_UNUSED,
+                           GParamSpec *pspec)
+{
+#ifdef HAVE_OVIRT
+    RemoteViewer *self = REMOTE_VIEWER(object);
+    RemoteViewerPrivate *priv = self->priv;
+#endif
+
+    switch (property_id) {
+#ifdef HAVE_OVIRT
+    case PROP_OVIRT_FOREIGN_MENU:
+        g_value_set_object(value, priv->ovirt_foreign_menu);
+        break;
+#endif
+
+    default:
+        G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
+    }
+}
+
+static void
 remote_viewer_class_init (RemoteViewerClass *klass)
 {
     GObjectClass *object_class = G_OBJECT_CLASS (klass);
@@ -222,6 +247,7 @@ remote_viewer_class_init (RemoteViewerClass *klass)
 
     g_type_class_add_private (klass, sizeof (RemoteViewerPrivate));
 
+    object_class->get_property = remote_viewer_get_property;
     object_class->dispose = remote_viewer_dispose;
 
     g_app_class->local_command_line = remote_viewer_local_command_line;
@@ -234,6 +260,16 @@ remote_viewer_class_init (RemoteViewerClass *klass)
     gtk_app_class->window_added = remote_viewer_window_added;
 #else
     (void) gtk_app_class;
+#endif
+
+#ifdef HAVE_OVIRT
+    g_object_class_install_property(object_class,
+                                    PROP_OVIRT_FOREIGN_MENU,
+                                    g_param_spec_object("ovirt-foreign-menu",
+                                                        "oVirt Foreign Menu",
+                                                        "Object which is used as interface to oVirt",
+                                                        OVIRT_TYPE_FOREIGN_MENU,
+                                                        G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 #endif
 }
 
@@ -702,19 +738,25 @@ authenticate_cb(RestProxy *proxy, G_GNUC_UNUSED RestProxyAuth *auth,
     gchar *password = NULL;
     VirtViewerWindow *window;
     gboolean success = FALSE;
+    gboolean kiosk = FALSE;
 
     g_object_get(proxy,
                  "username", &username,
                  NULL);
 
+    g_object_get(G_OBJECT(user_data), "kiosk", &kiosk, NULL);
+
     if (username == NULL || *username == '\0')
         username = g_strdup(g_get_user_name());
 
     window = virt_viewer_app_get_main_window(VIRT_VIEWER_APP(user_data));
-    success = virt_viewer_auth_collect_credentials(virt_viewer_window_get_window(window),
-                                                   "oVirt",
-                                                   NULL,
-                                                   &username, &password);
+    do {
+        success = virt_viewer_auth_collect_credentials(virt_viewer_window_get_window(window),
+                                                       "oVirt",
+                                                       NULL,
+                                                       &username, &password);
+    } while (kiosk && !success);
+
     if (success) {
         g_object_set(G_OBJECT(proxy),
                      "username", username,
@@ -734,33 +776,11 @@ authenticate_cb(RestProxy *proxy, G_GNUC_UNUSED RestProxyAuth *auth,
 static void
 ovirt_foreign_menu_update(GtkApplication *gtkapp, GtkWindow *gtkwin, G_GNUC_UNUSED gpointer data)
 {
-    RemoteViewer *app = REMOTE_VIEWER(gtkapp);
+    RemoteViewer *self = REMOTE_VIEWER(gtkapp);
     VirtViewerWindow *win = g_object_get_data(G_OBJECT(gtkwin), "virt-viewer-window");
-    GtkWidget *menu = g_object_get_data(G_OBJECT(win), "foreign-menu");
-    GtkWidget *submenu;
-
-    if (app->priv->ovirt_foreign_menu == NULL) {
-        /* nothing to do */
-        return;
-    }
-
-    submenu = ovirt_foreign_menu_get_gtk_menu(app->priv->ovirt_foreign_menu);
-    if (submenu == NULL) {
-        /* No items to show, no point in showing the menu */
-        if (menu != NULL)
-           gtk_widget_set_visible(menu, FALSE);
-        g_object_set_data(G_OBJECT(win), "foreign-menu", NULL);
-        return;
-    }
-
-    if (menu == NULL) {
-        menu = GTK_WIDGET(gtk_builder_get_object(virt_viewer_window_get_builder(win), "menu-change-cd"));
-        g_object_set_data(G_OBJECT(win), "foreign-menu", menu);
-        gtk_widget_set_visible(menu, TRUE);
-    }
-
-    gtk_menu_item_set_submenu(GTK_MENU_ITEM(menu), submenu);
-    gtk_widget_show_all(menu);
+    GtkBuilder *builder = virt_viewer_window_get_builder(win);
+    GtkWidget *menu = GTK_WIDGET(gtk_builder_get_object(builder, "menu-change-cd"));
+    gtk_widget_set_visible(menu, self->priv->ovirt_foreign_menu != NULL);
 }
 
 static void
@@ -783,15 +803,6 @@ ovirt_foreign_menu_updated(RemoteViewer *self)
 }
 
 static void
-ovirt_foreign_menu_changed(OvirtForeignMenu *foreign_menu G_GNUC_UNUSED,
-                           GParamSpec *pspec G_GNUC_UNUSED,
-                           VirtViewerApp *app)
-{
-    ovirt_foreign_menu_updated(REMOTE_VIEWER(app));
-}
-
-
-static void
 virt_viewer_app_set_ovirt_foreign_menu(VirtViewerApp *app,
                                        OvirtForeignMenu *foreign_menu)
 {
@@ -800,19 +811,12 @@ virt_viewer_app_set_ovirt_foreign_menu(VirtViewerApp *app,
     g_return_if_fail(OVIRT_IS_FOREIGN_MENU(foreign_menu));
 
     self = REMOTE_VIEWER(app);
-    if (self->priv->ovirt_foreign_menu != NULL) {
-        g_object_unref(G_OBJECT(self->priv->ovirt_foreign_menu));
-    }
+    g_clear_object(&self->priv->ovirt_foreign_menu);
     self->priv->ovirt_foreign_menu = foreign_menu;
-    g_signal_connect(G_OBJECT(foreign_menu), "notify::file",
-                     (GCallback)ovirt_foreign_menu_changed, app);
-    g_signal_connect(G_OBJECT(foreign_menu), "notify::files",
-                     (GCallback)ovirt_foreign_menu_changed, app);
     g_signal_connect(G_OBJECT(app), "window-added",
                      (GCallback)ovirt_foreign_menu_update, NULL);
-    ovirt_foreign_menu_start(foreign_menu);
+    ovirt_foreign_menu_updated(self);
 }
-
 
 static gboolean
 create_ovirt_session(VirtViewerApp *app, const char *uri, GError **err)
@@ -1005,9 +1009,6 @@ error:
     return success;
 }
 
-#endif
-
-#ifdef HAVE_OVIRT
 static OvirtVm *
 choose_vm(GtkWindow *main_window,
           char **vm_name,
@@ -1047,7 +1048,7 @@ choose_vm(GtkWindow *main_window,
 
     return vm;
 }
-#endif
+#endif /* HAVE_OVIRT */
 
 static void
 remote_viewer_recent_add(gchar *uri, const gchar *mime_type)
@@ -1117,7 +1118,8 @@ remote_viewer_start(VirtViewerApp *app, GError **err)
 #endif
 retry_dialog:
         if (priv->open_recent_dialog) {
-            if (!remote_viewer_connect_dialog(&guri)) {
+            VirtViewerWindow *main_window = virt_viewer_app_get_main_window(app);
+            if (!remote_viewer_connect_dialog(virt_viewer_window_get_window(main_window), &guri)) {
                 g_set_error_literal(&error,
                             VIRT_VIEWER_ERROR, VIRT_VIEWER_ERROR_CANCELLED,
                             _("No connection was chosen"));
@@ -1199,6 +1201,9 @@ cleanup:
     type = NULL;
 
     if (!ret && priv->open_recent_dialog) {
+        if (error != NULL) {
+            virt_viewer_app_simple_message_dialog(app, _("Unable to connect: %s"), error->message);
+        }
         g_clear_error(&error);
         goto retry_dialog;
     }

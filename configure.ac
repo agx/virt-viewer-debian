@@ -1,11 +1,11 @@
 
-AC_INIT([virt-viewer],[5.0])
+AC_INIT([virt-viewer],[6.0])
 AC_CONFIG_SRCDIR(src/virt-viewer-main.c)
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_HEADERS([config.h])
 dnl Make automake keep quiet about wildcards & other GNUmake-isms
-AM_INIT_AUTOMAKE([subdir-objects -Wno-portability])
+AM_INIT_AUTOMAKE([subdir-objects -Wno-portability foreign])
 AC_CANONICAL_HOST
 
 # Use the silent-rules feature when possible.
@@ -17,8 +17,8 @@ GLIB2_REQUIRED="2.38"
 GLIB2_ENCODED_VERSION="GLIB_VERSION_2_38"
 
 # Keep these two definitions in agreement.
-GTK_REQUIRED="3.10"
-GTK_ENCODED_VERSION="GDK_VERSION_3_10"
+GTK_REQUIRED="3.12"
+GTK_ENCODED_VERSION="GDK_VERSION_3_12"
 
 LIBXML2_REQUIRED="2.6.0"
 LIBVIRT_REQUIRED="0.10.0"

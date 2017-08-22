@@ -691,14 +691,13 @@ virt_viewer_session_spice_main_channel_event(SpiceChannel *channel,
     case SPICE_CHANNEL_ERROR_AUTH:
     {
         const GError *error = NULL;
+        gchar *host = NULL;
         g_debug("main channel: auth failure (wrong username/password?)");
 
-        {
-            error = spice_channel_get_error(channel);
-            username_required = g_error_matches(error,
-                                                SPICE_CLIENT_ERROR,
-                                                SPICE_CLIENT_ERROR_AUTH_NEEDS_PASSWORD_AND_USERNAME);
-        }
+        error = spice_channel_get_error(channel);
+        username_required = g_error_matches(error,
+                                            SPICE_CLIENT_ERROR,
+                                            SPICE_CLIENT_ERROR_AUTH_NEEDS_PASSWORD_AND_USERNAME);
 
         if (self->priv->pass_try > 0)
             g_signal_emit_by_name(session, "session-auth-refused",
@@ -717,12 +716,18 @@ virt_viewer_session_spice_main_channel_event(SpiceChannel *channel,
                 user = g_strdup(g_get_user_name());
         }
 
+        g_object_get(self->priv->session, "host", &host, NULL);
         ret = virt_viewer_auth_collect_credentials(self->priv->main_window,
                                                    "SPICE",
-                                                   NULL,
+                                                   host,
                                                    username_required ? &user : NULL,
                                                    &password);
+        g_free(host);
         if (!ret) {
+            /* ret is false when dialog did not return GTK_RESPONSE_OK. We
+             * should ignore auth error dialog if user has cancelled or closed
+             * the dialog */
+            self->priv->pass_try = 0;
             g_signal_emit_by_name(session, "session-cancelled");
         } else {
             gboolean openfd;
@@ -750,7 +755,7 @@ virt_viewer_session_spice_main_channel_event(SpiceChannel *channel,
             g_warn_if_fail(proxy != NULL);
 
             ret = virt_viewer_auth_collect_credentials(self->priv->main_window,
-                                                       "proxy", NULL,
+                                                       "proxy", spice_uri_get_hostname(proxy),
                                                        &user, &password);
             if (!ret) {
                 g_signal_emit_by_name(session, "session-cancelled");
@@ -914,8 +919,8 @@ virt_viewer_session_spice_display_monitors(SpiceChannel *channel,
 
         if (!disabled && fullscreen_mode && self->priv->did_auto_conf &&
             !display_is_in_fullscreen_mode(self, VIRT_VIEWER_DISPLAY(display))) {
-            g_warning("display %d should not be enabled, disabling",
-                      virt_viewer_display_get_nth(VIRT_VIEWER_DISPLAY(display)));
+            g_debug("display %d should not be enabled, disabling",
+                    virt_viewer_display_get_nth(VIRT_VIEWER_DISPLAY(display)) + 1);
             spice_main_set_display_enabled(virt_viewer_session_spice_get_main_channel(self),
                                            virt_viewer_display_get_nth(VIRT_VIEWER_DISPLAY(display)),
                                            FALSE);

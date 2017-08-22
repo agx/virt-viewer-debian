@@ -16,7 +16,7 @@
 %endif
 
 Name: virt-viewer
-Version: 5.0
+Version: 6.0
 Release: 1%{?dist}%{?extra_release}
 Summary: Virtual Machine Viewer
 Group: Applications/System
@@ -38,7 +38,7 @@ BuildRequires: libtool
 %endif
 
 BuildRequires: pkgconfig(glib-2.0) >= 2.38
-BuildRequires: pkgconfig(gtk+-3.0) >= 3.10
+BuildRequires: pkgconfig(gtk+-3.0) >= 3.12
 BuildRequires: pkgconfig(libvirt) >= 0.10.0
 BuildRequires: pkgconfig(libvirt-glib-1.0) >= 0.1.8
 BuildRequires: pkgconfig(libxml-2.0) >= 2.6.0
@@ -119,7 +119,7 @@ fi
 
 %files -f %{name}.lang
 %defattr(-,root,root,-)
-%doc README COPYING AUTHORS ChangeLog NEWS
+%doc README.md COPYING AUTHORS ChangeLog NEWS
 %{_bindir}/%{name}
 %{_bindir}/remote-viewer
 %{_datadir}/icons/hicolor/*/apps/*

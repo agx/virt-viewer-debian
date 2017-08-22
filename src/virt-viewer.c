@@ -52,6 +52,10 @@
 #include "virt-viewer-auth.h"
 #include "virt-viewer-util.h"
 
+#ifdef HAVE_SPICE_GTK
+#include "virt-viewer-session-spice.h"
+#endif
+
 struct _VirtViewerPrivate {
     char *uri;
     virConnectPtr conn;
@@ -82,6 +86,45 @@ static gboolean opt_attach = FALSE;
 static gboolean opt_waitvm = FALSE;
 static gboolean opt_reconnect = FALSE;
 
+typedef enum {
+    DOMAIN_SELECTION_ID = (1 << 0),
+    DOMAIN_SELECTION_UUID = (1 << 1),
+    DOMAIN_SELECTION_NAME = (1 << 2),
+    DOMAIN_SELECTION_DEFAULT = DOMAIN_SELECTION_ID | DOMAIN_SELECTION_UUID | DOMAIN_SELECTION_NAME,
+} DomainSelection;
+
+static const gchar* domain_selection_to_opt[] = {
+    [DOMAIN_SELECTION_ID] = "--id",
+    [DOMAIN_SELECTION_UUID] = "--uuid",
+    [DOMAIN_SELECTION_NAME] = "--domain-name",
+};
+
+static DomainSelection domain_selection_type = DOMAIN_SELECTION_DEFAULT;
+
+static gboolean
+opt_domain_selection_cb(const gchar *option_name,
+                        const gchar *value G_GNUC_UNUSED,
+                        gpointer data G_GNUC_UNUSED,
+                        GError **error)
+{
+    guint i;
+    if (domain_selection_type != DOMAIN_SELECTION_DEFAULT) {
+        g_set_error(error, G_OPTION_ERROR, G_OPTION_ERROR_FAILED,
+                    "selection type has been already set");
+        return FALSE;
+    }
+
+    for (i = DOMAIN_SELECTION_ID; i < G_N_ELEMENTS(domain_selection_to_opt); i++) {
+        if (g_strcmp0(option_name, domain_selection_to_opt[i]) == 0) {
+            domain_selection_type = i;
+            return TRUE;
+        }
+    }
+
+    g_assert_not_reached();
+    return FALSE;
+}
+
 static void
 virt_viewer_add_option_entries(VirtViewerApp *self, GOptionContext *context, GOptionGroup *group)
 {
@@ -96,8 +139,14 @@ virt_viewer_add_option_entries(VirtViewerApp *self, GOptionContext *context, GOp
           N_("Wait for domain to start"), NULL },
         { "reconnect", 'r', 0, G_OPTION_ARG_NONE, &opt_reconnect,
           N_("Reconnect to domain upon restart"), NULL },
+        { "domain-name", '\0', G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, opt_domain_selection_cb,
+          N_("Select the virtual machine only by its name"), NULL },
+        { "id", '\0', G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, opt_domain_selection_cb,
+          N_("Select the virtual machine only by its id"), NULL },
+        { "uuid", '\0', G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, opt_domain_selection_cb,
+          N_("Select the virtual machine only by its uuid"), NULL },
         { G_OPTION_REMAINING, '\0', 0, G_OPTION_ARG_STRING_ARRAY, &opt_args,
-          NULL, "-- DOMAIN-NAME|ID|UUID" },
+          NULL, "-- ID|UUID|DOMAIN-NAME" },
         { NULL, 0, 0, G_OPTION_ARG_NONE, NULL, NULL, NULL }
     };
 
@@ -121,7 +170,7 @@ virt_viewer_local_command_line (GApplication   *gapp,
 
     if (opt_args) {
         if (g_strv_length(opt_args) != 1) {
-            g_printerr(_("\nUsage: %s [OPTIONS] [DOMAIN-NAME|ID|UUID]\n\n"), PACKAGE);
+            g_printerr(_("\nUsage: %s [OPTIONS] [ID|UUID|DOMAIN-NAME]\n\n"), PACKAGE);
             ret = TRUE;
             *status = 1;
             goto end;
@@ -131,15 +180,16 @@ virt_viewer_local_command_line (GApplication   *gapp,
     }
 
 
-    if (opt_waitvm) {
+    if (opt_waitvm || domain_selection_type != DOMAIN_SELECTION_DEFAULT) {
         if (!self->priv->domkey) {
-            g_printerr(_("\nNo DOMAIN-NAME|ID|UUID was specified for '--wait'\n\n"));
+            g_printerr(_("\nNo ID|UUID|DOMAIN-NAME was specified for '%s'\n\n"),
+                       opt_waitvm ? "--wait" : domain_selection_to_opt[domain_selection_type]);
             ret = TRUE;
             *status = 1;
             goto end;
         }
 
-        self->priv->waitvm = TRUE;
+        self->priv->waitvm = opt_waitvm;
     }
 
     virt_viewer_app_set_direct(app, opt_direct);
@@ -303,24 +353,32 @@ virt_viewer_lookup_domain(VirtViewer *self)
 {
     char *end;
     VirtViewerPrivate *priv = self->priv;
-    int id;
     virDomainPtr dom = NULL;
-    unsigned char uuid[16];
 
     if (priv->domkey == NULL) {
         return NULL;
     }
 
-    id = strtol(priv->domkey, &end, 10);
-    if (id >= 0 && end && !*end) {
-        dom = virDomainLookupByID(priv->conn, id);
+    if (domain_selection_type & DOMAIN_SELECTION_ID) {
+        long int id = strtol(priv->domkey, &end, 10);
+        if (id >= 0 && end && !*end) {
+            dom = virDomainLookupByID(priv->conn, id);
+        }
     }
-    if (!dom && virt_viewer_parse_uuid(priv->domkey, uuid) == 0) {
-        dom = virDomainLookupByUUID(priv->conn, uuid);
+
+    if (domain_selection_type & DOMAIN_SELECTION_UUID) {
+        unsigned char uuid[16];
+        if (dom == NULL && virt_viewer_parse_uuid(priv->domkey, uuid) == 0) {
+            dom = virDomainLookupByUUID(priv->conn, uuid);
+        }
     }
-    if (!dom) {
-        dom = virDomainLookupByName(priv->conn, priv->domkey);
+
+    if (domain_selection_type & DOMAIN_SELECTION_NAME) {
+        if (dom == NULL) {
+            dom = virDomainLookupByName(priv->conn, priv->domkey);
+        }
     }
+
     return dom;
 }
 
@@ -511,11 +569,21 @@ virt_viewer_extract_connect_info(VirtViewer *self,
     }
 
     if (gport || gtlsport) {
-        xpath = g_strdup_printf("string(/domain/devices/graphics[@type='%s']/@listen)", type);
+        xpath = g_strdup_printf("string(/domain/devices/graphics[@type='%s']/listen/@address)", type);
         ghost = virt_viewer_extract_xpath_string(xmldesc, xpath);
+        if (ghost == NULL) { /* try old xml format - listen attribute in the graphics node */
+            g_free(xpath);
+            xpath = g_strdup_printf("string(/domain/devices/graphics[@type='%s']/@listen)", type);
+            ghost = virt_viewer_extract_xpath_string(xmldesc, xpath);
+        }
     } else {
-        xpath = g_strdup_printf("string(/domain/devices/graphics[@type='%s']/@socket)", type);
+        xpath = g_strdup_printf("string(/domain/devices/graphics[@type='%s']/listen/@socket)", type);
         unixsock = virt_viewer_extract_xpath_string(xmldesc, xpath);
+        if (unixsock == NULL) { /* try old xml format - socket attribute in the graphics node */
+            g_free(xpath);
+            xpath = g_strdup_printf("string(/domain/devices/graphics[@type='%s']/@socket)", type);
+            unixsock = virt_viewer_extract_xpath_string(xmldesc, xpath);
+        }
     }
 
     if (ghost && gport) {
@@ -601,8 +669,6 @@ virt_viewer_update_display(VirtViewer *self, virDomainPtr dom, GError **error)
     virt_viewer_app_trace(app, "Guest %s is running, determining display",
                           priv->domkey);
 
-    g_object_set(app, "guest-name", virDomainGetName(dom), NULL);
-
     if (virt_viewer_app_has_session(app))
         return TRUE;
 
@@ -675,6 +741,13 @@ virt_viewer_domain_event(virConnectPtr conn G_GNUC_UNUSED,
     switch (event) {
     case VIR_DOMAIN_EVENT_STOPPED:
         session = virt_viewer_app_get_session(app);
+#ifdef HAVE_SPICE_GTK
+        /* do not disconnect due to migration */
+        if (detail == VIR_DOMAIN_EVENT_STOPPED_MIGRATED &&
+            VIRT_VIEWER_IS_SESSION_SPICE(session)) {
+            break;
+        }
+#endif
         if (session != NULL)
             virt_viewer_session_close(session);
         break;
@@ -801,6 +874,7 @@ virt_viewer_initial_connect(VirtViewerApp *app, GError **error)
     VirtViewer *self = VIRT_VIEWER(app);
     VirtViewerPrivate *priv = self->priv;
     char uuid_string[VIR_UUID_STRING_BUFLEN];
+    const char *guest_name;
     GError *err = NULL;
 
     g_debug("initial connect");
@@ -835,6 +909,10 @@ virt_viewer_initial_connect(VirtViewerApp *app, GError **error)
         g_debug("Couldn't get uuid from libvirt");
     } else {
         g_object_set(app, "uuid", uuid_string, NULL);
+    }
+    guest_name = virDomainGetName(dom);
+    if (guest_name != NULL) {
+        g_object_set(app, "guest-name", guest_name, NULL);
     }
 
     virt_viewer_app_show_status(app, _("Checking guest domain status"));
@@ -925,6 +1003,11 @@ virt_viewer_auth_libvirt_credentials(virConnectCredentialPtr cred,
     }
 
     for (i = 0 ; i < ncred ; i++) {
+        const char *cred_type_to_str[] = {
+            [VIR_CRED_USERNAME] = "Identity to act as",
+            [VIR_CRED_AUTHNAME] = "Identify to authorize as",
+            [VIR_CRED_PASSPHRASE] = "Passphrase secret",
+        };
         switch (cred[i].type) {
         case VIR_CRED_AUTHNAME:
         case VIR_CRED_USERNAME:
@@ -933,7 +1016,11 @@ virt_viewer_auth_libvirt_credentials(virConnectCredentialPtr cred,
                 cred[i].resultlen = strlen(cred[i].result);
             else
                 cred[i].resultlen = 0;
-            g_debug("Got '%s' %d %d", cred[i].result, cred[i].resultlen, cred[i].type);
+            g_debug("Got %s '%s' %d",
+                    cred_type_to_str[cred[i].type],
+                    /* hide password */
+                    (cred[i].type == VIR_CRED_PASSPHRASE) ? "*****" : cred[i].result,
+                    cred[i].type);
             break;
         }
     }
