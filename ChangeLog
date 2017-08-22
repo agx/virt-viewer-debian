@@ -1,4 +1,546 @@
+2017-08-15  Daniel P. Berrange  <berrange@redhat.com>
+
+	Add NEWS for 6.0 release
+
+2017-08-14  Daniel P. Berrange  <berrange@redhat.com>
+
+	Set LC_CTYPE=en_US.UTF-8 when running glib-mkenums
+
+	Revert "Don't set LC_ALL=C during build as that breaks python apps"
+	This reverts commit 921e988db0f09e4a1bac04f56b59a981cb944a78.
+
+2017-07-25  Daniel P. Berrange  <berrange@redhat.com>
+
+	Don't set LC_ALL=C during build as that breaks python apps
+	Setting LC_ALL=C breaks python apps doing I/O on UTF-8 source
+	files. In particular this broke glib-mkenums
+
+	    Traceback (most recent call last):
+	      File "/usr/bin/glib-mkenums", line 669, in <module>
+	        process_file(fname)
+	      File "/usr/bin/glib-mkenums", line 406, in process_file
+	        line = curfile.readline()
+	      File "/usr/lib64/python3.6/encodings/ascii.py", line 26, in decode
+	        return codecs.ascii_decode(input, self.errors)[0]
+	    UnicodeDecodeError: 'ascii' codec can't decode byte 0xc3 in position 849: ordinal not in range(128)
+
+2017-07-20  Jonathon Jongsma  <jjongsma@redhat.com>
+
+	Screenshot: reject unknown image type filenames
+	If the image format cannot be determined for a screenshot filename,
+	simply return an error informing the user that this is not a valid image
+	format.
+
+	In the past, if we couldn't determine the file type, we simply saved it
+	as a PNG, and appended a ".png" file extension to the filename. This has
+	several problems. First, it can result in some oddly-named files (e.g. a
+	screenshot named 'Screenshot.pdf.png').
+
+	Second, modifying the filename that is returned from the GtkFileChooser
+	undermines the overwrite-confirmation functionality that is built into
+	the gtk file chooser. When the user specifies a filename in the file
+	chooser dialog, the chooser will automatically check whether a file of
+	that name exists, and if it does, it will display a dialog asking
+	whether the user wants to overwrite it. But if we then append a ".png"
+	extension to the filename and save it, we may be overwriting an existing
+	file without warning. By returning an error for unrecognized file types,
+	we avoid this problem.
+
+	Resolves: rhbz#1455832
+
+2017-07-19  Jonathon Jongsma  <jjongsma@redhat.com>
+
+	Report errors when saving screenshot
+	Currently, the user gets no feedback if the screenshot fails (e.g. if
+	they don't have permission to write in the chosen directory, etc). This
+	patch adds a simple dialog showing the error message when a screenshot
+	fails.
+
+	Change default screenshot name to "Screenshot.png"
+	Since the code attempts to append ".png" to filenames without an
+	extension, it doesn't make much sense to have the default filename be
+	extensionless.  Including the extension on the default filename makes
+	things more straightforward.
+
+	Related: rhbz#1455832
+
+2017-06-12  Victor Toso  <me@victortoso.com>
+
+	remote-viewer-connect: Keep the 'dialog' window on top
+	Otherwise, in kiosk mode, it'll be hidden from user.
+
+	Resolves: https://bugzilla.redhat.com/show_bug.cgi?id=1459800
+
+	Acked-by: Eduardo Lima (Etrunko) <etrunko@redhat.com>
+
+2017-06-08  Eduardo Lima (Etrunko)  <etrunko@redhat.com>
+
+	remote-viewer: Show authentication dialog again if in kiosk mode and connecting to ovirt
+	Similar to previous commit 5d9e6d2338cbb680fe761b86e6ca433b1234e6e0, now
+	dealing with the case of connecting directly to ovirt:// URIs, which was
+	left behind.
+
+	Resolves: https://bugzilla.redhat.com/show_bug.cgi?id=1459808
+
+2017-06-07  Victor Toso  <me@victortoso.com>
+
+	vnc: do not show error on cancel/close of auth dialog
+	Mainly a kiosk mode issue, similar to the spice fix in 6480e52f62b.
+
+	This patch saves the cancel/close state of auth dialog from
+	virt_viewer_auth_collect_credentials() in order to avoid an error
+	dialog to pop up to user in kiosk mode.
+
+	This happens due the fact that we call virt_viewer_app_disconnected()
+	twice:
+	- One with "session-cancelled" which is correct and well handled;
+	- The other with "session-disconnected" which is misleading as there
+	  was no connection at this time. This will trigger the error dialog
+	  with "Unable to connect to the graphic server %s".
+
+	Related: https://bugzilla.redhat.com/show_bug.cgi?id=1446161
+
+	Acked-by: Eduardo Lima (Etrunko) <etrunko@redhat.com>
+
+2017-06-05  Victor Toso  <me@victortoso.com>
+
+	spice: do not show error on cancel/close of auth dialog
+	Mainly an issue for kiosk mode due the fact that it'll not quit the
+	application on cancel. That means that authentication dialog can't
+	really be canceled and showing an input error such as "wrong password"
+	is misleading (no password should be taken in consideration on Cancel).
+
+	Related: https://bugzilla.redhat.com/show_bug.cgi?id=1446161
+
+	Acked-by: Pavel Grunt <pgrunt@redhat.com>
+	Acked-by: Eduardo Lima (Etrunko) <etrunko@redhat.com>
+
+2017-05-31  Eduardo Lima (Etrunko)  <etrunko@redhat.com>
+
+	kiosk: Show authentication dialog again if cancelled
+	Related: https://bugzilla.redhat.com/show_bug.cgi?id=1446161
+
+	window: Do not show fullscreen toolbar if in kiosk mode
+	Regression since commit cc455b7f916110d7cfae6b7af753349e070c9494.
+
+	Related: https://bugzilla.redhat.com/show_bug.cgi?id=1446161
+
+2017-05-18  Victor Toso  <me@victortoso.com>
+
+	Make the progress bar smooth during file-transfer
+	When the transfer of a file finishes we stop considering that file's
+	size in the progress bar which makes it move back due the new
+	'transfer size' and 'transferred bytes' - for all the other files.
+
+	This patch aims to keep the progress smooth when a file is finished
+	using the notify::total-bytes from SpiceFileTransferTask to be aware
+	of all file's sizes.
+
+	Note that as we have only one progress bar for all files being
+	transferred, it is expected that it will go back when a new
+	file-transfer operation starts (e.g we drag-and-drop new files while
+	we are already transferring other files).
+
+	As requested, this patch also updates the string message to include the
+	amount of files that will be transferred in case we have more than one
+	file.
+
+	Resolves: https://bugzilla.redhat.com/show_bug.cgi?id=1449572
+	Acked-by: Pavel Grunt <pgrunt@redhat.com>
+
+2017-05-18  Pavel Grunt  <pgrunt@redhat.com>
+
+	virt-viewer: Ensure to not close during migration
+	Take a look at the shutdown event detail before killing
+	the connection. Otherwise it breaks the SPICE seamless migration
+	feature.
+
+	Regression since commit a62827d28c6b69e90102e4c1c8043cbddad8929a
+
+	Resolves: https://bugzilla.redhat.com/show_bug.cgi?id=1442929
+	Acked-by: Daniel P. Berrange <berrange@redhat.com>
+
+2017-05-10  Pavel Grunt  <pgrunt@redhat.com>
+
+	window: Allow to control zoom using keypad
+	Support for more than one key combo for accelerator is available
+	since GTK 3.12 through GAction. It is currently not possible to
+	use mnemonics also for numpad keys, for more info see:
+	 https://bugzilla.gnome.org/show_bug.cgi?id=699823
+
+	Resolves: rhbz#1337575
+
+	Reviewed-by: Victor Toso <victortoso@redhat.com>
+
+2017-04-25  Pavel Grunt  <pgrunt@redhat.com>
+
+	util: Fix -Wsign-compare
+	Acked-by: Jonathon Jongsma <jjongsma@redhat.com>
+
+2017-04-19  Victor Toso  <me@victortoso.com>
+
+	Fix implicit fallthrough warning on new gcc
+	The option -Wimplicit-fallthrough was added to -Wall recently which
+	generates a few warnings. Based on the comment above the switch, the
+	fallthrough is on purpose so let's add a comment to avoid the following
+	warnings.
+
+	ovirt-foreign-menu.c: In function 'ovirt_foreign_menu_next_async_step':
+	ovirt-foreign-menu.c:293:12: warning: this statement may fall through
+	         if (menu->priv->api == NULL) {
+	            ^
+	 ovirt-foreign-menu.c:297:5: note: here
+	      case STATE_VM:
+	           ^~~~
+	ovirt-foreign-menu.c:298:12: warning: this statement may fall through
+	         if (menu->priv->vm == NULL) {
+	            ^
+	ovirt-foreign-menu.c:302:5: note: here
+	     case STATE_STORAGE_DOMAIN:
+	          ^~~~
+	ovirt-foreign-menu.c:303:12: warning: this statement may fall through
+	         if (menu->priv->files == NULL) {
+	            ^
+	ovirt-foreign-menu.c:307:5: note: here
+	     case STATE_VM_CDROM:
+	          ^~~~
+
+	ovirt-foreign-menu.c:308:12: warning: this statement may fall through
+	         if (menu->priv->cdrom == NULL) {
+	            ^
+	ovirt-foreign-menu.c:312:5: note: here
+	   case STATE_CDROM_FILE:
+	        ^~~~
+
+	Acked-by: Eduardo Lima (Etrunko) <etrunko@redhat.com>
+
+2017-04-19  Pavel Grunt  <pgrunt@redhat.com>
+
+	app: Allow to connect to channel using unix socket
+	Only method for connecting to channel opened later was ssh, however
+	this method failes when unix socket is used:
+
+	    <graphics type='spice'>
+	      <listen type='socket' socket='/tmp/spice.sock'/>
+	    </graphics>
+
+	Related: rhbz#1335832, rhbz#1411765
+
+	Acked-by: Jonathon Jongsma <jjongsma@redhat.com>
+
+	virt-viewer: Support newer libvirt xml format
+	Since libvirt 0.9.4 there is a new listen element which can be used
+	to specify address instead of using the attributes of graphics element.
+
+	Also add support for listen type socket - available for Qemu since
+	libvirt 2.0.0
+
+	Resolves: rhbz#1411765
+
+	Acked-by: Jonathon Jongsma <jjongsma@redhat.com>
+
+2017-04-11  Jonathon Jongsma  <jjongsma@redhat.com>
+
+	tests: improvements to monitor-mapping test
+	Add some tests that specify different numbers of client monitors to
+	ensure that the parsing handles those situations correctly.
+
+	Acked-by: Pavel Grunt <pgrunt@redhat.com>
+
+	Avoid warning when loading initial monitor mapping
+	When started in fullscreen mode with a monitor-mapping configuration
+	option, we are getting the following warnings on the terminal:
+
+	    (process:27428): Gdk-CRITICAL **: gdk_screen_get_n_monitors: assertion 'GDK_IS_SCREEN (screen)' failed
+
+	    ** (process:27428): WARNING **: Invalid monitor-mapping configuration: monitor #1 for display #1 does not exist
+
+	This is apparently because we were processing the fallback monitor
+	mapping before the graphic server display was opened, so
+	gdk_screen_get_default() returned NULL. This resulted in
+	gdk_screen_get_n_monitors() reporting that we had 0 monitors.
+
+	This patch moves the fallback monitor mapping parsing from
+	virt_viewer_app_init() to virt_viewer_app_on_application_startup(),
+	after chaining up to the base class startup() vfunc. The graphic server
+	display is opened in the base class vfunc, so by the time that returns,
+	we should be able to query the number of monitors.
+
+	The patch also adds a check in virt_viewer_parse_monitor_mappings() to
+	ensure that we pass a sane value for nmonitors.
+
+	Acked-by: Pavel Grunt <pgrunt@redhat.com>
+
+2017-04-04  Pavel Grunt  <pgrunt@redhat.com>
+
+	vnc: Set display as enabled on init
+	Since 9c77a78af2ef85f3fcdce21b42d89566a9f7ee17 the vnc display has
+	stopped setting the show hint and started to ignore the initial zoom
+	setting. Let's handle it in a similar way as the spice display and set
+	the hint when the display is initialized and unset it on disconnect.
+
+	Resolves: rhbz#1436991
+
+	Acked-by: Eduardo Lima (Etrunko) <etrunko@redhat.com>
+
+	Remove unused virt_viewer_app_set_zoom_level
+	Acked-by: Eduardo Lima (Etrunko) <etrunko@redhat.com>
+
+	Remove G_VALUE_INIT definition
+	Available in GLib since the version 2.30 and virt-viewer requires
+	glib 2.38
+
+	Acked-by: Christophe Fergeau <cfergeau@redhat.com>
+
+2017-03-16  Pavel Grunt  <pgrunt@redhat.com>
+
+	virt-viewer: Fix comparison in domain selection
+	Related: rhbz#1399077
+
+	Acked-by: Eduardo Lima (Etrunko) <etrunko@redhat.com>
+
+2017-03-09  Pavel Grunt  <pgrunt@redhat.com>
+
+	virt-viewer: Adjust name-id-uuid comment
+	virt-viewer by default chooses the VM by its id, then uuid
+	and then by name. Adjust the comment to match the implementation.
+
+	Related: rhbz#1399077
+
+	virt-viewer: Allow more precise VM selection
+	Theoretically a VM name can be a valid VM id or uuid. In that case
+	connecting to the VMs may be problematic since virt-viewer selects
+	the VM by its id then by uuid if not found then by its name.
+
+	Introduce new command line options to cover this situation:
+	 "--id" to connect to the VM by its id
+	 "--uuid" to connect to the VM by its uuid
+	 "--domain-name" to connect to the VM by its name
+	The options are mutually exclusive
+
+	Resolves: rhbz#1399077
+
+2017-03-07  Victor Toso  <me@victortoso.com>
+
+	Don't define function without oVirt integration
+	Function is not used without oVirt.
+
+	> virt-viewer-window.c:1063:1: warning: 'iso_dialog_response' defined
+	> but not used [-Wunused-function]
+
+	Avoid harmless warnings due lack of oVirt on build
+	> remote-viewer.c: In function 'remote_viewer_get_property':
+	> remote-viewer.c:227:26: warning: unused variable 'priv' [-Wunused-variable]
+	>      RemoteViewerPrivate *priv = self->priv;
+	>                           ^~~~
+	> remote-viewer.c:224:36: warning: unused parameter 'value' [-Wunused-parameter]
+	>      GValue *value, GParamSpec *pspec)
+	>              ^~~~~
+	> virt-viewer-window.c: In function 'virt_viewer_window_menu_change_cd_activate':
+	> virt-viewer-window.c:1077:62: warning: unused parameter 'self' [-Wunused-parameter]
+	>      VirtViewerWindow *self)
+	>                        ^~~~
+
+	Fix build when building without oVirt
+	As remote_viewer_iso_list_dialog_new() is defined on
+	remote-viewer-iso-list-dialog.h which is only build with oVirt
+	integration.
+
+	 > undefined reference to `remote_viewer_iso_list_dialog_new'
+
+	Note that the callback virt_viewer_window_menu_change_cd_activate() is
+	only visible if oVirt is built in.
+
+2017-03-03  Pavel Grunt  <pgrunt@redhat.com>
+
+	file-transfer: Fix label of the dialog
+	Display correct text and make it translatable
+
+	Resolves:
+	https://bugs.freedesktop.org/show_bug.cgi?id=99980
+
+	Acked-by: Jonathon Jongsma <jjongsma@redhat.com>
+
+2017-02-17  Christophe Fergeau  <cfergeau@redhat.com>
+
+	spice: Remove unneeded braces
+	Two statements in virt_viewer_session_spice_main_channel_event() are
+	wrapped in a { } block, but this is unneeded.
+
+	man: Fix qemu+ssh URL in example
+	The 'system' path was missing: qemu+ssh://example.org/system
+
+	Resolves: rhbz#1377283
+
+2017-02-14  Christophe de Dinechin  <cdupontd@redhat.com>
+
+	Show errors generated by connection dialog
+	When running 'remote-viewer' without arguments,
+	and selecting a non-supported protocol, e.g. ssh://foo,
+	the generated error was silently swallowed by the retry loop.
+	This was introduced in 06b2c382468876a19600374bd59475e66d488af8.
+
+2017-02-09  Eduardo Lima (Etrunko)  <etrunko@redhat.com>
+
+	session-spice: Pass hostname to authentication dialog
+	With this patch the dialog now shows the host we are connecting to.
+
+	iso-dialog: Avoid crash when closing dialog early
+	We must take into account that users can close the dialog at anytime,
+	even during an operation of fetch or set ISO has not been finished. This
+	will cause the callbacks for those operations to be invoked with an
+	invalid object, crashing the application.
+
+	To fix this issue we need to pass a GCancellable to the asynchronous
+	operations, so they can be cancelled if the dialog happens to get closed
+	before they complete.
+
+	NOTE: This patch triggers a deadlock in libgovirt when the dialog is
+	closed before the operation completes. Bug reported in
+	https://bugzilla.gnome.org/show_bug.cgi?id=777808. We will need to bump
+	libgovirt dependency whenever it has a new release.
+
+2017-02-07  Pavel Grunt  <pgrunt@redhat.com>
+
+	Do not print password in the debug log
+	Do not show a length since it is sensitive info as well.
+
+	Resolves: rhbz#1410030
+
+	Acked-by: Christophe Fergeau <cfergeau@redhat.com>
+
+	iso-dialog: Do not use string directly
+	Fixes -Werror=format-security used when creating the rpm
+
+	Acked-by: Eduardo Lima (Etrunko) <etrunko@redhat.com>
+
+	Update for README.md
+	It is needed to use the 'foreign' init option otherwise autotools
+	requires README
+
+	Fix make distcheck and spec file generation
+
+	Acked-by: Christophe Fergeau <cfergeau@redhat.com>
+
+2017-01-27  Pavel Grunt  <pgrunt@redhat.com>
+
+	README: switch to Markdown syntax
+	To render nicely on the project git page:
+	 https://pagure.io/virt-viewer
+
+	Acked-by: Fabiano Fidêncio <fabiano@fidencio.org>
+
+	README: Update links
+	Acked-by: Fabiano Fidêncio <fabiano@fidencio.org>
+
+2017-01-24  Eduardo Lima (Etrunko)  <etrunko@redhat.com>
+
+	Run ISO dialog when 'Change CD' menu is activated
+	Also moves 'Change CD' menu item from the toplevel menu to a subitem
+	under 'File' toplevel menu.
+
+	In order to avoid object interdependency, it is necessary to make the
+	ovirt foreign-menu pointer from RemoteViewer, accessible via property,
+	so it can be passed to the dialog as an opaque GObject.
+
+	Finally, with this commit, we clean up ovirt foreign menu code, which
+	only deals with data, leaving the UI bits to be handled properly in the
+	new ISO list dialog.
+
+	Introduce ISO List dialog
+	The motivation for this dialog started with rhbz #1310624, where it was
+	reported that foreign menu was causing too many debug messages to be
+	printed to the console, because remote viewer had a timeout of 5 seconds
+	to refresh the ISO list automatically.
+
+	As a workaround, the timeout was adjusted for 5 minutes, but it could
+	cause more problems, such as inconsistencies between what was shown by
+	remote viewer and what the server had configured.
+
+	Another issue caused by displaying the ISO files as a menu item was that
+	if the list was too long, it would take all the available space on the
+	screen. In the end, a menu item was not the correct choice of UI
+	component for this use case.
+
+	In order to solve both problems, we now present the ISO list as a
+	dedicated dialog, where the refresh of ISO list is triggered manually by
+	the user and the list is contained within the dialog, by displaying de
+	files in a treeview.
+
+2017-01-19  Eduardo Lima (Etrunko)  <etrunko@redhat.com>
+
+	ovirt-foreign-menu: Add accessors for current iso and iso list
+	Also, to keep consistency around the codebase, changed the return value
+	of ovirt_foreign_menu_get_current_iso_name() from char * to gchar *.
+
+2017-01-18  Eduardo Lima (Etrunko)  <etrunko@redhat.com>
+
+	ovirt-foreign-menu: Fetch ISO names using GTask API
+	Similar to the previous commit, the ISO dialog will fetch the result
+	asynchronously, rather than relying on the "notify::files" signal from
+	OvirtForeignMenu object. It also enables error to be shown if anything
+	goes wrong.
+
+	ovirt-foreign-menu: Set new ISO name using GTask API
+	This is done with the new ovirt_foreign_menu_set_current_iso_name_async
+	function.
+
+2017-01-13  Eduardo Lima (Etrunko)  <etrunko@redhat.com>
+
+	remote-viewer: Extend #ifdef HAVE_OVIRT block
+	The #endif is closing a #ifdef HAVE_OVIRT block, while another one is
+	opened right next, so there is no need to have those lines. Also, due to
+	the large amount of source code in between, add a small comment on the
+	last #endif to identify what it refers to.
+
+2017-01-10  Snir Sheriber  <ssheribe@redhat.com>
+
+	app: Update warning msg in virt-viewer's window
+	Information about connection issues during display
+	activation will appear in virt-viewer's window
+
+	Related: rhbz#1386630
+
+2017-01-05  Pavel Grunt  <pgrunt@redhat.com>
+
+	Set guest name at the same time as uuid
+	Avoid showing the "Unknown" name in the guest detail dialog when
+	waiting for the domain to be started.
+
+	Acked-by: Jonathon Jongsma <jjongsma@redhat.com>
+
+2017-01-02  Snir Sheriber  <ssheribe@redhat.com>
+
+	spice: Replace g_warning with g_debug
+	Instead of having a warning message telling the user that they can't
+	have more displays enabled in fullscreen than the number of physical
+	displays, let's just have it as a debug message.
+
+	Related: rhbz#1368390
+
+	Acked-by: Fabiano Fidêncio <fabiano@fidencio.org>
+
+2016-12-30  Snir Sheriber  <ssheribe@redhat.com>
+
+	spice: Fix display id in the warning log
+	The display id in the warning log is now consistent with the display
+	id in the "view->displays->display x" menu item
+
+	Related: rhbz#1368390
+
+	Acked-by: Fabiano Fidêncio <fabiano@fidencio.org>
+
+2016-12-05  Christophe Fergeau  <cfergeau@redhat.com>
+
+	man: Mention that ssh-agent can be useful
+	When using a tunneled SPICE connection, the user will get a dozen
+	authentication prompts if they are not using ssh-agent.
+
+	https://bugzilla.redhat.com/show_bug.cgi?id=1377283
+
 2016-11-24  Daniel P. Berrange  <berrange@redhat.com>
+
+	Post release version bump to 6.0
 
 	Add NEWS for 5.0 release
 

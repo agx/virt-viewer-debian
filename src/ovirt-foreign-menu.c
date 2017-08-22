@@ -40,13 +40,13 @@ typedef enum {
     STATE_ISOS
 } OvirtForeignMenuState;
 
-static void ovirt_foreign_menu_next_async_step(OvirtForeignMenu *menu, OvirtForeignMenuState state);
-static void ovirt_foreign_menu_fetch_api_async(OvirtForeignMenu *menu);
-static void ovirt_foreign_menu_fetch_vm_async(OvirtForeignMenu *menu);
-static void ovirt_foreign_menu_fetch_storage_domain_async(OvirtForeignMenu *menu);
-static void ovirt_foreign_menu_fetch_vm_cdrom_async(OvirtForeignMenu *menu);
-static void ovirt_foreign_menu_refresh_cdrom_file_async(OvirtForeignMenu *menu);
-static gboolean ovirt_foreign_menu_refresh_iso_list(gpointer user_data);
+static void ovirt_foreign_menu_next_async_step(OvirtForeignMenu *menu, GTask *task, OvirtForeignMenuState state);
+static void ovirt_foreign_menu_fetch_api_async(OvirtForeignMenu *menu, GTask *task);
+static void ovirt_foreign_menu_fetch_vm_async(OvirtForeignMenu *menu, GTask *task);
+static void ovirt_foreign_menu_fetch_storage_domain_async(OvirtForeignMenu *menu, GTask *task);
+static void ovirt_foreign_menu_fetch_vm_cdrom_async(OvirtForeignMenu *menu, GTask *task);
+static void ovirt_foreign_menu_refresh_cdrom_file_async(OvirtForeignMenu *menu, GTask *task);
+static void ovirt_foreign_menu_fetch_iso_list_async(OvirtForeignMenu *menu, GTask *task);
 
 G_DEFINE_TYPE (OvirtForeignMenu, ovirt_foreign_menu, G_TYPE_OBJECT)
 
@@ -85,10 +85,10 @@ enum {
 };
 
 
-static char *
+gchar *
 ovirt_foreign_menu_get_current_iso_name(OvirtForeignMenu *foreign_menu)
 {
-    char *name;
+    gchar *name;
 
     if (foreign_menu->priv->cdrom == NULL) {
         return NULL;
@@ -97,6 +97,13 @@ ovirt_foreign_menu_get_current_iso_name(OvirtForeignMenu *foreign_menu)
     g_object_get(foreign_menu->priv->cdrom, "file", &name, NULL);
 
     return name;
+}
+
+
+GList*
+ovirt_foreign_menu_get_iso_names(OvirtForeignMenu *foreign_menu)
+{
+    return foreign_menu->priv->iso_names;
 }
 
 
@@ -273,11 +280,9 @@ OvirtForeignMenu* ovirt_foreign_menu_new(OvirtProxy *proxy)
 
 static void
 ovirt_foreign_menu_next_async_step(OvirtForeignMenu *menu,
+                                   GTask *task,
                                    OvirtForeignMenuState current_state)
 {
-    g_return_if_fail(current_state >= STATE_0);
-    g_return_if_fail(current_state < STATE_ISOS);
-
     /* Each state will check if the member is initialized, falling directly to
      * the next one if so. If not, the callback for the asynchronous call will
      * be responsible for calling is function again with the next state as
@@ -286,26 +291,30 @@ ovirt_foreign_menu_next_async_step(OvirtForeignMenu *menu,
     switch (current_state + 1) {
     case STATE_API:
         if (menu->priv->api == NULL) {
-            ovirt_foreign_menu_fetch_api_async(menu);
+            ovirt_foreign_menu_fetch_api_async(menu, task);
             break;
         }
+        /* fall through */
     case STATE_VM:
         if (menu->priv->vm == NULL) {
-            ovirt_foreign_menu_fetch_vm_async(menu);
+            ovirt_foreign_menu_fetch_vm_async(menu, task);
             break;
         }
+        /* fall through */
     case STATE_STORAGE_DOMAIN:
         if (menu->priv->files == NULL) {
-            ovirt_foreign_menu_fetch_storage_domain_async(menu);
+            ovirt_foreign_menu_fetch_storage_domain_async(menu, task);
             break;
         }
+        /* fall through */
     case STATE_VM_CDROM:
         if (menu->priv->cdrom == NULL) {
-            ovirt_foreign_menu_fetch_vm_cdrom_async(menu);
+            ovirt_foreign_menu_fetch_vm_cdrom_async(menu, task);
             break;
         }
+        /* fall through */
     case STATE_CDROM_FILE:
-        ovirt_foreign_menu_refresh_cdrom_file_async(menu);
+        ovirt_foreign_menu_refresh_cdrom_file_async(menu, task);
         break;
     case STATE_ISOS:
         g_warn_if_fail(menu->priv->api != NULL);
@@ -313,142 +322,116 @@ ovirt_foreign_menu_next_async_step(OvirtForeignMenu *menu,
         g_warn_if_fail(menu->priv->files != NULL);
         g_warn_if_fail(menu->priv->cdrom != NULL);
 
-        ovirt_foreign_menu_refresh_iso_list(menu);
+        ovirt_foreign_menu_fetch_iso_list_async(menu, task);
         break;
     default:
         g_warn_if_reached();
+        g_task_return_new_error(task, OVIRT_ERROR, OVIRT_ERROR_FAILED,
+                                "Invalid state: %d", current_state);
+        g_object_unref(task);
     }
 }
 
 
 void
-ovirt_foreign_menu_start(OvirtForeignMenu *menu)
+ovirt_foreign_menu_fetch_iso_names_async(OvirtForeignMenu *menu,
+                                         GCancellable *cancellable,
+                                         GAsyncReadyCallback callback,
+                                         gpointer user_data)
 {
-    ovirt_foreign_menu_next_async_step(menu, STATE_0);
+    GTask *task = g_task_new(menu, cancellable, callback, user_data);
+    ovirt_foreign_menu_next_async_step(menu, task, STATE_0);
 }
 
 
-static void
-ovirt_foreign_menu_activate_item_cb(GtkMenuItem *menuitem, gpointer user_data);
-
-
-static void
-menu_item_set_active_no_signal(GtkMenuItem *menuitem,
-                               gboolean active,
-                               GCallback callback,
-                               gpointer user_data)
+GList *
+ovirt_foreign_menu_fetch_iso_names_finish(OvirtForeignMenu *foreign_menu,
+                                          GAsyncResult *result,
+                                          GError **error)
 {
-    g_signal_handlers_block_by_func(menuitem, callback, user_data);
-    gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(menuitem), active);
-    g_signal_handlers_unblock_by_func(menuitem, callback, user_data);
+    g_return_val_if_fail(OVIRT_IS_FOREIGN_MENU(foreign_menu), NULL);
+    return g_task_propagate_pointer(G_TASK(result), error);
 }
 
 
-static void updated_cdrom_cb(GObject *source_object,
-                             GAsyncResult *result,
-                             gpointer user_data)
+static void iso_name_set_cb(GObject *source_object,
+                            GAsyncResult *result,
+                            gpointer user_data)
 {
     GError *error = NULL;
-    OvirtForeignMenu *foreign_menu;
+    GTask *task = G_TASK(user_data);
+    OvirtForeignMenu *foreign_menu = OVIRT_FOREIGN_MENU(g_task_get_source_object(task));
     gboolean updated;
 
-    foreign_menu = OVIRT_FOREIGN_MENU(user_data);
     updated = ovirt_cdrom_update_finish(OVIRT_CDROM(source_object),
                                         result, &error);
-    g_debug("Finished updating cdrom content");
     if (updated) {
+        g_debug("Finished updating cdrom content: %s", foreign_menu->priv->next_iso_name);
         g_free(foreign_menu->priv->current_iso_name);
         foreign_menu->priv->current_iso_name = foreign_menu->priv->next_iso_name;
         foreign_menu->priv->next_iso_name = NULL;
-        g_object_notify(G_OBJECT(foreign_menu), "file");
-    } else {
-        /* Reset old state back as we were not successful in switching to
-         * the new ISO */
-        const char *current_file = foreign_menu->priv->current_iso_name;
-
-        if (error != NULL) {
-            g_warning("failed to update cdrom resource: %s", error->message);
-            g_clear_error(&error);
-        }
-        g_debug("setting OvirtCdrom:file back to '%s'",
-                current_file?current_file:NULL);
-        g_object_set(foreign_menu->priv->cdrom, "file", current_file, NULL);
+        g_task_return_boolean(task, TRUE);
+        goto end;
     }
 
+    /* Reset old state back as we were not successful in switching to
+     * the new ISO */
+    g_debug("setting OvirtCdrom:file back to '%s'",
+            foreign_menu->priv->current_iso_name);
+    g_object_set(foreign_menu->priv->cdrom, "file",
+                 foreign_menu->priv->current_iso_name, NULL);
     g_clear_pointer(&foreign_menu->priv->next_iso_name, g_free);
+
+    if (error != NULL) {
+        g_warning("failed to update cdrom resource: %s", error->message);
+        g_task_return_error(task, error);
+    } else {
+        g_warn_if_reached();
+        g_task_return_new_error(task, OVIRT_ERROR, OVIRT_ERROR_FAILED,
+                                "failed to update cdrom resource");
+    }
+
+end:
+    g_object_unref(task);
 }
 
 
-static void
-ovirt_foreign_menu_activate_item_cb(GtkMenuItem *menuitem, gpointer user_data)
+void ovirt_foreign_menu_set_current_iso_name_async(OvirtForeignMenu *foreign_menu,
+                                                   const char *name,
+                                                   GCancellable *cancellable,
+                                                   GAsyncReadyCallback callback,
+                                                   gpointer user_data)
 {
-    OvirtForeignMenu *foreign_menu;
-    const char *iso_name;
-    gboolean checked;
+    GTask *task;
 
-    checked = gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem));
-    foreign_menu = OVIRT_FOREIGN_MENU(user_data);
     g_return_if_fail(foreign_menu->priv->cdrom != NULL);
     g_return_if_fail(foreign_menu->priv->next_iso_name == NULL);
 
-    g_debug("'%s' clicked", gtk_menu_item_get_label(menuitem));
-
-    /* We only want to move the check mark for the currently selected ISO
-     * when ovirt_cdrom_update_async() is successful, so for now we move
-     * the check mark back to where it was before
-     */
-    menu_item_set_active_no_signal(menuitem, !checked,
-                                   (GCallback)ovirt_foreign_menu_activate_item_cb,
-                                   foreign_menu);
-
-    if (checked) {
-        iso_name = gtk_menu_item_get_label(menuitem);
-        g_debug("Updating VM cdrom image to '%s'", iso_name);
-        foreign_menu->priv->next_iso_name = g_strdup(iso_name);
+    if (name) {
+        g_debug("Updating VM cdrom image to '%s'", name);
+        foreign_menu->priv->next_iso_name = g_strdup(name);
     } else {
         g_debug("Removing current cdrom image");
-        iso_name = NULL;
         foreign_menu->priv->next_iso_name = NULL;
     }
+
     g_object_set(foreign_menu->priv->cdrom,
-                 "file", iso_name,
+                 "file", name,
                  NULL);
+
+    task = g_task_new(foreign_menu, cancellable, callback, user_data);
     ovirt_cdrom_update_async(foreign_menu->priv->cdrom, TRUE,
-                             foreign_menu->priv->proxy, NULL,
-                             updated_cdrom_cb, foreign_menu);
+                             foreign_menu->priv->proxy, cancellable,
+                             iso_name_set_cb, task);
 }
 
 
-GtkWidget *ovirt_foreign_menu_get_gtk_menu(OvirtForeignMenu *foreign_menu)
+gboolean ovirt_foreign_menu_set_current_iso_name_finish(OvirtForeignMenu *foreign_menu,
+                                                        GAsyncResult *result,
+                                                        GError **error)
 {
-    GtkWidget *gtk_menu;
-    GList *it;
-    char *current_iso;
-
-    if (foreign_menu->priv->iso_names == NULL) {
-        g_debug("ISO list is empty, no menu to show");
-        return NULL;
-    }
-    g_debug("Creating GtkMenu for foreign menu");
-    current_iso = ovirt_foreign_menu_get_current_iso_name(foreign_menu);
-    gtk_menu = gtk_menu_new();
-    for (it = foreign_menu->priv->iso_names; it != NULL; it = it->next) {
-        GtkWidget *menuitem;
-
-        menuitem = gtk_check_menu_item_new_with_label((char *)it->data);
-        if (g_strcmp0((char *)it->data, current_iso) == 0) {
-            g_warn_if_fail(g_strcmp0(current_iso, foreign_menu->priv->current_iso_name) == 0);
-            gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(menuitem),
-                                           TRUE);
-        }
-        g_signal_connect(menuitem, "activate",
-                         G_CALLBACK(ovirt_foreign_menu_activate_item_cb),
-                         foreign_menu);
-        gtk_menu_shell_append(GTK_MENU_SHELL(gtk_menu), menuitem);
-    }
-    g_free(current_iso);
-
-    return gtk_menu;
+    g_return_val_if_fail(OVIRT_IS_FOREIGN_MENU(foreign_menu), FALSE);
+    return g_task_propagate_boolean(G_TASK(result), error);
 }
 
 
@@ -490,7 +473,6 @@ static void ovirt_foreign_menu_set_files(OvirtForeignMenu *menu,
 
     g_list_free_full(menu->priv->iso_names, (GDestroyNotify)g_free);
     menu->priv->iso_names = sorted_files;
-    g_object_notify(G_OBJECT(menu), "files");
 }
 
 
@@ -498,14 +480,16 @@ static void cdrom_file_refreshed_cb(GObject *source_object,
                                     GAsyncResult *result,
                                     gpointer user_data)
 {
+    GTask *task = G_TASK(user_data);
+    OvirtForeignMenu *menu = OVIRT_FOREIGN_MENU(g_task_get_source_object(task));
     OvirtResource *cdrom  = OVIRT_RESOURCE(source_object);
-    OvirtForeignMenu *menu = OVIRT_FOREIGN_MENU(user_data);
     GError *error = NULL;
 
     ovirt_resource_refresh_finish(cdrom, result, &error);
     if (error != NULL) {
         g_warning("failed to refresh cdrom content: %s", error->message);
-        g_clear_error(&error);
+        g_task_return_error(task, error);
+        g_object_unref(task);
         return;
     }
 
@@ -516,22 +500,25 @@ static void cdrom_file_refreshed_cb(GObject *source_object,
                      "file", &menu->priv->current_iso_name,
                      NULL);
     }
-    g_object_notify(G_OBJECT(menu), "file");
     if (menu->priv->cdrom != NULL) {
-        ovirt_foreign_menu_next_async_step(menu, STATE_CDROM_FILE);
+        ovirt_foreign_menu_next_async_step(menu, task, STATE_CDROM_FILE);
     } else {
         g_debug("Could not find VM cdrom through oVirt REST API");
+        g_task_return_new_error(task, OVIRT_ERROR, OVIRT_ERROR_FAILED,
+                                "Could not find VM cdrom through oVirt REST API");
+        g_object_unref(task);
     }
 }
 
 
-static void ovirt_foreign_menu_refresh_cdrom_file_async(OvirtForeignMenu *menu)
+static void ovirt_foreign_menu_refresh_cdrom_file_async(OvirtForeignMenu *menu,
+                                                        GTask *task)
 {
     g_return_if_fail(OVIRT_IS_RESOURCE(menu->priv->cdrom));
 
     ovirt_resource_refresh_async(OVIRT_RESOURCE(menu->priv->cdrom),
-                                 menu->priv->proxy, NULL,
-                                 cdrom_file_refreshed_cb, menu);
+                                 menu->priv->proxy, g_task_get_cancellable(task),
+                                 cdrom_file_refreshed_cb, task);
 }
 
 
@@ -541,7 +528,8 @@ static void cdroms_fetched_cb(GObject *source_object,
 {
     GHashTable *cdroms;
     OvirtCollection *cdrom_collection = OVIRT_COLLECTION(source_object);
-    OvirtForeignMenu *menu = OVIRT_FOREIGN_MENU(user_data);
+    GTask *task = G_TASK(user_data);
+    OvirtForeignMenu *menu = OVIRT_FOREIGN_MENU(g_task_get_source_object(task));
     GHashTableIter iter;
     OvirtCdrom *cdrom;
     GError *error = NULL;
@@ -549,7 +537,8 @@ static void cdroms_fetched_cb(GObject *source_object,
     ovirt_collection_fetch_finish(cdrom_collection, result, &error);
     if (error != NULL) {
         g_warning("failed to fetch cdrom collection: %s", error->message);
-        g_clear_error(&error);
+        g_task_return_error(task, error);
+        g_object_unref(task);
         return;
     }
 
@@ -571,20 +560,25 @@ static void cdroms_fetched_cb(GObject *source_object,
     }
 
     if (menu->priv->cdrom != NULL) {
-        ovirt_foreign_menu_next_async_step(menu, STATE_VM_CDROM);
+        ovirt_foreign_menu_next_async_step(menu, task, STATE_VM_CDROM);
     } else {
         g_debug("Could not find VM cdrom through oVirt REST API");
+        g_task_return_new_error(task, OVIRT_ERROR, OVIRT_ERROR_FAILED,
+                                "Could not find VM cdrom through oVirt REST API");
+        g_object_unref(task);
     }
 }
 
 
-static void ovirt_foreign_menu_fetch_vm_cdrom_async(OvirtForeignMenu *menu)
+static void ovirt_foreign_menu_fetch_vm_cdrom_async(OvirtForeignMenu *menu,
+                                                    GTask *task)
 {
     OvirtCollection *cdrom_collection;
 
     cdrom_collection = ovirt_vm_get_cdroms(menu->priv->vm);
-    ovirt_collection_fetch_async(cdrom_collection, menu->priv->proxy, NULL,
-                                 cdroms_fetched_cb, menu);
+    ovirt_collection_fetch_async(cdrom_collection, menu->priv->proxy,
+                                 g_task_get_cancellable(task),
+                                 cdroms_fetched_cb, task);
 }
 
 
@@ -593,7 +587,8 @@ static void storage_domains_fetched_cb(GObject *source_object,
                                        gpointer user_data)
 {
     GError *error = NULL;
-    OvirtForeignMenu *menu = OVIRT_FOREIGN_MENU(user_data);
+    GTask *task = G_TASK(user_data);
+    OvirtForeignMenu *menu = OVIRT_FOREIGN_MENU(g_task_get_source_object(task));
     OvirtCollection *collection = OVIRT_COLLECTION(source_object);
     GHashTableIter iter;
     OvirtStorageDomain *domain;
@@ -601,7 +596,8 @@ static void storage_domains_fetched_cb(GObject *source_object,
     ovirt_collection_fetch_finish(collection, result, &error);
     if (error != NULL) {
         g_warning("failed to fetch storage domains: %s", error->message);
-        g_clear_error(&error);
+        g_task_return_error(task, error);
+        g_object_unref(task);
         return;
     }
 
@@ -632,21 +628,25 @@ static void storage_domains_fetched_cb(GObject *source_object,
     }
 
     if (menu->priv->files != NULL) {
-        ovirt_foreign_menu_next_async_step(menu, STATE_STORAGE_DOMAIN);
+        ovirt_foreign_menu_next_async_step(menu, task, STATE_STORAGE_DOMAIN);
     } else {
         g_debug("Could not find iso file collection");
+        g_task_return_new_error(task, OVIRT_ERROR, OVIRT_ERROR_FAILED,
+                                "Could not find ISO file collection");
+        g_object_unref(task);
     }
 }
 
 
-static void ovirt_foreign_menu_fetch_storage_domain_async(OvirtForeignMenu *menu)
+static void ovirt_foreign_menu_fetch_storage_domain_async(OvirtForeignMenu *menu,
+                                                          GTask *task)
 {
-    OvirtCollection *collection;
+    OvirtCollection *collection = ovirt_api_get_storage_domains(menu->priv->api);
 
     g_debug("Start fetching oVirt REST collection");
-    collection = ovirt_api_get_storage_domains(menu->priv->api);
-    ovirt_collection_fetch_async(collection, menu->priv->proxy, NULL,
-                                 storage_domains_fetched_cb, menu);
+    ovirt_collection_fetch_async(collection, menu->priv->proxy,
+                                 g_task_get_cancellable(task),
+                                 storage_domains_fetched_cb, task);
 }
 
 
@@ -655,16 +655,17 @@ static void vms_fetched_cb(GObject *source_object,
                            gpointer user_data)
 {
     GError *error = NULL;
-    OvirtForeignMenu *menu = OVIRT_FOREIGN_MENU(user_data);
-    OvirtCollection *collection;
+    GTask *task = G_TASK(user_data);
+    OvirtForeignMenu *menu = OVIRT_FOREIGN_MENU(g_task_get_source_object(task));
+    OvirtCollection *collection = OVIRT_COLLECTION(source_object);
     GHashTableIter iter;
     OvirtVm *vm;
 
-    collection = OVIRT_COLLECTION(source_object);
     ovirt_collection_fetch_finish(collection, result, &error);
     if (error != NULL) {
         g_debug("failed to fetch VM list: %s", error->message);
-        g_clear_error(&error);
+        g_task_return_error(task, error);
+        g_object_unref(task);
         return;
     }
 
@@ -681,14 +682,18 @@ static void vms_fetched_cb(GObject *source_object,
         g_free(guid);
     }
     if (menu->priv->vm != NULL) {
-        ovirt_foreign_menu_next_async_step(menu, STATE_VM);
+        ovirt_foreign_menu_next_async_step(menu, task, STATE_VM);
     } else {
         g_warning("failed to find a VM with guid \"%s\"", menu->priv->vm_guid);
+        g_task_return_new_error(task, OVIRT_ERROR, OVIRT_ERROR_FAILED,
+                                "Could not find a VM with guid \"%s\"", menu->priv->vm_guid);
+        g_object_unref(task);
     }
 }
 
 
-static void ovirt_foreign_menu_fetch_vm_async(OvirtForeignMenu *menu)
+static void ovirt_foreign_menu_fetch_vm_async(OvirtForeignMenu *menu,
+                                              GTask *task)
 {
     OvirtCollection *vms;
 
@@ -698,7 +703,8 @@ static void ovirt_foreign_menu_fetch_vm_async(OvirtForeignMenu *menu)
 
     vms = ovirt_api_get_vms(menu->priv->api);
     ovirt_collection_fetch_async(vms, menu->priv->proxy,
-                                 NULL, vms_fetched_cb, menu);
+                                 g_task_get_cancellable(task),
+                                 vms_fetched_cb, task);
 }
 
 
@@ -707,31 +713,35 @@ static void api_fetched_cb(GObject *source_object,
                            gpointer user_data)
 {
     GError *error = NULL;
-    OvirtProxy *proxy;
-    OvirtForeignMenu *menu = OVIRT_FOREIGN_MENU(user_data);
+    GTask *task = G_TASK(user_data);
+    OvirtForeignMenu *menu = OVIRT_FOREIGN_MENU(g_task_get_source_object(task));
+    OvirtProxy *proxy = OVIRT_PROXY(source_object);
 
-    proxy = OVIRT_PROXY(source_object);
     menu->priv->api = ovirt_proxy_fetch_api_finish(proxy, result, &error);
     if (error != NULL) {
         g_debug("failed to fetch toplevel API object: %s", error->message);
-        g_clear_error(&error);
+        g_task_return_error(task, error);
+        g_object_unref(task);
         return;
     }
     g_return_if_fail(OVIRT_IS_API(menu->priv->api));
     g_object_ref(menu->priv->api);
 
-    ovirt_foreign_menu_next_async_step(menu, STATE_API);
+    ovirt_foreign_menu_next_async_step(menu, task, STATE_API);
 }
 
 
-static void ovirt_foreign_menu_fetch_api_async(OvirtForeignMenu *menu)
+static void ovirt_foreign_menu_fetch_api_async(OvirtForeignMenu *menu,
+                                               GTask *task)
 {
     g_debug("Start fetching oVirt main entry point");
 
     g_return_if_fail(OVIRT_IS_FOREIGN_MENU(menu));
     g_return_if_fail(OVIRT_IS_PROXY(menu->priv->proxy));
 
-    ovirt_proxy_fetch_api_async(menu->priv->proxy, NULL, api_fetched_cb, menu);
+    ovirt_proxy_fetch_api_async(menu->priv->proxy,
+                                g_task_get_cancellable(task),
+                                api_fetched_cb, task);
 }
 
 
@@ -739,6 +749,8 @@ static void iso_list_fetched_cb(GObject *source_object,
                                 GAsyncResult *result,
                                 gpointer user_data)
 {
+    GTask *task = G_TASK(user_data);
+    OvirtForeignMenu *menu = OVIRT_FOREIGN_MENU(g_task_get_source_object(task));
     OvirtCollection *collection = OVIRT_COLLECTION(source_object);
     GError *error = NULL;
     GList *files;
@@ -747,42 +759,29 @@ static void iso_list_fetched_cb(GObject *source_object,
     if (error != NULL) {
         g_warning("failed to fetch files for ISO storage domain: %s",
                    error->message);
-        g_clear_error(&error);
+        g_task_return_error(task, error);
+        g_object_unref(task);
         return;
     }
 
     files = g_hash_table_get_values(ovirt_collection_get_resources(collection));
-    ovirt_foreign_menu_set_files(OVIRT_FOREIGN_MENU(user_data), files);
+    ovirt_foreign_menu_set_files(menu, files);
     g_list_free(files);
-
-    g_timeout_add_seconds(300, ovirt_foreign_menu_refresh_iso_list, user_data);
+    g_task_return_pointer(task, menu->priv->iso_names, NULL);
+    g_object_unref(task);
 }
 
 
-static void ovirt_foreign_menu_fetch_iso_list_async(OvirtForeignMenu *menu)
+static void ovirt_foreign_menu_fetch_iso_list_async(OvirtForeignMenu *menu,
+                                                    GTask *task)
 {
     if (menu->priv->files == NULL) {
         return;
     }
 
     ovirt_collection_fetch_async(menu->priv->files, menu->priv->proxy,
-                                 NULL, iso_list_fetched_cb, menu);
-}
-
-
-static gboolean ovirt_foreign_menu_refresh_iso_list(gpointer user_data)
-{
-    OvirtForeignMenu *menu;
-
-    g_debug("Refreshing foreign menu iso list");
-    menu = OVIRT_FOREIGN_MENU(user_data);
-    ovirt_foreign_menu_fetch_iso_list_async(menu);
-
-    /* ovirt_foreign_menu_fetch_iso_list_async() will schedule a new call to
-     * that function through iso_list_fetched_cb() when it has finished
-     * fetching the iso list
-     */
-    return G_SOURCE_REMOVE;
+                                 g_task_get_cancellable(task),
+                                 iso_list_fetched_cb, task);
 }
 
 

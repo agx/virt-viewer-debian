@@ -1129,6 +1129,7 @@ virt_viewer_app_channel_open(VirtViewerSession *session,
 {
     VirtViewerAppPrivate *priv;
     int fd = -1;
+    gchar *error_message = NULL;
 
     g_return_if_fail(self != NULL);
 
@@ -1141,14 +1142,30 @@ virt_viewer_app_channel_open(VirtViewerSession *session,
     if (priv->transport && g_ascii_strcasecmp(priv->transport, "ssh") == 0 &&
         !priv->direct && fd == -1) {
         if ((fd = virt_viewer_app_open_tunnel_ssh(priv->host, priv->port, priv->user,
-                                                  priv->ghost, priv->gport, NULL)) < 0)
-            virt_viewer_app_simple_message_dialog(self, _("Connect to ssh failed."));
-    } else if (fd == -1) {
-        virt_viewer_app_simple_message_dialog(self, _("Can't connect to channel, SSH only supported."));
+                                                  priv->ghost, priv->gport, priv->unixsock)) < 0) {
+            error_message = g_strdup(_("Connect to ssh failed."));
+            g_debug("channel open ssh tunnel: %s", error_message);
+        }
+    }
+    if (fd < 0 && priv->unixsock) {
+        GError *error = NULL;
+        if ((fd = virt_viewer_app_open_unix_sock(priv->unixsock, &error)) < 0) {
+            g_free(error_message);
+            error_message = g_strdup(error->message);
+            g_debug("channel open unix socket: %s", error_message);
+        }
+        g_clear_error(&error);
     }
 
-    if (fd >= 0)
-        virt_viewer_session_channel_open_fd(session, channel, fd);
+    if (fd < 0) {
+        virt_viewer_app_simple_message_dialog(self, _("Can't connect to channel: %s"),
+                                              (error_message != NULL) ? error_message :
+                                              _("only SSH or unix socket connection supported."));
+        g_free(error_message);
+        return;
+    }
+
+    virt_viewer_session_channel_open_fd(session, channel, fd);
 }
 #else
 static void
@@ -1239,6 +1256,8 @@ virt_viewer_app_activate(VirtViewerApp *self, GError **error)
     ret = VIRT_VIEWER_APP_GET_CLASS(self)->activate(self, error);
 
     if (ret == FALSE) {
+        if(error != NULL && *error != NULL)
+            virt_viewer_app_show_status(self, (*error)->message);
         priv->connected = FALSE;
     } else {
         virt_viewer_app_show_status(self, _("Connecting to graphic server"));
@@ -1422,6 +1441,8 @@ virt_viewer_app_disconnected(VirtViewerSession *session G_GNUC_UNUSED, const gch
 
     if (!priv->kiosk)
         virt_viewer_app_hide_all_windows(self);
+    else if (priv->cancelled)
+        priv->authretry = TRUE;
 
     if (priv->quitting)
         g_application_quit(G_APPLICATION(self));
@@ -1728,7 +1749,6 @@ virt_viewer_app_init(VirtViewerApp *self)
 
     g_clear_error(&error);
 
-    self->priv->initial_display_map = virt_viewer_app_get_monitor_mapping_for_section(self, "fallback");
     g_signal_connect(self, "notify::guest-name", G_CALLBACK(title_maybe_changed), NULL);
     g_signal_connect(self, "notify::title", G_CALLBACK(title_maybe_changed), NULL);
     g_signal_connect(self, "notify::guri", G_CALLBACK(title_maybe_changed), NULL);
@@ -1805,6 +1825,7 @@ virt_viewer_app_on_application_startup(GApplication *app)
     self->priv->main_window = virt_viewer_app_window_new(self,
                                                          virt_viewer_app_get_first_monitor(self));
     self->priv->main_notebook = GTK_WIDGET(virt_viewer_window_get_notebook(self->priv->main_window));
+    self->priv->initial_display_map = virt_viewer_app_get_monitor_mapping_for_section(self, "fallback");
 
     virt_viewer_app_set_kiosk(self, opt_kiosk);
     virt_viewer_app_set_hotkeys(self, opt_hotkeys);
