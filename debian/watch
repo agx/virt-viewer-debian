@@ -1,4 +1,4 @@
 version=3
 
 opts="pgpsigurlmangle=s/$/.asc/" \
-    http://fedorahosted.org/released/virt-viewer/virt-viewer-(.*)\.tar\.gz
+    https://releases.pagure.org/virt-viewer/virt-viewer-(.*)\.tar\.gz
