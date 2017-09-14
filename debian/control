@@ -19,7 +19,7 @@ Build-Depends:
  libtool,
  intltool
 Standards-Version: 4.0.0
-Vcs-Git: https://anonscm.debian.org/cgit/pkg-libvirt/virt-viewer.git;a=summary
+Vcs-Git: https://anonscm.debian.org/cgit/pkg-libvirt/virt-viewer.git
 Vcs-Browser: https://anonscm.debian.org/git/git/pkg-libvirt/virt-viewer.git
 Homepage: http://virt-manager.org
 
