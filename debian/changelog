@@ -1,3 +1,12 @@
+virt-viewer (6.0-2) unstable; urgency=medium
+
+  * [57c8066] Update homepage URL (Closes: #874045)
+  * [00209ab] Mention spice protocoll
+  * [a0c8e33] Fix vcs-git url
+  * [0bbb3f9] Add id-length to gbp.conf
+
+ -- Guido Günther <agx@sigxcpu.org>  Thu, 14 Sep 2017 19:00:35 +0200
+
 virt-viewer (6.0-1) unstable; urgency=medium
 
   * [4e082dc] Swith to DEB-14 compatible branch layout
